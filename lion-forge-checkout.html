@@ -201,6 +201,7 @@ nav{position:relative;z-index:100;display:flex;align-items:center;justify-conten
     const r = await fetch('/api/auth/me', { credentials: 'include' });
     if (r.ok) {
       window._lfCurrentUser = await r.json();
+      var _sb=document.getElementById('lfp-signout');if(_sb)_sb.style.display='inline-block';
     }
   } catch(e) {}
 })();
@@ -221,6 +222,7 @@ window.navSignOut = function(){fetch('/api/auth/logout',{method:'POST',credentia
     <li><a href="lion-forge-calculator.html">CALCULATOR</a></li>
     <li><a href="#" class="active">CHECKOUT</a></li>
   </ul>
+  <div style="margin-left:auto;"><button id="lfp-signout" onclick="fetch('/api/auth/logout',{method:'POST',credentials:'include'}).finally(()=>window.location.href='index.html')" style="display:none;background:none;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:6px 14px;color:#6a7a9e;font-size:12px;font-family:Inter,sans-serif;cursor:pointer;letter-spacing:0.04em;" onmouseover="this.style.color='#ef4444';this.style.borderColor='rgba(239,68,68,0.4)'" onmouseout="this.style.color='#6a7a9e';this.style.borderColor='rgba(255,255,255,0.12)'">Sign Out</button></div>
 </nav>
 
 <div class="page">

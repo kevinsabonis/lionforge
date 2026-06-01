@@ -84,31 +84,7 @@ export default {
       // Inject a client-side script into every HTML page that adds the Sign Out
       // button next to the logo if the user is logged in. Client-side so the
       // response stays cacheable at the edge regardless of session state.
-      return new HTMLRewriter()
-          .on('body', {
-            element(el) {
-              el.append(
-                `<script>(function(){` +
-                `fetch('/api/auth/me',{credentials:'include'})` +
-                `.then(function(r){return r.ok?r.json():null})` +
-                `.then(function(u){` +
-                  `if(!u)return;` +
-                  `var logo=document.querySelector('a.nav-logo');` +
-                  `if(!logo)return;` +
-                  `var b=document.createElement('button');` +
-                  `b.textContent='Sign Out';` +
-                  `b.style.cssText='margin-left:14px;background:none;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:6px 14px;color:#6a7a9e;font-size:12px;font-family:Inter,sans-serif;cursor:pointer;letter-spacing:0.04em;vertical-align:middle;';` +
-                  `b.onmouseover=function(){this.style.color='#ef4444';this.style.borderColor='rgba(239,68,68,0.35)';};` +
-                  `b.onmouseout=function(){this.style.color='#6a7a9e';this.style.borderColor='rgba(255,255,255,0.12)';};` +
-                  `b.onclick=function(){fetch('/api/auth/logout',{method:'POST',credentials:'include'}).finally(function(){window.location.href='index.html';});};` +
-                  `logo.insertAdjacentElement('afterend',b);` +
-                `}).catch(function(){});` +
-                `})();</script>`,
-                { html: true }
-              );
-            }
-          })
-          .transform(response);
+      return response;
     }
 
     if (method === 'OPTIONS') {
