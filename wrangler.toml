@@ -1,0 +1,6 @@
+name = "lionforgepeptides"
+compatibility_date = "2024-09-23"
+account_id = "1dff08df3a1fc3436bcb6f1439020d8b"
+
+[assets]
+directory = "."
