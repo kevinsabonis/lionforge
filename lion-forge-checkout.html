@@ -20,7 +20,7 @@ body::before{content:'';position:fixed;inset:0;
              linear-gradient(180deg,#0d1535 0%,#080e20 50%,#050b18 100%);
   pointer-events:none;z-index:0;}
 
-nav{position:relative;z-index:100;display:flex;align-items:center;justify-content:space-between;
+nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
   padding:16px 36px;border-bottom:1px solid rgba(232,168,32,0.15);
   background:rgba(6,10,24,0.92);backdrop-filter:blur(8px);}
 .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
@@ -29,7 +29,7 @@ nav{position:relative;z-index:100;display:flex;align-items:center;justify-conten
 .nav-links{display:flex;gap:28px;list-style:none;}
 .nav-links a{font-size:13px;color:var(--muted);text-decoration:none;letter-spacing:0.05em;transition:color .2s;}
 .nav-links a:hover{color:var(--gold-bright);}
-.nav-links a.active{color:var(--gold);}
+.nav-links a.active{color:var(--gold);}.nav-right{display:flex;align-items:center;gap:14px;justify-content:flex-end;}
 
 .page{position:relative;z-index:1;max-width:1060px;margin:0 auto;padding:44px 24px 80px;}
 .page-label{font-size:11px;letter-spacing:0.35em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
@@ -222,7 +222,7 @@ window.navSignOut = function(){fetch('/api/auth/logout',{method:'POST',credentia
     <li><a href="lion-forge-calculator.html">CALCULATOR</a></li>
     <li><a href="#" class="active">CHECKOUT</a></li>
   </ul>
-  <div style="margin-left:auto;"><button id="lfp-signout" onclick="fetch('/api/auth/logout',{method:'POST',credentials:'include'}).finally(()=>window.location.href='index.html')" style="display:none;background:none;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:6px 14px;color:#6a7a9e;font-size:12px;font-family:Inter,sans-serif;cursor:pointer;letter-spacing:0.04em;" onmouseover="this.style.color='#ef4444';this.style.borderColor='rgba(239,68,68,0.4)'" onmouseout="this.style.color='#6a7a9e';this.style.borderColor='rgba(255,255,255,0.12)'">Sign Out</button></div>
+  <div class="nav-right"><button id="lfp-signout" onclick="fetch('/api/auth/logout',{method:'POST',credentials:'include'}).finally(()=>window.location.href='index.html')" style="display:none;background:none;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:6px 14px;color:#6a7a9e;font-size:12px;font-family:Inter,sans-serif;cursor:pointer;letter-spacing:0.04em;" onmouseover="this.style.color='#ef4444';this.style.borderColor='rgba(239,68,68,0.4)'" onmouseout="this.style.color='#6a7a9e';this.style.borderColor='rgba(255,255,255,0.12)'">Sign Out</button></div>
 </nav>
 
 <div class="page">

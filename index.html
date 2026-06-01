@@ -41,9 +41,9 @@
   nav {
     position: relative;
     z-index: 10;
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    justify-content: space-between;
     padding: 18px 40px;
     border-bottom: 1px solid rgba(232, 168, 32, 0.18);
     background: rgba(6, 10, 24, 0.88);
@@ -77,6 +77,7 @@
 
   .nav-links a:hover { color: var(--gold-bright); }
   .nav-links a.active { color: var(--gold); }
+  .nav-right { display:flex; align-items:center; gap:14px; justify-content:flex-end; }
 
   .hero {
     position: relative;
