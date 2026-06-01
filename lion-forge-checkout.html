@@ -195,26 +195,13 @@ nav{position:relative;z-index:100;display:flex;align-items:center;justify-conten
   .form-grid-2,.form-grid-3{grid-template-columns:1fr;}
 }
 </style>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-
-// ── REPLACE WITH YOUR FIREBASE PROJECT CONFIG ─────────────────────
-const firebaseConfig = {
-  apiKey:            "AIzaSyB9Zb9nBoDrlx5Rw7hXTukSMutDkxgW46Y",
-  authDomain:        "lion-forge-peptides.firebaseapp.com",
-  projectId:         "lion-forge-peptides",
-  storageBucket:     "lion-forge-peptides.firebasestorage.app",
-  messagingSenderId: "186037495999",
-  appId:             "1:186037495999:web:7c3c31d70525964e7a7e0a"
-};
-const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
-window._lfAuth = auth;
-window._lfDb   = db;
-window._lfFns  = { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, collection, addDoc, getDocs, query, where, serverTimestamp };
+<script>
+(async function() {
+  try {
+    const r = await fetch('/api/auth/me', { credentials: 'include' });
+    if (r.ok) window._lfCurrentUser = await r.json();
+  } catch(e) {}
+})();
 </script>
 </head>
 <body>
@@ -451,25 +438,6 @@ window._lfFns  = { createUserWithEmailAndPassword, signInWithEmailAndPassword, o
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, doc, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-functions.js";
-
-const firebaseConfig = {
-  apiKey:            "AIzaSyB9Zb9nBoDrlx5Rw7hXTukSMutDkxgW46Y",
-  authDomain:        "lion-forge-peptides.firebaseapp.com",
-  projectId:         "lion-forge-peptides",
-  storageBucket:     "lion-forge-peptides.firebasestorage.app",
-  messagingSenderId: "186037495999",
-  appId:             "1:186037495999:web:7c3c31d70525964e7a7e0a"
-};
-
-const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
-const functions = getFunctions(app);
-const placeOrderFn = httpsCallable(functions, "placeOrder");
 
 // ── EmailJS CONFIG ────────────────────────────────────────────────
 const EMAILJS_SERVICE_ID   = 'service_lvdwr4o';
@@ -503,20 +471,8 @@ let ORDER_NUM = null;
 window.addEventListener('load', async function() {
   cart = loadCartData();
 
-  // Get sequential order number from Firestore
-  try {
-    const counterRef = doc(db, 'config', 'settings');
-    ORDER_NUM = await runTransaction(db, async (tx) => {
-      const snap = await tx.get(counterRef);
-      const last = snap.exists() ? (snap.data().lastOrderNum || 53) : 53;
-      const next = last + 1;
-      tx.set(counterRef, { lastOrderNum: next }, { merge: true });
-      return next;
-    });
-  } catch(e) {
-    console.warn('Counter fallback:', e);
-    ORDER_NUM = 54 + Math.floor(Math.random() * 900);
-  }
+  // Order number is assigned by the server at placement time
+  ORDER_NUM = null;
 
   ['display-order-num','summary-order-num','success-order-num'].forEach(id => {
     const el = document.getElementById(id);
@@ -663,20 +619,24 @@ window.placeOrder = async function() {
   // writes the order. Nothing money-related here is trusted from the client.
   let res;
   try {
-    const out = await placeOrderFn({
-      orderNum: ORDER_NUM,
-      items: cart.map(c => ({ id: c.id, variantIndex: c.variantIndex, qty: c.qty })),
-      customer: { name, email, address },
-      shippingMethod: shipMethodKey,
-      discountCode,
-      paymentMethod: selectedPayment
-        ? selectedPayment.charAt(0).toUpperCase() + selectedPayment.slice(1) : '—',
+    const r = await fetch('/api/orders/place', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: cart.map(c => ({ id: c.id, variantIndex: c.variantIndex, qty: c.qty })),
+        customer: { name, email, address },
+        shippingMethod: shipMethodKey,
+        discountCode,
+        paymentMethod: selectedPayment
+          ? selectedPayment.charAt(0).toUpperCase() + selectedPayment.slice(1) : '—',
+      }),
     });
-    res = out.data;
+    res = await r.json();
+    if (!r.ok) throw new Error(res.error || 'Order could not be placed. Please try again.');
   } catch (e) {
     console.error('Order failed:', e);
     if (btn) { btn.disabled = false; btn.textContent = 'PLACE ORDER'; }
-    // Firebase callable errors carry a human-readable message we set server-side.
     showToast(e?.message || 'Order could not be placed. Please try again.');
     return;
   }

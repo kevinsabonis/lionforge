@@ -1,6 +1,13 @@
 name = "lionforgepeptides"
+main = "worker.js"
 compatibility_date = "2024-09-23"
 account_id = "1dff08df3a1fc3436bcb6f1439020d8b"
 
 [assets]
 directory = "."
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "lion-forge-db"
+database_id = "a7324a7f-4b36-4ef1-b6b4-a6fd76c0b80d"

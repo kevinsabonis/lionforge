@@ -1,8 +1,7 @@
 .git/
 .github/
 .claude/
-functions/
 wrangler.toml
 .assetsignore
-firebase.json
-.firebaserc
+schema.sql
+worker.js

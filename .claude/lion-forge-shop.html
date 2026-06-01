@@ -248,32 +248,63 @@ nav{position:relative;z-index:100;display:flex;align-items:center;justify-conten
   </div>
 </div>
 
-<script>
-(async function() {
-  let user;
-  try {
-    const r = await fetch('/api/auth/me', { credentials: 'include' });
-    if (!r.ok) { window.location.href = 'index.html'; return; }
-    user = await r.json();
-    window._lfCurrentUser = user;
-  } catch(e) { window.location.href = 'index.html'; return; }
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, doc, getDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-  if (user.role === 'admin') {
-    const btn = document.getElementById('admin-nav-btn');
-    if (btn) btn.style.display = 'block';
-  }
+const firebaseConfig = {
+  apiKey:            "AIzaSyB9Zb9nBoDrlx5Rw7hXTukSMutDkxgW46Y",
+  authDomain:        "lion-forge-peptides.firebaseapp.com",
+  projectId:         "lion-forge-peptides",
+  storageBucket:     "lion-forge-peptides.firebasestorage.app",
+  messagingSenderId: "186037495999",
+  appId:             "1:186037495999:web:7c3c31d70525964e7a7e0a"
+};
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+window._lfAuth = auth;
+window._lfDb   = db;
+window._lfFns  = { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, collection, addDoc, getDocs, query, where, serverTimestamp };
 
+// ── SYNC PRODUCTS FROM FIRESTORE ─────────────────────────────────
+// Load products from Firestore and sync into the shop's products array
+async function syncProductsFromFirestore() {
   try {
-    const r = await fetch('/api/products');
-    const data = await r.json();
-    if (data.list && data.list.length > 0) {
-      products.length = 0;
-      data.list.forEach(p => products.push(p));
-      nextId = Math.max(...products.map(p => p.id)) + 1;
-      renderProducts();
+    const snap = await getDoc(doc(db, 'config', 'products'));
+    if (snap.exists()) {
+      const list = snap.data().list;
+      if (list && list.length > 0) {
+        // Replace the shop's products array in place
+        products.length = 0;
+        list.forEach(p => products.push(p));
+        nextId = Math.max(...products.map(p => p.id)) + 1;
+        renderProducts(); // re-render with Firestore data (includes hidden flags)
+        console.log('Shop synced from Firestore:', products.length, 'products');
+      }
     }
-  } catch(e) { console.warn('Product sync failed:', e.message); }
-})();
+  } catch(e) {
+    console.warn('Firestore product sync failed, using local data:', e.message);
+  }
+}
+
+// Run sync after auth is confirmed
+onAuthStateChanged(auth, user => {
+  if (user) {
+    syncProductsFromFirestore();
+    const ADMIN_EMAILS = ['kevinsabonis@gmail.com'];
+    if (ADMIN_EMAILS.includes(user.email)) {
+      const btn = document.getElementById('admin-nav-btn');
+      if (btn) btn.style.display = 'block';
+    }
+  } else {
+    // Give Firebase a moment to restore session before redirecting
+    setTimeout(() => {
+      if (!auth.currentUser) window.location.href = 'index.html';
+    }, 1500);
+  }
+});
 </script>
 </head>
 <body>

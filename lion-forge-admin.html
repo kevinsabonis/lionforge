@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -296,24 +296,6 @@ nav{position:relative;z-index:100;display:flex;align-items:center;justify-conten
 
 <div class="toast" id="toast"></div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, updateDoc, setDoc, getDoc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey:            "AIzaSyB9Zb9nBoDrlx5Rw7hXTukSMutDkxgW46Y",
-  authDomain:        "lion-forge-peptides.firebaseapp.com",
-  projectId:         "lion-forge-peptides",
-  storageBucket:     "lion-forge-peptides.firebasestorage.app",
-  messagingSenderId: "186037495999",
-  appId:             "1:186037495999:web:7c3c31d70525964e7a7e0a"
-};
-const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
-
-const ADMIN_EMAILS             = ['kevinsabonis@gmail.com'];
 const EMAILJS_SERVICE_ID       = 'service_lvdwr4o';
 const EMAILJS_PUBLIC_KEY       = 'oV9_mb8asjyRBR1iX';
 const EMAILJS_SHIP_TEMPLATE    = 'template_b0htp5a';
@@ -322,27 +304,40 @@ let allOrders = [];
 let currentFilter = 'all';
 
 // ── AUTH ─────────────────────────────────────────────────────────
-onAuthStateChanged(auth, user => {
-  if (user && ADMIN_EMAILS.includes(user.email)) {
+(async function() {
+  try {
+    const r = await fetch('/api/auth/me', { credentials: 'include' });
+    if (!r.ok) throw new Error();
+    const user = await r.json();
+    if (user.role !== 'admin') throw new Error();
+    window._lfCurrentUser = user;
     document.getElementById('auth-gate').style.display = 'none';
     document.getElementById('main').style.display = 'block';
     loadOrders();
     loadProducts();
-  } else if (user) {
-    signOut(auth).then(() => window.location.replace('index.html'));
-  } else {
+  } catch(e) {
     document.getElementById('auth-gate').style.display = 'block';
     document.getElementById('main').style.display = 'none';
   }
-});
+})();
 
-window.adminLogin = function() {
-  const e = document.getElementById('a-email').value.trim();
-  const p = document.getElementById('a-pass').value;
-  signInWithEmailAndPassword(auth, e, p).catch(err => alert('Login failed: ' + err.message));
+window.adminLogin = async function() {
+  const email = document.getElementById('a-email').value.trim();
+  const password = document.getElementById('a-pass').value;
+  try {
+    const r = await fetch('/api/auth/login', { method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, password}) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Login failed');
+    if (d.role !== 'admin') { await fetch('/api/auth/logout',{method:'POST',credentials:'include'}); throw new Error('Not an admin account'); }
+    window._lfCurrentUser = d;
+    document.getElementById('auth-gate').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+    loadOrders(); loadProducts();
+  } catch(err) { alert('Login failed: ' + err.message); }
 };
 window.doSignOut = function() {
-  signOut(auth).then(() => window.location.href = 'index.html');
+  fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+    .finally(() => { window.location.href = 'index.html'; });
 };
 
 // ── TABS ─────────────────────────────────────────────────────────
@@ -360,9 +355,8 @@ window.switchTab = function(name, btn) {
 // ══════════════════════════════════════════════════════════════════
 async function loadOrders() {
   try {
-    const snap = await getDocs(collection(db, 'orders'));
-    allOrders = [];
-    snap.forEach(d => allOrders.push({ fid: d.id, ...d.data() }));
+    const r = await fetch('/api/admin/orders', { credentials: 'include' });
+    allOrders = (await r.json()).map(o => ({ fid: o.id, ...o }));
     allOrders.sort((a,b) => (b.orderNum||0) - (a.orderNum||0));
     updateStats(); filterOrders(); renderCancelledOrders();
   } catch(e) {
@@ -482,7 +476,7 @@ window.markShipped = async function(fid, email, name, orderNum) {
   const btn = document.querySelector(`#oc-${fid} .ship-btn`);
   if (btn) { btn.disabled=true; btn.textContent='Updating...'; }
   try {
-    await updateDoc(doc(db,'orders',fid), { status:'shipped', carrier, trackingNumber:tracking, shippedAt:new Date().toISOString() });
+    const r = await fetch('/api/admin/orders/'+fid, { method:'PUT', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ status:'shipped', carrier, trackingNumber:tracking, shippedAt:new Date().toISOString() }) }); if (!r.ok) throw new Error('Update failed');
     const order = allOrders.find(o=>o.fid===fid);
     // Send shipping email
     if (typeof emailjs!=='undefined' && email) {
@@ -505,11 +499,7 @@ window.cancelOrder = async function(fid, orderNum) {
   if (!confirm('Cancel order #'+orderNum+'? This action cannot be undone.')) return;
   const reason = document.getElementById('cancel-reason-'+fid)?.value.trim() || '';
   try {
-    await updateDoc(doc(db,'orders',fid), {
-      status: 'cancelled',
-      cancelReason: reason,
-      cancelledAt: new Date().toISOString()
-    });
+    const rc = await fetch('/api/admin/orders/'+fid, { method:'PUT', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ status:'cancelled', cancelReason: reason, cancelledAt: new Date().toISOString() }) }); if (!rc.ok) throw new Error('Update failed');
     const order = allOrders.find(o=>o.fid===fid);
     if (order) { order.status='cancelled'; order.cancelReason=reason; order.cancelledAt=new Date().toISOString(); }
     updateStats(); filterOrders(); renderCancelledOrders();
@@ -593,14 +583,9 @@ let editingId = null;
 
 async function loadProducts() {
   try {
-    const snap = await getDoc(doc(db,'config','products'));
-    if (snap.exists()) {
-      products = snap.data().list || [];
-    } else {
-      // Use hardcoded defaults on first load
-      products = getDefaultProducts();
-      await saveProductsToDB();
-    }
+    const r = await fetch('/api/admin/products', { credentials: 'include' });
+    const d = await r.json();
+    products = d.list || [];
     renderProducts();
   } catch(e) {
     console.error('Products load error:',e);
@@ -613,7 +598,7 @@ async function loadProducts() {
 
 async function saveProductsToDB() {
   try {
-    await setDoc(doc(db,'config','products'), { list: products });
+    const r = await fetch('/api/admin/products', { method:'PUT', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ list: products }) }); if (!r.ok) throw new Error('Save failed');
     return true;
   } catch(e) {
     console.error('Save failed:', e);
@@ -817,10 +802,8 @@ async function loadAnnouncements() {
   if (!container) return;
   container.innerHTML = '<div class="empty-state">Loading...</div>';
   try {
-    const { query, orderBy } = await import("https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js");
-    const q = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
-    const snap = await getDocs(q);
-    announcements = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const r = await fetch('/api/admin/announcements', { credentials: 'include' });
+    announcements = await r.json();
   } catch(e) {
     announcements = [];
   }
@@ -869,8 +852,7 @@ window.saveAnnouncement = async function(publish) {
   const msg = document.getElementById('ann-msg').value.trim();
   if (!msg) { alert('Please write an announcement message.'); return; }
   try {
-    const { serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js");
-    await addDoc(collection(db, 'announcements'), { msg, published: publish, createdAt: serverTimestamp() });
+    const r = await fetch('/api/admin/announcements', { method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ title: msg, content: msg, published: publish }) }); if (!r.ok) throw new Error('Save failed');
     document.getElementById('ann-msg').value = '';
     document.getElementById('ann-form').style.display = 'none';
     showToast(publish ? '&#10003; Announcement published!' : '&#128393; Draft saved');
@@ -880,7 +862,7 @@ window.saveAnnouncement = async function(publish) {
 
 window.toggleAnnouncement = async function(id, isLive) {
   try {
-    await updateDoc(doc(db, 'announcements', id), { published: !isLive });
+    const r = await fetch('/api/admin/announcements/'+id, { method:'PUT', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ title: announcements.find(a=>a.id===id)?.title||'', content: announcements.find(a=>a.id===id)?.content||'', published: !isLive }) }); if (!r.ok) throw new Error('Update failed');
     showToast(isLive ? '&#128065; Unpublished' : '&#10003; Published!');
     loadAnnouncements();
   } catch(e) { alert('Error: ' + e.message); }
@@ -889,7 +871,7 @@ window.toggleAnnouncement = async function(id, isLive) {
 window.deleteAnnouncement = async function(id) {
   if (!confirm('Delete this announcement?')) return;
   try {
-    await deleteDoc(doc(db, 'announcements', id));
+    const r = await fetch('/api/admin/announcements/'+id, { method:'DELETE', credentials:'include' }); if (!r.ok) throw new Error('Delete failed');
     showToast('Announcement deleted');
     loadAnnouncements();
   } catch(e) { alert('Error: ' + e.message); }

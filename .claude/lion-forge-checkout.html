@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lion Forge Peptides — Account</title>
+<title>Lion Forge Peptides — Checkout</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -11,7 +11,7 @@
   --gold:#e8a820;--gold-bright:#ffd060;--gold-dim:#9a6e12;
   --navy:#080e20;--navy-mid:#0d1535;--navy-card:#101a38;
   --royal:#1e3d8f;--blue:#2547c0;
-  --green:#22c55e;--red:#ef4444;--orange:#f97316;--muted:#6a7a9e;
+  --green:#22c55e;--red:#ef4444;--muted:#6a7a9e;
 }
 body{background:var(--navy);color:#dde4f5;font-family:'Inter',sans-serif;min-height:100vh;}
 body::before{content:'';position:fixed;inset:0;
@@ -31,97 +31,191 @@ nav{position:relative;z-index:100;display:flex;align-items:center;justify-conten
 .nav-links a:hover{color:var(--gold-bright);}
 .nav-links a.active{color:var(--gold);}
 
-.page{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:48px 24px 80px;}
+.page{position:relative;z-index:1;max-width:1060px;margin:0 auto;padding:44px 24px 80px;}
+.page-label{font-size:11px;letter-spacing:0.35em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
+.page-title{font-size:30px;font-weight:400;color:#edf1ff;margin-bottom:36px;}
 
-/* PROFILE HEADER */
-.profile-header{margin-bottom:32px;}
-.profile-label{font-size:11px;letter-spacing:0.35em;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
-.profile-name{font-size:34px;font-weight:400;color:#edf1ff;margin-bottom:6px;}
-.profile-email{font-size:14px;color:var(--muted);font-family:'Share Tech Mono',monospace;letter-spacing:0.06em;}
+.checkout-grid{display:grid;grid-template-columns:1fr 420px;gap:24px;align-items:start;}
 
 /* SECTION CARD */
 .section-card{background:rgba(16,26,56,0.65);border:1px solid rgba(232,168,32,0.15);
   border-radius:16px;overflow:hidden;margin-bottom:20px;}
-.section-head{padding:14px 22px;border-bottom:1px solid rgba(255,255,255,0.06);}
+.section-head{padding:16px 22px;border-bottom:1px solid rgba(255,255,255,0.06);}
 .section-head h3{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.28em;
   color:var(--gold);text-transform:uppercase;}
-.section-body{padding:24px 22px;}
+.section-body{padding:22px;}
 
-/* FORMS */
-.form-full{margin-bottom:14px;}
+/* FORM */
 .form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
-.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px;}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+.form-full{margin-bottom:14px;}
 .form-group label{display:block;font-size:12px;font-weight:500;color:#dde4f5;margin-bottom:7px;}
 .form-input{width:100%;padding:12px 14px;background:rgba(255,255,255,0.05);
   border:1px solid rgba(232,168,32,0.15);border-radius:10px;color:#dde4f5;
   font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s;}
 .form-input:focus{border-color:rgba(232,168,32,0.45);}
 .form-input::placeholder{color:#2e3a52;}
+.form-input.error{border-color:var(--red);}
 
-.save-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 24px;
-  background:var(--royal);border:1px solid rgba(232,168,32,0.35);border-radius:10px;
+/* ORDER SUMMARY */
+.order-num-row{display:flex;justify-content:space-between;align-items:center;
+  padding:14px 22px;border-bottom:1px solid rgba(255,255,255,0.06);}
+.order-num-label{font-size:11px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;}
+.order-num-val{font-family:'Share Tech Mono',monospace;font-size:18px;font-weight:700;color:#edf1ff;}
+
+.summary-item-row{display:flex;justify-content:space-between;align-items:center;
+  padding:13px 22px;border-bottom:1px solid rgba(255,255,255,0.05);font-size:14px;}
+.summary-item-name{color:#dde4f5;font-weight:500;}
+.summary-item-price{color:#dde4f5;font-weight:500;}
+.summary-line-row{display:flex;justify-content:space-between;align-items:center;
+  padding:11px 22px;font-size:14px;}
+.summary-line-row.shipping{border-bottom:1px solid rgba(255,255,255,0.06);}
+.summary-line-label{color:var(--muted);}
+.summary-line-val{color:#dde4f5;}
+
+/* SHIPPING METHOD */
+.shipping-method-wrap{padding:0 22px 16px;}
+.shipping-method-label{font-size:12px;color:var(--muted);margin-bottom:10px;letter-spacing:0.06em;}
+.shipping-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.shipping-option{padding:12px 14px;border-radius:10px;cursor:pointer;
+  border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);transition:all .2s;}
+.shipping-option:hover{border-color:rgba(232,168,32,0.3);}
+.shipping-option.selected{border-color:var(--gold);background:rgba(232,168,32,0.07);}
+.ship-name{font-size:13px;font-weight:500;color:#dde4f5;margin-bottom:4px;}
+.ship-desc{font-size:11px;color:var(--muted);}
+
+/* DISCOUNT */
+.discount-wrap{display:flex;gap:0;padding:0 22px 18px;}
+.discount-input{flex:1;padding:12px 14px;background:rgba(255,255,255,0.04);
+  border:1px solid rgba(232,168,32,0.15);border-radius:10px 0 0 10px;color:#dde4f5;
+  font-size:14px;font-family:'Share Tech Mono',monospace;letter-spacing:0.08em;outline:none;}
+.discount-input::placeholder{color:#2e3a52;font-size:13px;}
+.discount-input:focus{border-color:rgba(232,168,32,0.4);}
+.discount-apply{padding:12px 20px;background:rgba(255,255,255,0.06);
+  border:1px solid rgba(232,168,32,0.2);border-left:none;border-radius:0 10px 10px 0;
+  color:#dde4f5;font-size:13px;font-weight:500;cursor:pointer;transition:background .2s;white-space:nowrap;}
+.discount-apply:hover{background:rgba(232,168,32,0.15);color:var(--gold);}
+
+/* TOTAL ROW */
+.total-row{display:flex;justify-content:space-between;align-items:center;
+  padding:16px 22px;border-top:1px solid rgba(232,168,32,0.15);}
+.total-label{font-size:15px;font-weight:600;color:#edf1ff;}
+.total-val{font-size:22px;font-weight:700;color:var(--gold);}
+
+/* PAYMENT */
+.payment-rules{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);
+  border-radius:10px;padding:14px 16px;margin-bottom:16px;}
+.payment-rules h4{font-size:12px;font-weight:600;color:#dde4f5;margin-bottom:8px;}
+.payment-rules ul{list-style:none;display:flex;flex-direction:column;gap:5px;}
+.payment-rules li{font-size:12px;color:var(--muted);padding-left:12px;position:relative;}
+.payment-rules li::before{content:"•";position:absolute;left:0;color:var(--gold-dim);}
+
+.order-num-box{text-align:center;padding:14px;border:1px solid rgba(255,255,255,0.08);
+  border-radius:10px;margin-bottom:16px;background:rgba(255,255,255,0.02);}
+.order-num-box .label{font-size:10px;letter-spacing:0.3em;color:var(--muted);margin-bottom:6px;text-transform:uppercase;}
+.order-num-box .num{font-family:'Share Tech Mono',monospace;font-size:32px;font-weight:700;color:#edf1ff;}
+.order-num-box .sublabel{font-size:11px;color:#3a4a6a;margin-top:4px;}
+
+.ff-warning{background:rgba(180,20,20,0.18);border:1px solid rgba(239,68,68,0.5);
+  border-radius:10px;padding:14px 16px;margin-bottom:16px;text-align:center;}
+.ff-warning .ff-title{font-size:13px;font-weight:700;color:#fca5a5;letter-spacing:0.05em;margin-bottom:4px;}
+.ff-warning .ff-sub{font-size:12px;color:#f87171;font-weight:600;letter-spacing:0.06em;}
+
+.payment-methods-label{font-size:12px;color:var(--muted);letter-spacing:0.08em;margin-bottom:10px;}
+.payment-methods-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.pay-method{padding:11px 14px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;
+  cursor:pointer;background:rgba(255,255,255,0.03);transition:all .2s;}
+.pay-method:hover:not(.unavailable){border-color:rgba(232,168,32,0.35);}
+.pay-method.selected{border-color:var(--gold);background:rgba(232,168,32,0.07);}
+.pay-method.unavailable{opacity:0.4;cursor:not-allowed;}
+.pay-method-name{font-size:13px;font-weight:500;color:#dde4f5;margin-bottom:3px;}
+.pay-method-handle{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;}
+.pay-method-handle .copy-btn{background:none;border:none;cursor:pointer;color:#3a4a6a;
+  font-size:11px;transition:color .2s;padding:0;}
+.pay-method-handle .copy-btn:hover{color:var(--gold);}
+
+/* FILE UPLOAD */
+.upload-label-text{font-size:12px;color:var(--muted);letter-spacing:0.08em;margin-bottom:8px;
+  display:flex;align-items:center;gap:6px;}
+.upload-label-text .req{color:var(--red);font-size:10px;}
+.upload-zone{border:1px dashed rgba(232,168,32,0.25);border-radius:10px;padding:20px;
+  text-align:center;cursor:pointer;transition:all .2s;position:relative;margin-bottom:16px;}
+.upload-zone:hover{border-color:rgba(232,168,32,0.5);background:rgba(232,168,32,0.03);}
+.upload-zone.has-file{border-color:var(--green);background:rgba(34,197,94,0.05);border-style:solid;}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.upload-icon{margin-bottom:6px;color:var(--muted);}
+.upload-text{font-size:12px;color:var(--muted);}
+.upload-text.uploaded{color:var(--green);font-weight:500;}
+.upload-error{font-size:11px;color:var(--red);margin-top:4px;display:none;}
+
+/* ACKNOWLEDGMENTS */
+.ack-wrap{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);
+  border-radius:10px;padding:14px 16px;margin-bottom:16px;}
+.ack-label{font-size:10px;letter-spacing:0.25em;color:var(--muted);text-transform:uppercase;margin-bottom:12px;}
+.ack-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;}
+.ack-item:last-child{margin-bottom:0;}
+.ack-check{width:16px;height:16px;min-width:16px;margin-top:2px;accent-color:var(--gold);cursor:pointer;}
+.ack-text{font-size:12px;color:var(--muted);line-height:1.5;}
+.ack-text strong{color:#dde4f5;}
+.ack-text .highlight{color:var(--gold);font-weight:600;}
+
+/* PLACE ORDER */
+.place-order-btn{width:100%;padding:16px;background:var(--royal);
+  border:1px solid rgba(232,168,32,0.4);border-radius:12px;
+  color:var(--gold-bright);font-family:'Share Tech Mono',monospace;font-size:13px;
+  letter-spacing:0.2em;cursor:pointer;transition:background .2s,transform .15s;
+  box-shadow:0 4px 30px rgba(30,61,143,0.4);}
+.place-order-btn:hover{background:var(--blue);transform:translateY(-1px);}
+.place-order-btn:disabled{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.1);
+  color:#3a4a6a;cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* SUCCESS */
+.success-overlay{display:none;position:fixed;inset:0;z-index:999;
+  background:rgba(4,8,22,0.92);backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;}
+.success-card{background:#0d1535;border:1px solid rgba(232,168,32,0.3);border-radius:20px;
+  padding:48px 44px;max-width:480px;width:100%;text-align:center;}
+.success-icon{font-size:52px;margin-bottom:16px;}
+.success-title{font-family:'Share Tech Mono',monospace;color:var(--gold);font-size:18px;
+  letter-spacing:0.2em;margin-bottom:10px;}
+.success-msg{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:8px;}
+.success-order{font-family:'Share Tech Mono',monospace;font-size:28px;color:#edf1ff;
+  margin:12px 0;}
+.success-note{font-size:12px;color:#3a4a6a;margin-bottom:28px;line-height:1.6;}
+.success-shop-btn{display:inline-block;padding:14px 36px;background:var(--royal);
+  border:1px solid rgba(232,168,32,0.35);border-radius:10px;
   color:var(--gold-bright);font-family:'Share Tech Mono',monospace;font-size:12px;
-  letter-spacing:0.15em;cursor:pointer;transition:background .2s;}
-.save-btn:hover{background:var(--blue);}
-.save-confirm{font-size:11px;color:var(--green);margin-left:12px;opacity:0;transition:opacity .3s;}
+  letter-spacing:0.15em;text-decoration:none;cursor:pointer;}
 
-/* ORDER HISTORY */
-.order-card{background:rgba(255,255,255,0.02);border:1px solid rgba(232,168,32,0.1);
-  border-radius:12px;padding:18px 20px;margin-bottom:12px;transition:border-color .2s;cursor:pointer;}
-.order-card:hover{border-color:rgba(232,168,32,0.25);}
-.order-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-.order-card-left{display:flex;align-items:center;gap:10px;}
-.order-icon{color:var(--muted);}
-.order-num{font-family:'Share Tech Mono',monospace;font-size:15px;font-weight:600;color:#edf1ff;}
-.order-total{font-size:15px;font-weight:600;color:#edf1ff;}
-.status-badge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:0.12em;
-  padding:3px 10px;border-radius:6px;text-transform:uppercase;margin-bottom:8px;}
-.status-pending{color:var(--orange);}
-.status-processing{color:var(--gold);}
-.status-shipped{color:#60a5fa;}
-.status-delivered{color:var(--green);}
-.status-cancelled{color:var(--red);}
-.order-items{font-size:12px;color:var(--muted);line-height:1.8;}
+/* VALIDATION ERRORS */
+.field-error{font-size:11px;color:var(--red);margin-top:4px;display:none;}
 
-/* EXPANDED ORDER */
-.order-detail{display:none;margin-top:14px;border-top:1px solid rgba(255,255,255,0.06);padding-top:14px;}
-.order-detail.open{display:block;}
-.detail-row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;
-  border-bottom:1px solid rgba(255,255,255,0.04);}
-.detail-row:last-child{border-bottom:none;}
-.detail-label{color:var(--muted);}
-.detail-val{color:#dde4f5;text-align:right;}
-.detail-total-row{display:flex;justify-content:space-between;font-size:13px;
-  font-weight:600;padding-top:10px;margin-top:6px;border-top:1px solid rgba(232,168,32,0.15);}
-.detail-total-row .detail-label{color:var(--muted);}
-.detail-total-row .detail-val{color:var(--gold);}
-
-/* EMPTY ORDERS */
-.empty-orders{text-align:center;padding:40px 20px;}
-.empty-orders p{color:var(--muted);font-size:14px;margin-bottom:16px;}
-.shop-link{display:inline-block;padding:11px 28px;background:var(--royal);
-  border:1px solid rgba(232,168,32,0.3);border-radius:10px;color:var(--gold-bright);
-  font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:0.12em;
-  text-decoration:none;}
-
-/* LOGOUT */
-.logout-btn{background:none;border:none;color:#3a4a6a;font-size:13px;cursor:pointer;
-  transition:color .2s;margin-top:8px;padding:0;}
-.logout-btn:hover{color:var(--red);}
-
-/* TOAST */
-.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
-  background:#1e3d8f;border:1px solid rgba(232,168,32,0.3);border-radius:10px;
-  padding:12px 24px;color:var(--gold-bright);font-size:13px;
-  font-family:'Share Tech Mono',monospace;letter-spacing:0.1em;
-  opacity:0;transition:opacity .3s;z-index:9999;pointer-events:none;}
-.toast.show{opacity:1;}
-
-@media(max-width:600px){
+@media(max-width:900px){
+  .checkout-grid{grid-template-columns:1fr;}
   .form-grid-2,.form-grid-3{grid-template-columns:1fr;}
 }
 </style>
-<script>window._lfFns = {}; window._lfAuth = {};</script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+// ── REPLACE WITH YOUR FIREBASE PROJECT CONFIG ─────────────────────
+const firebaseConfig = {
+  apiKey:            "AIzaSyB9Zb9nBoDrlx5Rw7hXTukSMutDkxgW46Y",
+  authDomain:        "lion-forge-peptides.firebaseapp.com",
+  projectId:         "lion-forge-peptides",
+  storageBucket:     "lion-forge-peptides.firebasestorage.app",
+  messagingSenderId: "186037495999",
+  appId:             "1:186037495999:web:7c3c31d70525964e7a7e0a"
+};
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+window._lfAuth = auth;
+window._lfDb   = db;
+window._lfFns  = { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, collection, addDoc, getDocs, query, where, serverTimestamp };
+</script>
 </head>
 <body>
 
@@ -135,184 +229,531 @@ nav{position:relative;z-index:100;display:flex;align-items:center;justify-conten
     <li><a href="lion-forge-shop.html">SHOP</a></li>
     <li><a href="lion-forge-cart.html">CART</a></li>
     <li><a href="lion-forge-calculator.html">CALCULATOR</a></li>
-    <li><a href="#" class="active">ACCOUNT</a></li>
+    <li><a href="#" class="active">CHECKOUT</a></li>
   </ul>
 </nav>
 
 <div class="page">
+  <div class="page-label">Secure Checkout</div>
+  <div class="page-title">Checkout</div>
 
-  <!-- PROFILE HEADER -->
-  <div class="profile-header">
-    <div class="profile-label">User Profile</div>
-    <div class="profile-name" id="profile-name">—</div>
-    <div class="profile-email" id="profile-email">—</div>
-    <button class="logout-btn" onclick="logout()">Sign out</button>
-  </div>
+  <div class="checkout-grid">
 
-  <!-- SHIPPING ADDRESS -->
-  <div class="section-card">
-    <div class="section-head"><h3>Shipping Address</h3></div>
-    <div class="section-body">
-      <div class="form-full form-group">
-        <label>Street</label>
-        <input class="form-input" type="text" id="addr-street" placeholder="123 Main St">
+    <!-- LEFT COLUMN -->
+    <div>
+
+      <!-- SHIPPING INFORMATION -->
+      <div class="section-card">
+        <div class="section-head"><h3>Shipping Information</h3></div>
+        <div class="section-body">
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input class="form-input" type="text" id="f-name" placeholder="Your full name">
+              <div class="field-error" id="err-name">Name is required</div>
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input class="form-input" type="email" id="f-email" placeholder="you@example.com">
+              <div class="field-error" id="err-email">Valid email is required</div>
+            </div>
+          </div>
+          <div class="form-full form-group">
+            <label>Street Address</label>
+            <input class="form-input" type="text" id="f-street" placeholder="123 Main St">
+            <div class="field-error" id="err-street">Street address is required</div>
+          </div>
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label>City</label>
+              <input class="form-input" type="text" id="f-city" placeholder="City">
+              <div class="field-error" id="err-city">Required</div>
+            </div>
+            <div class="form-group">
+              <label>State</label>
+              <input class="form-input" type="text" id="f-state" placeholder="TX" maxlength="2" style="text-transform:uppercase;">
+              <div class="field-error" id="err-state">Required</div>
+            </div>
+            <div class="form-group">
+              <label>ZIP</label>
+              <input class="form-input" type="text" id="f-zip" placeholder="00000" maxlength="10">
+              <div class="field-error" id="err-zip">Required</div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="form-grid-3">
-        <div class="form-group">
-          <label>City</label>
-          <input class="form-input" type="text" id="addr-city" placeholder="City">
+
+      <!-- PAYMENT -->
+      <div class="section-card">
+        <div class="section-head"><h3>Payment</h3></div>
+        <div class="section-body">
+
+          <div class="payment-rules">
+            <h4>Payment Rules:</h4>
+            <ul>
+              <li>Send payment via selected method</li>
+              <li>Payment Comment should ONLY include order number</li>
+              <li>Upload payment screenshot (required)</li>
+            </ul>
+          </div>
+
+          <div class="order-num-box">
+            <div class="label">Your Order Number</div>
+            <div class="num" id="display-order-num">#—</div>
+            <div class="sublabel">Include this number in your payment comment</div>
+          </div>
+
+          <div class="ff-warning">
+            <div class="ff-title">⚠ FRIENDS &amp; FAMILY ONLY</div>
+            <div class="ff-sub">ENSURE PAYMENT PROTECTION IS OFF</div>
+          </div>
+
+          <div class="payment-methods-label">Select Payment Method</div>
+          <div class="payment-methods-grid">
+            <div class="pay-method" id="pm-venmo" onclick="selectPayment('venmo')">
+              <div class="pay-method-name">Venmo</div>
+              <div class="pay-method-handle">@LIONFORGE
+                <button class="copy-btn" onclick="event.stopPropagation();copyText('@LIONFORGE')" title="Copy">&#x2398;</button>
+              </div>
+            </div>
+            <div class="pay-method unavailable" id="pm-cashapp">
+              <div class="pay-method-name">Cash App</div>
+              <div class="pay-method-handle">NOT AVAILABLE</div>
+            </div>
+            <div class="pay-method" id="pm-zelle" onclick="selectPayment('zelle')">
+              <div class="pay-method-name">Zelle</div>
+              <div class="pay-method-handle"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f79b9e98999198859092b7929a969e9bd994989a">[email&#160;protected]</a>
+                <button class="copy-btn" onclick="event.stopPropagation();copyText('lionforge@email.com')" title="Copy">&#x2398;</button>
+              </div>
+            </div>
+            <div class="pay-method" id="pm-paypal" onclick="selectPayment('paypal')">
+              <div class="pay-method-name">PayPal (F&amp;F Only)</div>
+              <div class="pay-method-handle">@LIONFORGE
+                <button class="copy-btn" onclick="event.stopPropagation();copyText('@LIONFORGE')" title="Copy">&#x2398;</button>
+              </div>
+            </div>
+          </div>
+          <div class="field-error" id="err-payment" style="display:none;margin-bottom:10px;">Please select a payment method</div>
+
+          <!-- SCREENSHOT UPLOAD -->
+          <div class="upload-label-text">
+            Payment Screenshot <span class="req">* REQUIRED</span>
+          </div>
+          <div class="upload-zone" id="upload-zone">
+            <input type="file" id="payment-file" accept="image/*,.pdf" onchange="handleFile(this)">
+            <div class="upload-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </div>
+            <div class="upload-text" id="upload-text">Click to upload payment screenshot</div>
+          </div>
+          <div class="field-error" id="err-file">Payment screenshot is required before placing your order</div>
+
+          <!-- ACKNOWLEDGMENTS -->
+          <div class="ack-wrap">
+            <div class="ack-label">Required Acknowledgments</div>
+            <div class="ack-item">
+              <input type="checkbox" class="ack-check" id="ack1">
+              <label for="ack1" class="ack-text"><strong>Peptide Disclaimer:</strong> I understand that all peptides sold are for <strong>research and laboratory use only</strong>. They are not intended for human consumption, therapeutic use, or veterinary use.</label>
+            </div>
+            <div class="ack-item">
+              <input type="checkbox" class="ack-check" id="ack2">
+              <label for="ack2" class="ack-text"><strong>Research Use Only:</strong> I confirm these products will be used solely for lawful scientific research purposes. I take full responsibility for compliance with all applicable laws and regulations.</label>
+            </div>
+            <div class="ack-item">
+              <input type="checkbox" class="ack-check" id="ack3">
+              <label for="ack3" class="ack-text"><strong>Age Verification:</strong> I confirm that I am <span class="highlight">21 years of age or older</span>. Orders from individuals under 21 will be cancelled and refunded.</label>
+            </div>
+            <div class="ack-item">
+              <input type="checkbox" class="ack-check" id="ack4">
+              <label for="ack4" class="ack-text"><strong>Shipping Liability:</strong> Once the package is handed to the carrier, Lion Forge Peptides is not liable for lost, damaged, or delayed packages. Please report any issues directly to the shipping carrier.</label>
+            </div>
+          </div>
+          <div class="field-error" id="err-ack">Please check all required acknowledgments</div>
+
+          <button class="place-order-btn" id="place-order-btn" onclick="placeOrder()">
+            PLACE ORDER &nbsp;&#x2192;
+          </button>
+
         </div>
-        <div class="form-group">
-          <label>State</label>
-          <input class="form-input" type="text" id="addr-state" placeholder="TX" maxlength="2" style="text-transform:uppercase;">
-        </div>
-        <div class="form-group">
-          <label>ZIP</label>
-          <input class="form-input" type="text" id="addr-zip" placeholder="00000" maxlength="10">
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;">
-        <button class="save-btn" onclick="saveAddress()">SAVE ADDRESS</button>
-        <span class="save-confirm" id="save-confirm">&#10003; Saved!</span>
       </div>
     </div>
-  </div>
 
-  <!-- ORDER HISTORY -->
-  <div class="section-card">
-    <div class="section-head"><h3>Order History</h3></div>
-    <div class="section-body" id="order-history-body">
-      <div class="empty-orders">
-        <p>No orders yet.</p>
-        <a href="lion-forge-shop.html" class="shop-link">BROWSE SHOP</a>
+    <!-- RIGHT COLUMN — ORDER SUMMARY -->
+    <div>
+      <div class="section-card" style="position:sticky;top:24px;">
+        <div class="section-head"><h3>Order Summary</h3></div>
+
+        <div class="order-num-row">
+          <div class="order-num-label">Order Number</div>
+          <div class="order-num-val" id="summary-order-num">#—</div>
+        </div>
+
+        <div id="summary-items"></div>
+
+        <div class="summary-line-row shipping">
+          <span class="summary-line-label">Subtotal</span>
+          <span class="summary-line-val" id="summary-subtotal">$0.00</span>
+        </div>
+
+        <div class="summary-line-row" style="padding-bottom:0;">
+          <span class="summary-line-label">Shipping</span>
+          <span class="summary-line-val" id="summary-shipping">$10.00</span>
+        </div>
+
+        <div class="shipping-method-wrap" style="padding-top:12px;">
+          <div class="shipping-method-label">Shipping Method</div>
+          <div class="shipping-options">
+            <div class="shipping-option selected" id="ship-ground" onclick="selectShipping('ground',10)">
+              <div class="ship-name">Ground Shipping</div>
+              <div class="ship-desc">Standard delivery — $10.00</div>
+            </div>
+            <div class="shipping-option" id="ship-expedited" onclick="selectShipping('expedited',15)">
+              <div class="ship-name">Expedited Shipping</div>
+              <div class="ship-desc">2–4 days — $15.00</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="discount-wrap">
+          <input class="discount-input" type="text" id="discount-code" placeholder="Discount code">
+          <button class="discount-apply" onclick="applyDiscount()">Apply</button>
+        </div>
+        <div style="padding:0 22px 4px;font-size:11px;color:var(--green);display:none;" id="discount-msg"></div>
+
+        <div class="total-row">
+          <div class="total-label">Total</div>
+          <div class="total-val" id="summary-total">$0.00</div>
+        </div>
       </div>
     </div>
-  </div>
 
+  </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="success-overlay" style="display:none;">
+  <div class="success-card">
+    <div class="success-icon">&#10003;</div>
+    <div class="success-title">ORDER PLACED!</div>
+    <div class="success-msg">Thank you for your order. Please send your payment to the selected method with your order number in the comment.</div>
+    <div class="success-order" id="success-order-num">#—</div>
+    <div class="success-note">
+      Orders are processed within 24–48 hours.<br>
+      Paid orders by 4pm CST ship same day Mon–Fri.<br>
+      You will receive a confirmation at your email.
+    </div>
+    <a href="lion-forge-shop.html" class="success-shop-btn">CONTINUE SHOPPING</a>
+  </div>
+</div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  (async function() {
-      let user;
-      try {
-        const r = await fetch('/api/auth/me', { credentials: 'include' });
-        if (!r.ok) { window.location.href = 'index.html?dest=account'; return; }
-        user = await r.json();
-        window._lfCurrentUser = user;
-      } catch(e) { window.location.href = 'index.html?dest=account'; return; }
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, doc, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-functions.js";
 
-      // Populate profile
-      document.getElementById('profile-name').textContent  = user.displayName || 'Customer';
-      document.getElementById('profile-email').textContent = user.email;
-
-      // Load orders
-      try {
-        const r = await fetch('/api/orders', { credentials: 'include' });
-        const orders = await r.json();
-        renderOrders(orders);
-      } catch(e) {
-        document.getElementById('order-history-body').innerHTML =
-          '<div style="padding:20px;color:var(--red);font-size:13px;">Error loading orders. Please try again.</div>';
-      }
-    })();
-});
-
-const STATUS_COLORS = {
-  pending:'status-pending', processing:'status-processing',
-  shipped:'status-shipped', delivered:'status-delivered', cancelled:'status-cancelled'
+const firebaseConfig = {
+  apiKey:            "AIzaSyB9Zb9nBoDrlx5Rw7hXTukSMutDkxgW46Y",
+  authDomain:        "lion-forge-peptides.firebaseapp.com",
+  projectId:         "lion-forge-peptides",
+  storageBucket:     "lion-forge-peptides.firebasestorage.app",
+  messagingSenderId: "186037495999",
+  appId:             "1:186037495999:web:7c3c31d70525964e7a7e0a"
 };
 
-function renderOrders(orders) {
-  const el = document.getElementById('order-history-body');
-  if (!orders || orders.length === 0) {
-    el.innerHTML = `<div class="empty-orders">
-      <p>No orders yet.</p>
-      <a href="lion-forge-shop.html" class="shop-link">BROWSE SHOP</a>
-    </div>`;
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+const functions = getFunctions(app);
+const placeOrderFn = httpsCallable(functions, "placeOrder");
+
+// ── EmailJS CONFIG ────────────────────────────────────────────────
+const EMAILJS_SERVICE_ID   = 'service_lvdwr4o';
+const EMAILJS_TEMPLATE_ID  = 'template_nsksbrg';
+const EMAILJS_PUBLIC_KEY        = 'oV9_mb8asjyRBR1iX';
+const EMAILJS_ADMIN_TEMPLATE_ID = 'template_m2ozfxz'; // New admin notification template
+
+// ── CART DATA ─────────────────────────────────────────────────────
+function loadCartData() {
+  try {
+    if (window.location.hash.length > 1) {
+      const s = window.location.hash.slice(1);
+      const d = JSON.parse(decodeURIComponent(escape(atob(s))));
+      if (Array.isArray(d) && d.length > 0) return d;
+    }
+  } catch(e) {}
+  try {
+    const r = localStorage.getItem('lfp_cart');
+    if (r) { const d = JSON.parse(r); if (Array.isArray(d) && d.length > 0) return d; }
+  } catch(e) {}
+  return [];
+}
+
+let cart = [];
+let shippingCost = 10;
+let discount = 0;
+let selectedPayment = null;
+let fileAttached = false;
+let ORDER_NUM = null;
+
+window.addEventListener('load', async function() {
+  cart = loadCartData();
+
+  // Get sequential order number from Firestore
+  try {
+    const counterRef = doc(db, 'config', 'settings');
+    ORDER_NUM = await runTransaction(db, async (tx) => {
+      const snap = await tx.get(counterRef);
+      const last = snap.exists() ? (snap.data().lastOrderNum || 53) : 53;
+      const next = last + 1;
+      tx.set(counterRef, { lastOrderNum: next }, { merge: true });
+      return next;
+    });
+  } catch(e) {
+    console.warn('Counter fallback:', e);
+    ORDER_NUM = 54 + Math.floor(Math.random() * 900);
+  }
+
+  ['display-order-num','summary-order-num','success-order-num'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '#' + ORDER_NUM;
+  });
+
+  if (cart.length === 0) {
+    const grid = document.querySelector('.checkout-grid');
+    if (grid) grid.innerHTML = '<div style="text-align:center;padding:80px 40px;color:var(--muted);grid-column:1/-1;">'
+      + '<div style="font-size:40px;margin-bottom:16px;opacity:0.3;">&#128722;</div>'
+      + '<h3 style="font-weight:400;font-size:20px;color:#3a4a6a;margin-bottom:12px;">Your cart is empty</h3>'
+      + '<a href="lion-forge-shop.html" style="color:var(--gold);text-decoration:none;font-size:14px;">&#8592; Return to Shop</a></div>';
     return;
   }
-  el.innerHTML = orders.map((o, i) => {
-    const sc = STATUS_COLORS[o.status] || 'status-pending';
-    const itemsShort = (o.items || []).slice(0,2).map(it =>
-      `${it.name} (${it.variant}) x${it.qty}`).join('<br>');
-    const more = (o.items||[]).length > 2
-      ? `<br><span style="color:#3a4a6a;">+${o.items.length-2} more</span>` : '';
-    const allItems = (o.items||[]).map(it =>
-      `<div class="detail-row">
-        <span class="detail-label">${it.name} (${it.variant}) x${it.qty}</span>
-        <span class="detail-val">$${(it.price*it.qty).toFixed(2)}</span>
-      </div>`).join('');
-    const dateStr = o.date ? new Date(o.date).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}) : '—';
-    return `<div class="order-card" onclick="toggleOrder(${i})">
-      <div class="order-card-top">
-        <div class="order-card-left">
-          <div class="order-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
-              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-            </svg>
-          </div>
-          <span class="order-num">#${o.orderNum}</span>
-        </div>
-        <span class="order-total">$${(o.total||0).toFixed(2)}</span>
-      </div>
-      <div class="${sc} status-badge">${(o.status||'pending').toUpperCase()}</div>
-      <div class="order-items">${itemsShort}${more}</div>
-      <div class="order-detail" id="detail-${i}">
-        ${allItems}
-        <div class="detail-row">
-          <span class="detail-label">Shipping (${o.shippingMethod||'Ground'})</span>
-          <span class="detail-val">$${(o.shipping||10).toFixed(2)}</span>
-        </div>
-        <div class="detail-total-row">
-          <span class="detail-label">Order Total</span>
-          <span class="detail-val">$${(o.total||0).toFixed(2)}</span>
-        </div>
-        <div class="detail-row" style="margin-top:10px;">
-          <span class="detail-label">Payment</span>
-          <span class="detail-val">${o.paymentMethod||'—'}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Ship to</span>
-          <span class="detail-val">${o.address||'—'}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Order Date</span>
-          <span class="detail-val">${dateStr}</span>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
+  renderSummary();
+});
+
+function getSubtotal() {
+  return cart.reduce((s, c) => s + c.price * c.qty, 0);
 }
 
-function toggleOrder(i) {
-  const el = document.getElementById('detail-' + i);
-  if (el) el.classList.toggle('open');
+function renderSummary() {
+  const subtotal = getSubtotal();
+  const total = subtotal + shippingCost - discount;
+  const itemsEl = document.getElementById('summary-items');
+  if (!itemsEl) return;
+  itemsEl.innerHTML = cart.map(c =>
+    `<div class="summary-item-row">
+      <span class="summary-item-name">${c.name} (${c.variant}) x${c.qty}</span>
+      <span class="summary-item-price">$${(c.price * c.qty).toFixed(2)}</span>
+    </div>`).join('');
+  document.getElementById('summary-subtotal').textContent = '$' + subtotal.toFixed(2);
+  document.getElementById('summary-shipping').textContent = '$' + shippingCost.toFixed(2);
+  document.getElementById('summary-total').textContent = '$' + Math.max(0, total).toFixed(2);
 }
 
-function saveAddress() {
-  const street = document.getElementById('addr-street').value.trim();
-  const city   = document.getElementById('addr-city').value.trim();
-  const state  = document.getElementById('addr-state').value.trim();
-  const zip    = document.getElementById('addr-zip').value.trim();
-  const conf   = document.getElementById('save-confirm');
-  conf.style.opacity = '1';
-  setTimeout(() => { conf.style.opacity = '0'; }, 2000);
-}
+window.selectShipping = function(method, cost) {
+  shippingCost = cost;
+  document.getElementById('ship-ground').classList.toggle('selected', method === 'ground');
+  document.getElementById('ship-expedited').classList.toggle('selected', method === 'expedited');
+  renderSummary();
+};
 
-function logout() {
-  fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
-    .finally(() => { window.location.href = 'index.html'; });
-}
+window.applyDiscount = function() {
+  const code = document.getElementById('discount-code').value.trim().toUpperCase();
+  const msg  = document.getElementById('discount-msg');
+  const codes = { 'LION10': 0.10, 'FORGE20': 0.20, 'RESEARCH15': 0.15 };
+  if (codes[code]) {
+    discount = getSubtotal() * codes[code];
+    msg.textContent = '✓ Code applied — ' + (codes[code]*100) + '% off ($' + discount.toFixed(2) + ')';
+    msg.style.color = 'var(--green)';
+  } else {
+    discount = 0;
+    msg.textContent = 'Invalid discount code';
+    msg.style.color = 'var(--red)';
+  }
+  msg.style.display = 'block';
+  renderSummary();
+};
+
+window.selectPayment = function(method) {
+  selectedPayment = method;
+  ['venmo','cashapp'].forEach(m => {
+    const el = document.getElementById('pm-' + m);
+    if (el) el.classList.toggle('selected', m === method);
+  });
+  document.getElementById('err-payment').style.display = 'none';
+};
+
+window.copyText = function(text) {
+  navigator.clipboard.writeText(text).then(() => showToast('Copied: ' + text)).catch(() => showToast(text));
+};
+
+window.handleFile = function(input) {
+  const zone = document.getElementById('upload-zone');
+  const txt  = document.getElementById('upload-text');
+  const err  = document.getElementById('err-file');
+  if (input.files && input.files[0]) {
+    fileAttached = true; zone.classList.add('has-file');
+    txt.textContent = '✓ ' + input.files[0].name; txt.classList.add('uploaded');
+    err.style.display = 'none';
+  } else {
+    fileAttached = false; zone.classList.remove('has-file');
+    txt.textContent = 'Click to upload payment screenshot'; txt.classList.remove('uploaded');
+  }
+};
+
+window.validate = function() {
+  let valid = true;
+  [['f-name','err-name',v=>v.trim().length>1],
+   ['f-email','err-email',v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)],
+   ['f-street','err-street',v=>v.trim().length>3],
+   ['f-city','err-city',v=>v.trim().length>1],
+   ['f-state','err-state',v=>v.trim().length>=2],
+   ['f-zip','err-zip',v=>v.trim().length>=5]
+  ].forEach(([id,errId,test]) => {
+    const inp = document.getElementById(id), err = document.getElementById(errId);
+    if (!test(inp.value)) { inp.classList.add('error'); err.style.display='block'; valid=false; }
+    else { inp.classList.remove('error'); err.style.display='none'; }
+  });
+  if (!selectedPayment) { document.getElementById('err-payment').style.display='block'; valid=false; }
+  if (!fileAttached) {
+    document.getElementById('err-file').style.display='block';
+    document.getElementById('upload-zone').style.borderColor='var(--red)'; valid=false;
+  }
+  const allAck = ['ack1','ack2','ack3','ack4'].every(id=>document.getElementById(id).checked);
+  if (!allAck) { document.getElementById('err-ack').style.display='block'; valid=false; }
+  else document.getElementById('err-ack').style.display='none';
+  return valid;
+};
+
+window.placeOrder = async function() {
+  if (!window.validate()) {
+    const e = document.querySelector('.field-error[style*="block"], .form-input.error');
+    if (e) e.scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+
+  const name    = document.getElementById('f-name').value.trim();
+  const email   = document.getElementById('f-email').value.trim();
+  const street  = document.getElementById('f-street').value.trim();
+  const city    = document.getElementById('f-city').value.trim();
+  const state   = document.getElementById('f-state').value.trim();
+  const zip     = document.getElementById('f-zip').value.trim();
+  const address = [street, city, state, zip].filter(Boolean).join(', ');
+  const shipMethodKey = document.getElementById('ship-expedited').classList.contains('selected') ? 'expedited' : 'ground';
+  const discountCode = (document.getElementById('discount-code')?.value || '').trim().toUpperCase();
+
+  // Every cart item must carry id + variantIndex so the server can look up
+  // the real price. Older carts created before this change won't have them.
+  const badItem = cart.find(c => c.id === undefined || c.variantIndex === undefined);
+  if (badItem) {
+    showToast('Please return to the shop and re-add your items.');
+    return;
+  }
+
+  // Disable the button while we place the order.
+  const btn = document.getElementById('place-order-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'PLACING ORDER…'; }
+
+  // ── Place the order through the trusted server function ──────────
+  // The browser sends only WHAT to buy; the server computes all prices,
+  // shipping, discount, and the total, verifies + decrements stock, and
+  // writes the order. Nothing money-related here is trusted from the client.
+  let res;
+  try {
+    const out = await placeOrderFn({
+      orderNum: ORDER_NUM,
+      items: cart.map(c => ({ id: c.id, variantIndex: c.variantIndex, qty: c.qty })),
+      customer: { name, email, address },
+      shippingMethod: shipMethodKey,
+      discountCode,
+      paymentMethod: selectedPayment
+        ? selectedPayment.charAt(0).toUpperCase() + selectedPayment.slice(1) : '—',
+    });
+    res = out.data;
+  } catch (e) {
+    console.error('Order failed:', e);
+    if (btn) { btn.disabled = false; btn.textContent = 'PLACE ORDER'; }
+    // Firebase callable errors carry a human-readable message we set server-side.
+    showToast(e?.message || 'Order could not be placed. Please try again.');
+    return;
+  }
+
+  // From here on, use the SERVER's authoritative numbers.
+  const orderNumber  = res.orderNum;
+  const serverItems  = res.items;
+  const serverSubtot = res.subtotal;
+  const serverShip   = res.shipping;
+  const serverTotal  = res.total;
+  const shipMethod   = shipMethodKey === 'expedited' ? 'Expedited' : 'Ground';
+
+  // Send confirmation email (using server-verified values)
+  try {
+    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+    const itemsList = serverItems.map(i =>
+      i.name + ' (' + i.variant + ') x' + i.qty + '  $' + (i.price*i.qty).toFixed(2)
+    ).join('\n');
+    // Send customer confirmation
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      to_name: name, to_email: email,
+      order_number: '#' + orderNumber,
+      items_list: itemsList,
+      subtotal: '$' + serverSubtot.toFixed(2),
+      shipping_method: shipMethod,
+      shipping_cost: '$' + serverShip.toFixed(2),
+      order_total: '$' + serverTotal.toFixed(2),
+      ship_to: address,
+      ship_note: 'Orders paid by 4pm CST ship same day Mon–Fri. Processing within 24–48 hours.'
+    });
+    console.log('Customer confirmation sent');
+
+    // Send admin notification
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_ADMIN_TEMPLATE_ID, {
+      to_email:       'support@lionforgepeptides.com',
+      to_name:        'Lion Forge Support',
+      order_number:   '#' + orderNumber,
+      customer_name:  name,
+      customer_email: email,
+      items_list:     itemsList,
+      subtotal:       '$' + serverSubtot.toFixed(2),
+      shipping_method: shipMethod,
+      shipping_cost:  '$' + serverShip.toFixed(2),
+      order_total:    '$' + serverTotal.toFixed(2),
+      ship_to:        address,
+      payment_method: selectedPayment ? selectedPayment.charAt(0).toUpperCase()+selectedPayment.slice(1) : '—',
+    });
+    console.log('Admin notification sent');
+  } catch(e) { console.error('Email error:', e); }
+
+
+  // Clear the cart now that the order is placed and recorded server-side.
+  try { localStorage.removeItem('lfp_cart'); } catch(e) {}
+  cart = [];
+
+  // Show success (reflect the server-confirmed order number everywhere)
+  const sEl = document.getElementById('success-order-num');
+  if (sEl) sEl.textContent = '#' + orderNumber;
+  document.getElementById('success-overlay').style.display = 'flex';
+  document.querySelector('.success-shop-btn').textContent = 'VIEW MY ACCOUNT';
+  document.querySelector('.success-shop-btn').href = '#';
+  document.querySelector('.success-shop-btn').onclick = function() {
+    window.location.href = 'lion-forge-account.html';
+  };
+};
 
 function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
+  let t = document.getElementById('co-toast');
+  if (!t) {
+    t = document.createElement('div'); t.id = 'co-toast';
+    t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1e3d8f;border:1px solid rgba(232,168,32,0.3);border-radius:10px;padding:12px 24px;color:#ffd060;font-size:13px;font-family:"Share Tech Mono",monospace;letter-spacing:0.1em;opacity:0;transition:opacity .3s;z-index:9999;pointer-events:none;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg; t.style.opacity='1';
+  setTimeout(()=>{t.style.opacity='0';}, 2200);
 }
+window.showToast = showToast;
 </script>
 </body>
 </html>

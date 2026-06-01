@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -222,27 +222,7 @@
     letter-spacing: 0.05em;
   }
 </style>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-
-// ── REPLACE WITH YOUR FIREBASE PROJECT CONFIG ─────────────────────
-const firebaseConfig = {
-  apiKey:            "AIzaSyB9Zb9nBoDrlx5Rw7hXTukSMutDkxgW46Y",
-  authDomain:        "lion-forge-peptides.firebaseapp.com",
-  projectId:         "lion-forge-peptides",
-  storageBucket:     "lion-forge-peptides.firebasestorage.app",
-  messagingSenderId: "186037495999",
-  appId:             "1:186037495999:web:7c3c31d70525964e7a7e0a"
-};
-const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
-window._lfAuth = auth;
-window._lfDb   = db;
-window._lfFns  = { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, collection, addDoc, getDocs, query, where, orderBy, serverTimestamp };
-</script>
+<script>window._lfAuth = {}; window._lfFns = {};</script>
 </head>
 <body>
 
@@ -281,42 +261,26 @@ window._lfFns  = { createUserWithEmailAndPassword, signInWithEmailAndPassword, o
   </div>
 </section>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-
-const app = initializeApp({
-  apiKey:            "AIzaSyB9Zb9nBoDrlx5Rw7hXTukSMutDkxgW46Y",
-  authDomain:        "lion-forge-peptides.firebaseapp.com",
-  projectId:         "lion-forge-peptides",
-  storageBucket:     "lion-forge-peptides.firebasestorage.app",
-  messagingSenderId: "186037495999",
-  appId:             "1:186037495999:web:7c3c31d70525964e7a7e0a"
-});
-const db = getFirestore(app);
-
+<script>
 async function loadAnnouncements() {
   const container = document.getElementById('announcements-container');
   try {
-    const q = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
-    const snap = await getDocs(q);
-    const published = snap.docs.filter(d => d.data().published !== false);
-    if (published.length === 0) {
+    const r = await fetch('/api/announcements');
+    const announcements = await r.json();
+    if (!announcements.length) {
       container.innerHTML = '<div class="announcement-card" style="color:#4a5a7a;font-size:13px;">No announcements yet. Check back soon!</div>';
       return;
     }
-    container.innerHTML = published.map(d => {
-      const data = d.data();
-      const dateStr = data.createdAt?.toDate
-        ? data.createdAt.toDate().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    container.innerHTML = announcements.map(a => {
+      const dateStr = a.created_at
+        ? new Date(a.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
         : 'Posted recently';
-      return `<div class="announcement-card">${data.msg}<div class="date">${dateStr}</div></div>`;
+      return <div class="announcement-card"><div class="date"></div></div>;
     }).join('');
   } catch(e) {
-    container.innerHTML = `
-      <div class="announcement-card">🚀 We're LIVE! After months of preparation, Lion Forge Peptides is officially open. This journey has transformed our lives — and we built this community so it can transform yours too. Browse the shop and discover what's waiting for you.<div class="date">Launch day</div></div>
-      <div class="announcement-card">💛 Why we built this: Peptides changed everything for us — energy, recovery, focus, body composition. Things we thought were just "getting older" reversed in ways we never expected. We want that for you. Welcome to the community.<div class="date">Posted recently</div></div>
-      <div class="announcement-card">📦 Orders placed by 4pm CST ship same day, Monday–Friday. More products being added regularly — check back often!<div class="date">Posted recently</div></div>`;
+    container.innerHTML = 
+      <div class="announcement-card">We're LIVE! After months of preparation, Lion Forge Peptides is officially open. Browse the shop and discover what's waiting for you.<div class="date">Launch day</div></div>
+      <div class="announcement-card">Orders placed by 4pm CST ship same day, Monday–Friday. More products being added regularly.<div class="date">Posted recently</div></div>;
   }
 }
 loadAnnouncements();
@@ -487,46 +451,39 @@ function submitEmail() {
                  : 'lion-forge-shop.html';
 
   if (mode === 'login') {
-    // ── SIGN IN ──────────────────────────────────────────
-    fns.signInWithEmailAndPassword(auth, email, pass)
-      .then(cred => {
-        step1.style.display = 'none';
-        succ.style.display  = 'block';
+    fetch('/api/auth/login', { method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, password:pass}) })
+      .then(r => r.json().then(d => ({ ok: r.ok, d })))
+      .then(({ ok, d }) => {
+        if (!ok) {
+          const m = d.error || 'Sign in failed';
+          if (m.includes('Invalid')) alert('Incorrect email or password. Please try again.');
+          else alert(m);
+          return;
+        }
+        window._lfCurrentUser = d;
+        step1.style.display = 'none'; succ.style.display = 'block';
         if (title) title.textContent = 'Signed In!';
-        msg.textContent = 'Welcome back, ' + (cred.user.displayName || email) + '! Redirecting...';
+        msg.textContent = 'Welcome back, ' + (d.displayName || email) + '! Redirecting...';
         setTimeout(() => { window.location.href = _destUrl; }, 1500);
       })
-      .catch(err => {
-        if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-login-credentials' || err.code === 'auth/invalid-credential') {
-          alert('Incorrect password. Please try again.');
-        } else if (err.code === 'auth/user-not-found') {
-          alert('No account found with that email. Switch to "Create Account" to register.');
-        } else if (err.code === 'auth/too-many-requests') {
-          alert('Too many failed attempts. Please wait a moment and try again.');
-        } else {
-          alert('Sign in failed: ' + err.message);
-        }
-      });
+      .catch(err => alert('Sign in failed: ' + err.message));
   } else {
-    // ── REGISTER ─────────────────────────────────────────
-    fns.createUserWithEmailAndPassword(auth, email, pass)
-      .then(cred => fns.updateProfile(cred.user, { displayName: name }).then(() => cred))
-      .then(cred => {
-        step1.style.display = 'none';
-        succ.style.display  = 'block';
+    fetch('/api/auth/register', { method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, password:pass, displayName:name}) })
+      .then(r => r.json().then(d => ({ ok: r.ok, d })))
+      .then(({ ok, d }) => {
+        if (!ok) {
+          const m = d.error || 'Registration failed';
+          if (m.includes('already')) alert('An account with that email already exists. Use "Sign In" instead.');
+          else alert(m);
+          return;
+        }
+        window._lfCurrentUser = d;
+        step1.style.display = 'none'; succ.style.display = 'block';
         if (title) title.textContent = 'Account Created!';
         msg.textContent = 'Welcome, ' + name + '! Redirecting...';
         setTimeout(() => { window.location.href = _destUrl; }, 1500);
       })
-      .catch(err => {
-        if (err.code === 'auth/email-already-in-use') {
-          alert('An account with that email already exists. Use "Sign In" instead.');
-        } else if (err.code === 'auth/weak-password') {
-          alert('Password must be at least 6 characters.');
-        } else {
-          alert('Error creating account: ' + err.message);
-        }
-      });
+      .catch(err => alert('Error: ' + err.message));
   }
 }
 
@@ -544,31 +501,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Check if already logged in, and handle ?dest redirect
   const destParam = new URLSearchParams(window.location.search).get('dest');
-  setTimeout(() => {
-    const auth = window._lfAuth;
-    if (auth) {
-      const { onAuthStateChanged } = window._lfFns;
-      onAuthStateChanged(auth, user => {
-        if (user) {
-          // Store logged-in state so nav buttons skip the modal
-          window._lfCurrentUser = user;
-          // If we were redirected here while already logged in, send straight to destination
-          if (destParam === 'account') { window.location.href = 'lion-forge-account.html'; return; }
-          if (destParam === 'cart')    { window.location.href = 'lion-forge-cart.html';    return; }
-          if (destParam === 'shop')    { window.location.href = 'lion-forge-shop.html';    return; }
-          // Show a subtle "signed in" indicator in nav
-          const acctLink = document.querySelector('.nav-links a[onclick*="account"]');
-          if (acctLink) {
-            acctLink.style.color = 'var(--gold)';
-            acctLink.title = 'Signed in as ' + (user.displayName || user.email);
-          }
-        } else if (destParam) {
-          // Not logged in and arrived with a ?dest — auto-open the login modal
-          openModal(destParam);
-        }
-      });
-    }
-  }, 500);
+  fetch('/api/auth/me', { credentials: 'include' })
+    .then(r => r.ok ? r.json() : null)
+    .then(user => {
+      if (user) {
+        window._lfCurrentUser = user;
+        if (destParam === 'account') { window.location.href = 'lion-forge-account.html'; return; }
+        if (destParam === 'cart')    { window.location.href = 'lion-forge-cart.html';    return; }
+        if (destParam === 'shop')    { window.location.href = 'lion-forge-shop.html';    return; }
+        const acctLink = document.querySelector('.nav-links a[onclick*="account"]');
+        if (acctLink) { acctLink.style.color = 'var(--gold)'; acctLink.title = 'Signed in as ' + (user.displayName || user.email); }
+      } else if (destParam) {
+        openModal(destParam);
+      }
+    })
+    .catch(() => { if (destParam) openModal(destParam); });
 });
 </script>
 </body>
