@@ -288,8 +288,9 @@ function renderOrders(orders) {
         </div>
         <div class="detail-row" style="margin-top:10px;">
           <span class="detail-label">Payment</span>
-          <span class="detail-val">${o.paymentMethod||'—'}</span>
+          <span class="detail-val">${o.payment_method||'—'}</span>
         </div>
+        ${o.tracking_number ? `<div class="detail-row" style="border-left:2px solid #22c55e;padding-left:10px;margin:6px 0;"><span class="detail-label">${o.carrier||'Carrier'} Tracking</span><span class="detail-val" style="color:#22c55e;font-family:'Share Tech Mono',monospace;">${o.tracking_number}</span></div>` : ''}
         <div class="detail-row">
           <span class="detail-label">Ship to</span>
           <span class="detail-val">${o.address||'—'}</span>

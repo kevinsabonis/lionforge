@@ -352,7 +352,15 @@ async function handleAdmin(request, env, path, method) {
   const orderMatch = path.match(/^\/api\/admin\/orders\/([^/]+)$/);
   if (orderMatch && method === 'PUT') {
     const body = await request.json();
-    await env.DB.prepare('UPDATE orders SET status = ? WHERE id = ?').bind(body.status, orderMatch[1]).run();
+    await env.DB.prepare(
+      'UPDATE orders SET status = ?, carrier = ?, tracking_number = ?, shipped_at = ? WHERE id = ?'
+    ).bind(
+      body.status || 'pending',
+      body.carrier || '',
+      body.trackingNumber || '',
+      body.shippedAt || '',
+      orderMatch[1]
+    ).run();
     return json({ ok: true });
   }
 
