@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -116,9 +116,144 @@ nav{position:relative;z-index:100;display:flex;align-items:center;justify-conten
   .cart-table thead th:nth-child(2){display:none;}
   .cart-table td:nth-child(2){display:none;}
 }
+
+/* ── COMING SOON SPLASH ──────────────────────────────────────── */
+#coming-soon-splash{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(5,11,24,0.92);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  animation:splashFadeIn .4s ease;
+}
+@keyframes splashFadeIn{from{opacity:0}to{opacity:1}}
+
+.splash-box{
+  position:relative;
+  background:linear-gradient(145deg,rgba(16,26,56,0.95) 0%,rgba(8,14,32,0.98) 100%);
+  border:1px solid rgba(232,168,32,0.25);
+  border-radius:20px;
+  padding:56px 52px 48px;
+  max-width:460px;
+  width:90%;
+  text-align:center;
+  box-shadow:0 0 80px rgba(232,168,32,0.08),0 30px 80px rgba(0,0,0,0.6);
+  animation:splashSlideUp .45s cubic-bezier(.22,.68,0,1.2);
+}
+@keyframes splashSlideUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+
+.splash-icon{
+  width:64px;height:64px;margin:0 auto 24px;
+  background:radial-gradient(circle,rgba(232,168,32,0.18) 0%,transparent 70%);
+  border:1px solid rgba(232,168,32,0.3);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+}
+.splash-icon svg{opacity:0.9;}
+
+.splash-eyebrow{
+  font-family:'Share Tech Mono',monospace;
+  font-size:10px;letter-spacing:0.4em;
+  color:var(--gold);text-transform:uppercase;
+  margin-bottom:14px;
+}
+.splash-heading{
+  font-family:'Inter',sans-serif;
+  font-size:28px;font-weight:300;
+  color:#edf1ff;letter-spacing:0.03em;
+  line-height:1.2;margin-bottom:16px;
+}
+.splash-heading strong{font-weight:600;color:var(--gold-bright);}
+
+.splash-body{
+  font-size:14px;color:#6a7a9e;line-height:1.7;
+  margin-bottom:36px;
+}
+
+.splash-divider{
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(232,168,32,0.2),transparent);
+  margin-bottom:28px;
+}
+
+.splash-cta{
+  display:inline-flex;align-items:center;gap:10px;
+  background:var(--royal);
+  border:1px solid rgba(232,168,32,0.35);
+  border-radius:10px;
+  color:var(--gold-bright);
+  font-family:'Share Tech Mono',monospace;
+  font-size:12px;letter-spacing:0.2em;
+  padding:14px 36px;cursor:pointer;
+  transition:background .2s,transform .15s,box-shadow .2s;
+  box-shadow:0 4px 30px rgba(30,61,143,0.4);
+  text-decoration:none;
+}
+.splash-cta:hover{
+  background:var(--blue);transform:translateY(-1px);
+  box-shadow:0 8px 40px rgba(30,61,143,0.55);
+}
+
+.splash-dismiss{
+  display:block;margin-top:18px;
+  font-size:12px;color:#2e3a52;
+  background:none;border:none;cursor:pointer;
+  letter-spacing:0.05em;transition:color .2s;
+}
+.splash-dismiss:hover{color:var(--muted);}
+
+/* glow ring animation */
+.splash-ring{
+  position:absolute;inset:-1px;border-radius:21px;
+  background:transparent;
+  border:1px solid transparent;
+  background-clip:padding-box;
+  animation:ringPulse 3s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes ringPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(232,168,32,0.0);}
+  50%{box-shadow:0 0 0 8px rgba(232,168,32,0.06);}
+}
 </style>
+</head>
+<body>
 
+<!-- ── COMING SOON SPLASH ───────────────────────────────────── -->
+<div id="coming-soon-splash">
+  <div class="splash-box">
+    <div class="splash-ring"></div>
 
+    <div class="splash-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e8a820" stroke-width="1.6">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+    </div>
+
+    <div class="splash-eyebrow">Lion Forge Peptides</div>
+    <h2 class="splash-heading">Online Ordering<br><strong>Coming Soon</strong></h2>
+    <p class="splash-body">
+      We're putting the finishing touches on our secure checkout experience.
+      In the meantime, reach out directly to place your order.
+    </p>
+
+    <div class="splash-divider"></div>
+
+    <a href="index.html" class="splash-cta">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      BACK TO HOME
+    </a>
+
+    <button class="splash-dismiss" onclick="dismissSplash()">
+      View cart anyway &rarr;
+    </button>
+  </div>
+</div>
+<!-- ─────────────────────────────────────────────────────────── -->
 
 <nav>
   <a href="index.html" class="nav-logo">
@@ -276,6 +411,15 @@ function render() {
         </div>
       </div>
     </div>`;
+}
+
+// ── COMING SOON SPLASH ───────────────────────────────────────
+function dismissSplash() {
+  const splash = document.getElementById('coming-soon-splash');
+  if (!splash) return;
+  splash.style.transition = 'opacity .35s ease';
+  splash.style.opacity = '0';
+  setTimeout(() => splash.remove(), 360);
 }
 
 // ── INIT ─────────────────────────────────────────────────────────
