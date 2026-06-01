@@ -84,8 +84,7 @@ export default {
       // Inject a client-side script into every HTML page that adds the Sign Out
       // button next to the logo if the user is logged in. Client-side so the
       // response stays cacheable at the edge regardless of session state.
-      if (response.headers.get('Content-Type')?.includes('text/html')) {
-        return new HTMLRewriter()
+      return new HTMLRewriter()
           .on('body', {
             element(el) {
               el.append(
@@ -110,8 +109,6 @@ export default {
             }
           })
           .transform(response);
-      }
-      return response;
     }
 
     if (method === 'OPTIONS') {
