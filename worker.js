@@ -104,6 +104,8 @@ export default {
         return handleLogout();
       if (path === '/api/auth/me' && method === 'GET')
         return handleMe(request, env);
+      if (path === '/api/users/me' && method === 'PUT')
+        return handleUpdateProfile(request, env);
 
       // ── Public routes ────────────────────────────────────────────────────
       if (path === '/api/products' && method === 'GET')
@@ -186,7 +188,31 @@ function handleLogout() {
 async function handleMe(request, env) {
   const user = await getUser(request, env.JWT_SECRET);
   if (!user) return err('Unauthenticated', 401);
-  return json({ uid: user.uid, email: user.email, displayName: user.displayName, role: user.role });
+  const row = await env.DB.prepare('SELECT address FROM users WHERE id = ?').bind(user.uid).first();
+  return json({ uid: user.uid, email: user.email, displayName: user.displayName, role: user.role, address: row?.address || '' });
+}
+
+async function handleUpdateProfile(request, env) {
+  const user = await getUser(request, env.JWT_SECRET);
+  if (!user) return err('Unauthenticated', 401);
+  const { displayName, address } = await request.json();
+
+  const name = (displayName || '').trim().slice(0, 200);
+  const addr = address !== undefined ? String(address).slice(0, 500) : null;
+
+  if (name) await env.DB.prepare('UPDATE users SET display_name = ? WHERE id = ?').bind(name, user.uid).run();
+  if (addr !== null) await env.DB.prepare('UPDATE users SET address = ? WHERE id = ?').bind(addr, user.uid).run();
+
+  // If name changed, refresh JWT so subsequent /api/auth/me reflects it
+  if (name) {
+    const updated = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(user.uid).first();
+    const token = await jwtSign(
+      { uid: updated.id, email: updated.email, displayName: updated.display_name, role: updated.role, exp: Math.floor(Date.now() / 1000) + 604800 },
+      env.JWT_SECRET
+    );
+    return json({ ok: true, displayName: updated.display_name }, 200, { 'Set-Cookie': sessionCookie(token) });
+  }
+  return json({ ok: true });
 }
 
 // ── Product handlers ───────────────────────────────────────────────────────

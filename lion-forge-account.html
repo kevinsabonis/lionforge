@@ -144,7 +144,14 @@ nav{position:relative;z-index:100;display:flex;align-items:center;justify-conten
   <!-- PROFILE HEADER -->
   <div class="profile-header">
     <div class="profile-label">User Profile</div>
-    <div class="profile-name" id="profile-name">—</div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <div class="profile-name" id="profile-name">—</div>
+      <button onclick="editName()" id="edit-name-btn" style="background:none;border:1px solid rgba(232,168,32,0.3);border-radius:6px;color:#6a7a9e;font-size:11px;padding:4px 10px;cursor:pointer;letter-spacing:0.08em;">EDIT</button>
+    </div>
+    <div id="name-edit-form" style="display:none;margin:6px 0 4px;display:none;">
+      <input id="inp-display-name" type="text" placeholder="Your full name" style="padding:8px 12px;background:rgba(255,255,255,0.05);border:1px solid rgba(232,168,32,0.25);border-radius:8px;color:#dde4f5;font-size:14px;outline:none;margin-right:8px;width:200px;">
+      <button onclick="saveName()" style="padding:8px 16px;background:#1e3d8f;border:1px solid rgba(232,168,32,0.3);border-radius:8px;color:#ffd060;font-size:12px;cursor:pointer;">SAVE</button>
+    </div>
     <div class="profile-email" id="profile-email">—</div>
     <button class="logout-btn" onclick="logout()">Sign out</button>
   </div>
@@ -207,6 +214,14 @@ document.addEventListener('DOMContentLoaded', () => {
       // Populate profile
       document.getElementById('profile-name').textContent  = user.displayName || 'Customer';
       document.getElementById('profile-email').textContent = user.email;
+      // Pre-fill saved address
+      if (user.address) {
+        const parts = user.address.split('|');
+        if (parts[0]) document.getElementById('addr-street').value = parts[0];
+        if (parts[1]) document.getElementById('addr-city').value   = parts[1];
+        if (parts[2]) document.getElementById('addr-state').value  = parts[2];
+        if (parts[3]) document.getElementById('addr-zip').value    = parts[3];
+      }
 
       // Load orders
       try {
@@ -255,7 +270,7 @@ function renderOrders(orders) {
               <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
             </svg>
           </div>
-          <span class="order-num">#${o.orderNum}</span>
+          <span class="order-num">#${o.order_num}</span>
         </div>
         <span class="order-total">$${(o.total||0).toFixed(2)}</span>
       </div>
@@ -264,7 +279,7 @@ function renderOrders(orders) {
       <div class="order-detail" id="detail-${i}">
         ${allItems}
         <div class="detail-row">
-          <span class="detail-label">Shipping (${o.shippingMethod||'Ground'})</span>
+          <span class="detail-label">Shipping (${o.shipping_method||'Ground'})</span>
           <span class="detail-val">$${(o.shipping||10).toFixed(2)}</span>
         </div>
         <div class="detail-total-row">
@@ -293,16 +308,43 @@ function toggleOrder(i) {
   if (el) el.classList.toggle('open');
 }
 
-function saveAddress() {
+async function saveAddress() {
   const street = document.getElementById('addr-street').value.trim();
   const city   = document.getElementById('addr-city').value.trim();
   const state  = document.getElementById('addr-state').value.trim();
   const zip    = document.getElementById('addr-zip').value.trim();
-  const conf   = document.getElementById('save-confirm');
-  conf.style.opacity = '1';
-  setTimeout(() => { conf.style.opacity = '0'; }, 2000);
+  const address = [street, city, state, zip].join('|');
+  try {
+    await fetch('/api/users/me', { method:'PUT', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ address }) });
+    const conf = document.getElementById('save-confirm');
+    conf.style.opacity = '1';
+    setTimeout(() => { conf.style.opacity = '0'; }, 2000);
+  } catch(e) { showToast('Could not save address'); }
 }
 
+function editName() {
+  const form = document.getElementById('name-edit-form');
+  const btn  = document.getElementById('edit-name-btn');
+  const showing = form.style.display !== 'none';
+  form.style.display = showing ? 'none' : 'block';
+  btn.textContent = showing ? 'EDIT' : 'CANCEL';
+  if (!showing) {
+    const inp = document.getElementById('inp-display-name');
+    inp.value = document.getElementById('profile-name').textContent;
+    inp.focus(); inp.select();
+  }
+}
+async function saveName() {
+  const name = document.getElementById('inp-display-name').value.trim();
+  if (!name) return;
+  try {
+    await fetch('/api/users/me', { method:'PUT', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ displayName: name }) });
+    document.getElementById('profile-name').textContent = name;
+    document.getElementById('name-edit-form').style.display = 'none';
+    document.getElementById('edit-name-btn').textContent = 'EDIT';
+    showToast('Name updated');
+  } catch(e) { showToast('Could not update name'); }
+}
 function logout() {
   fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
     .finally(() => { window.location.href = 'index.html'; });
