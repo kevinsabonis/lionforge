@@ -484,9 +484,7 @@ function renderProducts() {
   if (sort === 'price-asc')   list.sort((a,b) => Math.min(...a.variants.map(v=>v.price)) - Math.min(...b.variants.map(v=>v.price)));
   if (sort === 'price-desc')  list.sort((a,b) => Math.min(...b.variants.map(v=>v.price)) - Math.min(...a.variants.map(v=>v.price)));
 
-  // counts
-  document.getElementById('total-count').textContent = products.length;
-  document.getElementById('stock-count').textContent = products.filter(p => p.variants.some(v => v.stock > 0)).length;
+
 
   const grid = document.getElementById('product-grid');
   if (list.length === 0) { grid.innerHTML = '<div class="no-results">No compounds found.</div>'; return; }
