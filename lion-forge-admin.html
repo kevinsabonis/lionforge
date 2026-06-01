@@ -388,7 +388,7 @@ window.filterOrders = function() {
   } else {
     list = allOrders.filter(o => o.status === currentFilter);
   }
-  if (q) list = list.filter(o=>(o.orderNum+'').includes(q)||(o.displayName||'').toLowerCase().includes(q)||(o.email||'').toLowerCase().includes(q));
+  if (q) list = list.filter(o=>(o.order_num+'').includes(q)||(o.display_name||'').toLowerCase().includes(q)||(o.email||'').toLowerCase().includes(q));
   renderOrders(list);
 };
 
@@ -422,7 +422,7 @@ function renderOrders(orders) {
             <div class="tf" style="flex:2;"><label>Tracking Number</label>
               <input id="tracking-${o.fid}" type="text" placeholder="Enter tracking #">
             </div>
-            <button class="ship-btn" onclick="markShipped('${o.fid}','${o.email}','${o.displayName||''}','${o.orderNum}')">
+            <button class="ship-btn" onclick="markShipped('${o.fid}','${o.email}','${o.display_name||''}','${o.order_num}')">
               MARK SHIPPED &#x2192;
             </button>
           </div>
@@ -430,15 +430,15 @@ function renderOrders(orders) {
             <div class="tf" style="flex:2;min-width:160px;"><label>Cancel Reason (optional)</label>
               <input id="cancel-reason-${o.fid}" type="text" placeholder="e.g. Customer request, out of stock...">
             </div>
-            <button class="cancel-order-btn" onclick="cancelOrder('${o.fid}','${o.orderNum}')">&#x26D4; CANCEL ORDER</button>
+            <button class="cancel-order-btn" onclick="cancelOrder('${o.fid}','${o.order_num}')">&#x26D4; CANCEL ORDER</button>
           </div>
         </div>`;
     }
     return `<div class="order-card ${o.status||'pending'}" id="oc-${o.fid}">
       <div class="order-head" onclick="toggleOrder('${o.fid}')">
         <div class="order-head-left">
-          <span class="order-num">#${o.orderNum}</span>
-          <div><div class="cust-name">${o.displayName||'Unknown'}</div>
+          <span class="order-num">#${o.order_num}</span>
+          <div><div class="cust-name">${o.display_name||'Unknown'}</div>
             <div class="cust-email">${o.email||''} &bull; ${date}</div>
           </div>
         </div>
@@ -532,8 +532,8 @@ function renderCancelledOrders() {
     return `<div class="order-card cancelled" id="cc-${o.fid}" style="margin:0 12px 10px;">
       <div class="order-head" onclick="toggleCancelledOrder('${o.fid}')">
         <div class="order-head-left">
-          <span class="order-num">#${o.orderNum}</span>
-          <div><div class="cust-name">${o.displayName||'Unknown'}</div>
+          <span class="order-num">#${o.order_num}</span>
+          <div><div class="cust-name">${o.display_name||'Unknown'}</div>
             <div class="cust-email">${o.email||''} &bull; Ordered ${date}</div>
           </div>
         </div>
