@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Password Reset — Lion Forge Peptides</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:    #080e20;
+      --navy2:   #101a38;
+      --gold:    #e8a820;
+      --gold2:   #c8880a;
+      --blue:    #1a2d6e;
+      --text:    #ccd6f6;
+      --muted:   #6a7a9e;
+      --mono:    'Share Tech Mono', monospace;
+      --sans:    'Rajdhani', sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--navy);
+      color: var(--text);
+      font-family: var(--sans);
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 0%, rgba(26,45,110,0.35) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 30% at 80% 100%, rgba(232,168,32,0.06) 0%, transparent 60%),
+        var(--navy);
+    }
+
+    /* subtle grid overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(26,45,110,0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(26,45,110,0.08) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    .card {
+      position: relative;
+      background: linear-gradient(145deg, rgba(16,26,56,0.98) 0%, rgba(8,14,32,0.99) 100%);
+      border: 1px solid rgba(232,168,32,0.2);
+      border-radius: 20px;
+      padding: 52px 48px 44px;
+      width: 100%;
+      max-width: 440px;
+      margin: 24px;
+      box-shadow:
+        0 0 80px rgba(232,168,32,0.06),
+        0 30px 80px rgba(0,0,0,0.6),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+      animation: fadeUp 0.5s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo-area {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .logo-icon {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 14px;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 4px 24px rgba(232,168,32,0.25);
+    }
+
+    .brand-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .card-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: #fff;
+      text-transform: uppercase;
+    }
+
+    .divider {
+      width: 40px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin: 12px auto 0;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.7;
+      margin-bottom: 32px;
+      margin-top: 16px;
+    }
+
+    .field {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    input[type="email"] {
+      width: 100%;
+      background: rgba(8,14,32,0.8);
+      border: 1px solid rgba(232,168,32,0.15);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: #fff;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="email"]::placeholder { color: rgba(106,122,158,0.5); }
+
+    input[type="email"]:focus {
+      border-color: rgba(232,168,32,0.5);
+      box-shadow: 0 0 0 3px rgba(232,168,32,0.07);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      color: var(--navy);
+      border: none;
+      border-radius: 10px;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      margin-top: 8px;
+      box-shadow: 0 4px 20px rgba(232,168,32,0.2);
+    }
+
+    .btn:hover:not(:disabled) {
+      opacity: 0.92;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 28px rgba(232,168,32,0.3);
+    }
+
+    .btn:active:not(:disabled) { transform: translateY(0); }
+
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* status messages */
+    .status {
+      display: none;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 16px;
+      text-align: center;
+    }
+
+    .status.success {
+      display: block;
+      background: rgba(40,180,100,0.1);
+      border: 1px solid rgba(40,180,100,0.25);
+      color: #5de6a0;
+    }
+
+    .status.error {
+      display: block;
+      background: rgba(220,60,60,0.1);
+      border: 1px solid rgba(220,60,60,0.25);
+      color: #f08080;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 24px;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--gold); }
+    .back-link::before { content: '← '; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="logo-area">
+      <div class="logo-icon">⚗️</div>
+      <div class="brand-label">Lion Forge Peptides</div>
+      <div class="card-title">Reset Password</div>
+      <div class="divider"></div>
+    </div>
+
+    <p class="subtitle">Enter the email address tied to your admin account and we'll send you a reset link.</p>
+
+    <div id="form-view">
+      <div class="field">
+        <label for="email">Admin Email</label>
+        <input type="email" id="email" placeholder="you@example.com" autocomplete="email" />
+      </div>
+
+      <button class="btn" id="send-btn" onclick="sendReset()">Send Reset Link</button>
+
+      <div class="status" id="status-msg"></div>
+    </div>
+
+    <a class="back-link" href="index.html">Back to site</a>
+  </div>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getAuth, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+    // ── Paste your Firebase config here ──────────────────────────
+    const firebaseConfig = {
+      apiKey:            "PASTE_YOUR_API_KEY",
+      authDomain:        "PASTE_YOUR_AUTH_DOMAIN",
+      projectId:         "PASTE_YOUR_PROJECT_ID",
+      storageBucket:     "PASTE_YOUR_STORAGE_BUCKET",
+      messagingSenderId: "PASTE_YOUR_MESSAGING_SENDER_ID",
+      appId:             "PASTE_YOUR_APP_ID"
+    };
+    // ─────────────────────────────────────────────────────────────
+
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.sendReset = async function () {
+      const email  = document.getElementById('email').value.trim();
+      const btn    = document.getElementById('send-btn');
+      const status = document.getElementById('status-msg');
+
+      status.className = 'status';
+      status.textContent = '';
+
+      if (!email) {
+        status.className = 'status error';
+        status.textContent = 'Please enter your email address.';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+
+      try {
+        await sendPasswordResetEmail(auth, email);
+        status.className = 'status success';
+        status.textContent = '✓ Reset link sent! Check your inbox (and spam folder) for an email from Firebase.';
+        btn.textContent = 'Link Sent';
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Send Reset Link';
+        if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-email') {
+          status.className = 'status error';
+          status.textContent = 'No account found with that email. Double-check and try again.';
+        } else {
+          status.className = 'status error';
+          status.textContent = 'Error: ' + err.message;
+        }
+      }
+    };
+
+    // Allow Enter key to submit
+    document.getElementById('email').addEventListener('keydown', e => {
+      if (e.key === 'Enter') window.sendReset();
+    });
+  </script>
+
+</body>
+</html>
