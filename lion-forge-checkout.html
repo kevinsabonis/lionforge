@@ -454,6 +454,7 @@ window._lfFns  = { createUserWithEmailAndPassword, signInWithEmailAndPassword, o
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, doc, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-functions.js";
 
 const firebaseConfig = {
   apiKey:            "AIzaSyB9Zb9nBoDrlx5Rw7hXTukSMutDkxgW46Y",
@@ -467,6 +468,8 @@ const firebaseConfig = {
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
+const functions = getFunctions(app);
+const placeOrderFn = httpsCallable(functions, "placeOrder");
 
 // ── EmailJS CONFIG ────────────────────────────────────────────────
 const EMAILJS_SERVICE_ID   = 'service_lvdwr4o';
@@ -639,66 +642,99 @@ window.placeOrder = async function() {
   const state   = document.getElementById('f-state').value.trim();
   const zip     = document.getElementById('f-zip').value.trim();
   const address = [street, city, state, zip].filter(Boolean).join(', ');
-  const total   = parseFloat(document.getElementById('summary-total').textContent.replace('$',''));
-  const shipMethod = document.getElementById('ship-expedited').classList.contains('selected') ? 'Expedited' : 'Ground';
+  const shipMethodKey = document.getElementById('ship-expedited').classList.contains('selected') ? 'expedited' : 'ground';
+  const discountCode = (document.getElementById('discount-code')?.value || '').trim().toUpperCase();
 
-  const orderObj = {
-    orderNum: ORDER_NUM, status: 'pending', items: cart,
-    subtotal: getSubtotal(), shipping: shippingCost,
-    shippingMethod: shipMethod, paymentMethod: selectedPayment
-      ? selectedPayment.charAt(0).toUpperCase()+selectedPayment.slice(1) : '—',
-    address, total,
-    displayName: name, email,
-    uid: auth.currentUser?.uid || 'guest',
-    date: new Date().toISOString(),
-    createdAt: serverTimestamp()
-  };
+  // Every cart item must carry id + variantIndex so the server can look up
+  // the real price. Older carts created before this change won't have them.
+  const badItem = cart.find(c => c.id === undefined || c.variantIndex === undefined);
+  if (badItem) {
+    showToast('Please return to the shop and re-add your items.');
+    return;
+  }
 
-  // Save to Firestore
+  // Disable the button while we place the order.
+  const btn = document.getElementById('place-order-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'PLACING ORDER…'; }
+
+  // ── Place the order through the trusted server function ──────────
+  // The browser sends only WHAT to buy; the server computes all prices,
+  // shipping, discount, and the total, verifies + decrements stock, and
+  // writes the order. Nothing money-related here is trusted from the client.
+  let res;
   try {
-    await addDoc(collection(db, 'orders'), orderObj);
-    console.log('Order saved to Firestore');
-  } catch(e) { console.error('Firestore error:', e); }
+    const out = await placeOrderFn({
+      orderNum: ORDER_NUM,
+      items: cart.map(c => ({ id: c.id, variantIndex: c.variantIndex, qty: c.qty })),
+      customer: { name, email, address },
+      shippingMethod: shipMethodKey,
+      discountCode,
+      paymentMethod: selectedPayment
+        ? selectedPayment.charAt(0).toUpperCase() + selectedPayment.slice(1) : '—',
+    });
+    res = out.data;
+  } catch (e) {
+    console.error('Order failed:', e);
+    if (btn) { btn.disabled = false; btn.textContent = 'PLACE ORDER'; }
+    // Firebase callable errors carry a human-readable message we set server-side.
+    showToast(e?.message || 'Order could not be placed. Please try again.');
+    return;
+  }
 
-  // Send confirmation email
+  // From here on, use the SERVER's authoritative numbers.
+  const orderNumber  = res.orderNum;
+  const serverItems  = res.items;
+  const serverSubtot = res.subtotal;
+  const serverShip   = res.shipping;
+  const serverTotal  = res.total;
+  const shipMethod   = shipMethodKey === 'expedited' ? 'Expedited' : 'Ground';
+
+  // Send confirmation email (using server-verified values)
   try {
     emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
-    const itemsList = cart.map(i =>
+    const itemsList = serverItems.map(i =>
       i.name + ' (' + i.variant + ') x' + i.qty + '  $' + (i.price*i.qty).toFixed(2)
     ).join('\n');
     // Send customer confirmation
     await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
       to_name: name, to_email: email,
-      order_number: '#' + ORDER_NUM,
+      order_number: '#' + orderNumber,
       items_list: itemsList,
-      subtotal: '$' + getSubtotal().toFixed(2),
+      subtotal: '$' + serverSubtot.toFixed(2),
       shipping_method: shipMethod,
-      shipping_cost: '$' + shippingCost.toFixed(2),
-      order_total: '$' + total.toFixed(2),
+      shipping_cost: '$' + serverShip.toFixed(2),
+      order_total: '$' + serverTotal.toFixed(2),
       ship_to: address,
       ship_note: 'Orders paid by 4pm CST ship same day Mon–Fri. Processing within 24–48 hours.'
     });
     console.log('Customer confirmation sent');
 
-    // Send admin notification to support@lionforgepeptides.com
+    // Send admin notification
     await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_ADMIN_TEMPLATE_ID, {
       to_email:       'support@lionforgepeptides.com',
       to_name:        'Lion Forge Support',
-      order_number:   '#' + ORDER_NUM,
+      order_number:   '#' + orderNumber,
       customer_name:  name,
       customer_email: email,
       items_list:     itemsList,
-      subtotal:       '$' + getSubtotal().toFixed(2),
+      subtotal:       '$' + serverSubtot.toFixed(2),
       shipping_method: shipMethod,
-      shipping_cost:  '$' + shippingCost.toFixed(2),
-      order_total:    '$' + total.toFixed(2),
+      shipping_cost:  '$' + serverShip.toFixed(2),
+      order_total:    '$' + serverTotal.toFixed(2),
       ship_to:        address,
       payment_method: selectedPayment ? selectedPayment.charAt(0).toUpperCase()+selectedPayment.slice(1) : '—',
     });
     console.log('Admin notification sent');
   } catch(e) { console.error('Email error:', e); }
 
-  // Show success
+
+  // Clear the cart now that the order is placed and recorded server-side.
+  try { localStorage.removeItem('lfp_cart'); } catch(e) {}
+  cart = [];
+
+  // Show success (reflect the server-confirmed order number everywhere)
+  const sEl = document.getElementById('success-order-num');
+  if (sEl) sEl.textContent = '#' + orderNumber;
   document.getElementById('success-overlay').style.display = 'flex';
   document.querySelector('.success-shop-btn').textContent = 'VIEW MY ACCOUNT';
   document.querySelector('.success-shop-btn').href = '#';

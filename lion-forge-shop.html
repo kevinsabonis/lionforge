@@ -289,24 +289,20 @@ async function syncProductsFromFirestore() {
   }
 }
 
-// Sync live inventory from Firestore for EVERYONE (logged in or not),
-// as soon as the page's product data is ready. This is what makes admin
-// inventory edits show up on the public shop.
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', syncProductsFromFirestore);
-} else {
-  syncProductsFromFirestore();
-}
-
-// Auth is only used to reveal the admin nav button for admins.
-// (No redirect — the shop is publicly browsable.)
+// Run sync after auth is confirmed
 onAuthStateChanged(auth, user => {
   if (user) {
+    syncProductsFromFirestore();
     const ADMIN_EMAILS = ['kevinsabonis@gmail.com'];
     if (ADMIN_EMAILS.includes(user.email)) {
       const btn = document.getElementById('admin-nav-btn');
       if (btn) btn.style.display = 'block';
     }
+  } else {
+    // Give Firebase a moment to restore session before redirecting
+    setTimeout(() => {
+      if (!auth.currentUser) window.location.href = 'index.html';
+    }, 1500);
   }
 });
 </script>
@@ -487,10 +483,10 @@ document.addEventListener('DOMContentLoaded', () => {
   
 
   document.getElementById('nav-logo-img').src = LOGO_B64;
-  // restore cart from session
+  // restore cart from shared storage
   try {
-    const saved = sessionStorage.getItem('lfp_cart');
-    if (saved) { const parsed = JSON.parse(saved); parsed.forEach(i => cart.push(i)); }
+    const saved = localStorage.getItem('lfp_cart');
+    if (saved) { const parsed = JSON.parse(saved); if (Array.isArray(parsed)) parsed.forEach(i => cart.push(i)); }
   } catch(e) {}
   // init selected variants
   products.forEach(p => { selectedVariants[p.id] = 0; quantities[p.id] = 1; });
@@ -609,12 +605,38 @@ window.closeComingSoon = function(e) {
 };
 
 function addToCart(pid) {
-  showComingSoon();
+  const p = products.find(x => x.id === pid);
+  if (!p) return;
+  const variantIndex = Math.min(selectedVariants[pid] ?? 0, p.variants.length - 1);
+  const v = p.variants[variantIndex];
+  if (!v || v.stock === 0) return;
+  const qty = Math.max(1, quantities[pid] ?? 1);
+
+  // Merge into the existing cart by product+variant.
+  const key = pid + '-' + variantIndex;
+  const existing = cart.find(c => c.key === key);
+  if (existing) {
+    existing.qty += qty;
+  } else {
+    cart.push({ key, id: pid, variantIndex, name: p.name, variant: v.label, price: v.price, qty });
+  }
+  persistCart();
+  updateCartBadge();
+
+  // "Added!" flash on the card.
+  const flash = document.getElementById('flash-' + pid);
+  if (flash) { flash.classList.add('show'); setTimeout(() => flash.classList.remove('show'), 1100); }
+}
+
+// Single source of truth: the standalone cart + checkout pages read
+// localStorage 'lfp_cart', so the shop writes there too.
+function persistCart() {
+  try { localStorage.setItem('lfp_cart', JSON.stringify(cart)); } catch(e) {}
 }
 
 function removeFromCart(key) {
   cart = cart.filter(c => c.key !== key);
-  try { localStorage.setItem('lfp_cart_data', JSON.stringify(cart)); } catch(e) {}
+  persistCart();
   renderCart();
   updateCartBadge();
 }
@@ -622,7 +644,7 @@ function removeFromCart(key) {
 function updateCartBadge() {
   const total = cart.reduce((s,c) => s + c.qty, 0);
   document.getElementById('cart-count').textContent = total;
-  try { sessionStorage.setItem('lfp_cart', JSON.stringify(cart)); } catch(e) {}
+  persistCart();
 }
 
 function openCart() {
@@ -827,12 +849,12 @@ function cartFromHash(h) {
   } catch(e) { return null; }
 }
 function saveCart(c) {
-  try { localStorage.setItem('lfp_cart_data', JSON.stringify(c)); } catch(e) {}
+  try { localStorage.setItem('lfp_cart', JSON.stringify(c)); } catch(e) {}
 }
 function loadCart() {
   // 1. Try localStorage (works when hosted on same domain)
   try {
-    const raw = localStorage.getItem('lfp_cart_data');
+    const raw = localStorage.getItem('lfp_cart');
     if (raw) { const d = JSON.parse(raw); if (d && d.length > 0) return d; }
   } catch(e) {}
   // 2. Try URL hash (works when opening files locally)
