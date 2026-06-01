@@ -308,9 +308,11 @@ window.navSignOut = function(){fetch('/api/auth/logout',{method:'POST',credentia
                 <button class="copy-btn" onclick="event.stopPropagation();copyText('@lionforgeps')" title="Copy">&#x2398;</button>
               </div>
             </div>
-            <div class="pay-method unavailable" id="pm-cashapp">
+            <div class="pay-method" id="pm-cashapp" onclick="selectPayment('cashapp')">
               <div class="pay-method-name">Cash App</div>
-              <div class="pay-method-handle">NOT AVAILABLE</div>
+              <div class="pay-method-handle">$LionforgeLFG
+                <button class="copy-btn" onclick="event.stopPropagation();copyText('$LionforgeLFG')" title="Copy">&#x2398;</button>
+              </div>
             </div>
             <div class="pay-method" id="pm-zelle" onclick="selectPayment('zelle')">
               <div class="pay-method-name">Zelle</div>
