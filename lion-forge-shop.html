@@ -260,8 +260,6 @@ nav{position:relative;z-index:100;display:flex;align-items:center;justify-conten
     window._lfCurrentUser = user;
   } catch(e) { window.location.href = 'index.html'; return; }
 
-  const soBtn = document.getElementById('signout-nav-btn');
-  if (soBtn) soBtn.style.display = 'block';
   if (user.role === 'admin') {
     const btn = document.getElementById('admin-nav-btn');
     if (btn) btn.style.display = 'block';
@@ -297,7 +295,6 @@ nav{position:relative;z-index:100;display:flex;align-items:center;justify-conten
   </ul>
   <div class="nav-right">
     <button class="admin-btn" id="admin-nav-btn" onclick="window.location.href='lion-forge-admin.html'" style="display:none;">⚙ ORDERS</button>
-    <button id="signout-nav-btn" onclick="navSignOut()" style="display:none;background:none;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:7px 14px;color:#6a7a9e;font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;" onmouseover="this.style.color='#ef4444';this.style.borderColor='rgba(239,68,68,0.4)'" onmouseout="this.style.color='#6a7a9e';this.style.borderColor='rgba(255,255,255,0.1)'">Sign Out</button>
     <button class="cart-btn" onclick="openCart()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
       CART <span id="cart-count">0</span>
@@ -839,9 +836,6 @@ function loadCart() {
 // ─── NAVIGATION ──────────────────────────────────────────────────
 function getUrlParam(k) {
   return new URLSearchParams(window.location.search).get(k) || '';
-}
-function navSignOut() {
-  fetch('/api/auth/logout', { method:'POST', credentials:'include' }).finally(() => { window.location.href = 'index.html'; });
 }
 function goToAccount() {
   window.location.href = 'lion-forge-account.html';

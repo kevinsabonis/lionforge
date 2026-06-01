@@ -138,7 +138,6 @@ nav{position:relative;z-index:100;display:flex;align-items:center;justify-conten
     <li><a href="#" class="active">ACCOUNT</a></li>
   </ul>
 </nav>
-<button id="signout-nav-btn" onclick="navSignOut()" style="display:none;position:fixed;top:14px;right:20px;z-index:200;background:none;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:7px 14px;color:#6a7a9e;font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;" onmouseover="this.style.color='#ef4444';this.style.borderColor='rgba(239,68,68,0.4)'" onmouseout="this.style.color='#6a7a9e';this.style.borderColor='rgba(255,255,255,0.1)'">Sign Out</button>
 <div class="page">
 
   <!-- PROFILE HEADER -->
@@ -346,7 +345,6 @@ async function saveName() {
     showToast('Name updated');
   } catch(e) { showToast('Could not update name'); }
 }
-window.navSignOut = function() { logout(); }
 function logout() {
   fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
     .finally(() => { window.location.href = 'index.html'; });

@@ -243,9 +243,6 @@ nav{position:relative;z-index:100;display:flex;align-items:center;justify-conten
 </div>
 
 <script>
-function navSignOut(){fetch('/api/auth/logout',{method:'POST',credentials:'include'}).finally(()=>{window.location.href='index.html';})}
-// Show sign-out button
-fetch('/api/auth/me',{credentials:'include'}).then(r=>r.ok?r.json():null).then(u=>{if(u){const b=document.getElementById('signout-nav-btn');if(b)b.style.display='block';}}).catch(()=>{})
 // ── LOAD CART ────────────────────────────────────────────────────
 function loadCartData() {
   try {

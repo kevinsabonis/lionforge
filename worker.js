@@ -80,7 +80,30 @@ export default {
     const method = request.method;
 
     if (!path.startsWith('/api/')) {
-      return env.ASSETS.fetch(request);
+      const response = await env.ASSETS.fetch(request);
+      // Inject sign-out button next to logo on every HTML page for logged-in users
+      if (response.headers.get('Content-Type')?.includes('text/html')) {
+        const user = await getUser(request, env.JWT_SECRET);
+        if (user) {
+          return new HTMLRewriter()
+            .on('a.nav-logo', {
+              element(el) {
+                el.after(
+                  `<button onclick="fetch('/api/auth/logout',{method:'POST',credentials:'include'}).finally(()=>window.location.href='index.html')" ` +
+                  `style="margin-left:16px;background:none;border:1px solid rgba(255,255,255,0.12);border-radius:8px;` +
+                  `padding:6px 14px;color:#6a7a9e;font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;` +
+                  `letter-spacing:0.04em;vertical-align:middle;transition:color .2s,border-color .2s;" ` +
+                  `onmouseover="this.style.color='#ef4444';this.style.borderColor='rgba(239,68,68,0.35)'" ` +
+                  `onmouseout="this.style.color='#6a7a9e';this.style.borderColor='rgba(255,255,255,0.12)'">` +
+                  `Sign Out</button>`,
+                  { html: true }
+                );
+              }
+            })
+            .transform(response);
+        }
+      }
+      return response;
     }
 
     if (method === 'OPTIONS') {
