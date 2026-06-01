@@ -1,6 +1,7 @@
 /**
  * Lion Forge Peptides — Cloudflare Worker
  * Handles /api/* routes; all other requests fall through to static assets.
+ * Auth: passwordless email OTP — 6-digit code, 15-minute expiry.
  */
 
 // ── JWT helpers ────────────────────────────────────────────────────────────
@@ -43,38 +44,6 @@ function b64decode(str) {
   return Uint8Array.from(bin, c => c.charCodeAt(0));
 }
 
-// ── Password hashing (PBKDF2 via SubtleCrypto) ─────────────────────────────
-
-async function hashPassword(password) {
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const key = await pbkdf2(password, salt);
-  const combined = new Uint8Array(salt.length + key.byteLength);
-  combined.set(salt);
-  combined.set(new Uint8Array(key), salt.length);
-  return btoa(String.fromCharCode(...combined));
-}
-
-async function verifyPassword(password, stored) {
-  const combined = Uint8Array.from(atob(stored), c => c.charCodeAt(0));
-  const salt = combined.slice(0, 16);
-  const key = await pbkdf2(password, salt);
-  const storedKey = combined.slice(16);
-  const keyBytes = new Uint8Array(key);
-  if (keyBytes.length !== storedKey.length) return false;
-  // Constant-time comparison
-  let diff = 0;
-  for (let i = 0; i < keyBytes.length; i++) diff |= keyBytes[i] ^ storedKey[i];
-  return diff === 0;
-}
-
-async function pbkdf2(password, salt) {
-  const baseKey = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
-  return crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
-    baseKey, 256
-  );
-}
-
 // ── Responses ──────────────────────────────────────────────────────────────
 
 const json = (data, status = 200, headers = {}) =>
@@ -110,12 +79,10 @@ export default {
     const path = url.pathname;
     const method = request.method;
 
-    // Only handle /api/* routes; everything else serves static assets
     if (!path.startsWith('/api/')) {
       return env.ASSETS.fetch(request);
     }
 
-    // CORS preflight
     if (method === 'OPTIONS') {
       return new Response(null, {
         headers: {
@@ -129,18 +96,14 @@ export default {
 
     try {
       // ── Auth routes ──────────────────────────────────────────────────────
-      if (path === '/api/auth/register' && method === 'POST')
-        return handleRegister(request, env);
-      if (path === '/api/auth/login' && method === 'POST')
-        return handleLogin(request, env);
+      if (path === '/api/auth/request-code' && method === 'POST')
+        return handleRequestCode(request, env);
+      if (path === '/api/auth/verify-code' && method === 'POST')
+        return handleVerifyCode(request, env);
       if (path === '/api/auth/logout' && method === 'POST')
         return handleLogout();
       if (path === '/api/auth/me' && method === 'GET')
         return handleMe(request, env);
-      if (path === '/api/auth/reset-request' && method === 'POST')
-        return handleResetRequest(request, env);
-      if (path === '/api/auth/reset-password' && method === 'POST')
-        return handleResetPassword(request, env);
 
       // ── Public routes ────────────────────────────────────────────────────
       if (path === '/api/products' && method === 'GET')
@@ -167,38 +130,45 @@ export default {
 
 // ── Auth handlers ──────────────────────────────────────────────────────────
 
-async function handleRegister(request, env) {
-  const { email, password, displayName } = await request.json();
-  if (!email || !password || !displayName) return err('All fields required');
-  if (password.length < 6) return err('Password must be at least 6 characters');
+async function handleRequestCode(request, env) {
+  const { email } = await request.json();
+  if (!email || !email.includes('@')) return err('Valid email required');
 
-  const existing = await env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(email.toLowerCase()).first();
-  if (existing) return err('Email already in use');
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const expires = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
-  const hash = await hashPassword(password);
-  const id = crypto.randomUUID();
+  // Replace any existing unused codes for this email
+  await env.DB.prepare('DELETE FROM otp_codes WHERE email = ?').bind(email.toLowerCase()).run();
   await env.DB.prepare(
-    'INSERT INTO users (id, email, password_hash, display_name) VALUES (?, ?, ?, ?)'
-  ).bind(id, email.toLowerCase(), hash, displayName).run();
+    'INSERT INTO otp_codes (id, email, code, expires_at) VALUES (?, ?, ?, ?)'
+  ).bind(crypto.randomUUID(), email.toLowerCase(), code, expires).run();
 
-  const token = await jwtSign(
-    { uid: id, email: email.toLowerCase(), displayName, role: 'customer', exp: Math.floor(Date.now() / 1000) + 604800 },
-    env.JWT_SECRET
-  );
-  return json({ uid: id, email: email.toLowerCase(), displayName, role: 'customer' }, 200, {
-    'Set-Cookie': sessionCookie(token),
-  });
+  // Return the code — client sends it via EmailJS
+  return json({ ok: true, code });
 }
 
-async function handleLogin(request, env) {
-  const { email, password } = await request.json();
-  if (!email || !password) return err('Email and password required');
+async function handleVerifyCode(request, env) {
+  const { email, code } = await request.json();
+  if (!email || !code) return err('Email and code required');
 
-  const user = await env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(email.toLowerCase()).first();
-  if (!user) return err('Invalid email or password', 401);
+  const row = await env.DB.prepare(
+    "SELECT * FROM otp_codes WHERE email = ? AND code = ? AND used = 0 AND expires_at > datetime('now')"
+  ).bind(email.toLowerCase(), String(code)).first();
 
-  const ok = await verifyPassword(password, user.password_hash);
-  if (!ok) return err('Invalid email or password', 401);
+  if (!row) return err('Invalid or expired code. Request a new one.', 401);
+
+  await env.DB.prepare('UPDATE otp_codes SET used = 1 WHERE id = ?').bind(row.id).run();
+
+  // Find or auto-create user
+  let user = await env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(email.toLowerCase()).first();
+  if (!user) {
+    const id = crypto.randomUUID();
+    const displayName = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    await env.DB.prepare(
+      'INSERT INTO users (id, email, password_hash, display_name) VALUES (?, ?, ?, ?)'
+    ).bind(id, email.toLowerCase(), '', displayName).run();
+    user = { id, email: email.toLowerCase(), display_name: displayName, role: 'customer' };
+  }
 
   const token = await jwtSign(
     { uid: user.id, email: user.email, displayName: user.display_name, role: user.role, exp: Math.floor(Date.now() / 1000) + 604800 },
@@ -217,42 +187,6 @@ async function handleMe(request, env) {
   const user = await getUser(request, env.JWT_SECRET);
   if (!user) return err('Unauthenticated', 401);
   return json({ uid: user.uid, email: user.email, displayName: user.displayName, role: user.role });
-}
-
-async function handleResetRequest(request, env) {
-  const { email } = await request.json();
-  if (!email) return err('Email required');
-
-  const user = await env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(email.toLowerCase()).first();
-  // Always return ok to prevent email enumeration
-  if (!user) return json({ ok: true });
-
-  const token = crypto.randomUUID().replace(/-/g, '');
-  const expires = new Date(Date.now() + 3600000).toISOString(); // 1 hour
-  await env.DB.prepare(
-    'INSERT INTO reset_tokens (token, user_id, expires_at) VALUES (?, ?, ?)'
-  ).bind(token, user.id, expires).run();
-
-  // Return token so the client can send it via EmailJS
-  return json({ ok: true, resetToken: token });
-}
-
-async function handleResetPassword(request, env) {
-  const { token, newPassword } = await request.json();
-  if (!token || !newPassword) return err('Token and new password required');
-  if (newPassword.length < 6) return err('Password must be at least 6 characters');
-
-  const row = await env.DB.prepare(
-    'SELECT * FROM reset_tokens WHERE token = ? AND used = 0 AND expires_at > datetime(\'now\')'
-  ).bind(token).first();
-  if (!row) return err('Invalid or expired reset token', 400);
-
-  const hash = await hashPassword(newPassword);
-  await env.DB.batch([
-    env.DB.prepare('UPDATE users SET password_hash = ? WHERE id = ?').bind(hash, row.user_id),
-    env.DB.prepare('UPDATE reset_tokens SET used = 1 WHERE token = ?').bind(token),
-  ]);
-  return json({ ok: true });
 }
 
 // ── Product handlers ───────────────────────────────────────────────────────
@@ -309,8 +243,6 @@ async function handlePlaceOrder(request, env) {
   const discountCode = String(data.discountCode || '').trim().toUpperCase();
   const paymentMethod = String(data.paymentMethod || '').slice(0, 40);
 
-  // D1 doesn't support multi-statement transactions like Firestore, but we
-  // can use batch() for atomicity across writes. We read first then batch write.
   const prodRow = await env.DB.prepare('SELECT value FROM config WHERE key = ?').bind('products').first();
   if (!prodRow) return err('Product catalog unavailable', 503);
   const { list } = JSON.parse(prodRow.value);
@@ -339,7 +271,6 @@ async function handlePlaceOrder(request, env) {
   const discount = round2(subtotal * discountRate);
   const total = Math.max(0, round2(subtotal + shipping - discount));
 
-  // Decrement finite stock
   const newList = list.map(p => {
     const hits = requested.filter(r => r.id === Number(p.id));
     if (!hits.length) return p;
@@ -388,7 +319,6 @@ async function handleAdmin(request, env, path, method) {
   const user = await getUser(request, env.JWT_SECRET);
   if (!user || user.role !== 'admin') return err('Forbidden', 403);
 
-  // Orders
   if (path === '/api/admin/orders' && method === 'GET') {
     const { results } = await env.DB.prepare('SELECT * FROM orders ORDER BY created_at DESC').all();
     return json(results.map(o => ({ ...o, items: JSON.parse(o.items) })));
@@ -400,7 +330,6 @@ async function handleAdmin(request, env, path, method) {
     return json({ ok: true });
   }
 
-  // Products
   if (path === '/api/admin/products' && method === 'GET') {
     const row = await env.DB.prepare('SELECT value FROM config WHERE key = ?').bind('products').first();
     return json(row ? JSON.parse(row.value) : { list: [] });
@@ -411,7 +340,6 @@ async function handleAdmin(request, env, path, method) {
     return json({ ok: true });
   }
 
-  // Announcements
   if (path === '/api/admin/announcements' && method === 'GET') {
     const { results } = await env.DB.prepare('SELECT * FROM announcements ORDER BY created_at DESC').all();
     return json(results);
@@ -428,7 +356,7 @@ async function handleAdmin(request, env, path, method) {
   if (annMatch && method === 'PUT') {
     const { title, content, published } = await request.json();
     await env.DB.prepare(
-      'UPDATE announcements SET title = ?, content = ?, published = ?, updated_at = datetime(\'now\') WHERE id = ?'
+      "UPDATE announcements SET title = ?, content = ?, published = ?, updated_at = datetime('now') WHERE id = ?"
     ).bind(title, content, published ? 1 : 0, annMatch[1]).run();
     return json({ ok: true });
   }

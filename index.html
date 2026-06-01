@@ -292,209 +292,154 @@ loadAnnouncements();
 
 
 <!-- Login Modal -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <div id="auth-overlay" style="display:none; position:fixed; inset:0; z-index:1000; background:rgba(4,8,22,0.88); backdrop-filter:blur(6px); align-items:center; justify-content:center;">
-  <div id="auth-modal" style="background:#0d1535; border:1px solid rgba(232,168,32,0.25); border-radius:18px; padding:40px 44px; width:100%; max-width:440px; position:relative; box-shadow:0 8px 60px rgba(0,0,0,0.6);">
-    
-    <!-- Close -->
+  <div id="auth-modal" style="background:#0d1535; border:1px solid rgba(232,168,32,0.25); border-radius:18px; padding:40px 44px; width:100%; max-width:420px; position:relative; box-shadow:0 8px 60px rgba(0,0,0,0.6);">
+
     <button onclick="closeModal()" style="position:absolute;top:16px;right:20px;background:none;border:none;color:#4a5a7a;font-size:22px;cursor:pointer;line-height:1;">&#x2715;</button>
 
-    <!-- Logo small -->
-    <div style="text-align:center;margin-bottom:24px;">
+    <div style="text-align:center;margin-bottom:28px;">
       <div style="font-family:'Share Tech Mono',monospace;color:#e8a820;font-size:14px;letter-spacing:0.15em;">LION FORGE PEPTIDES</div>
       <div style="font-size:11px;letter-spacing:0.3em;color:#4a5a7a;margin-top:4px;text-transform:uppercase;">Sign in to continue</div>
     </div>
 
-    <!-- View: Choose method -->
-    <div id="view-choose">
-
-
-      <!-- Email -->
-      <button onclick="showView('email')" style="width:100%;display:flex;align-items:center;justify-content:center;gap:12px;padding:13px 20px;background:rgba(255,255,255,0.05);border:1px solid rgba(232,168,32,0.2);border-radius:10px;color:#dde4f5;font-family:'Inter',sans-serif;font-size:14px;cursor:pointer;margin-bottom:12px;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.09)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e8a820" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg>
-        Continue with Email
+    <!-- Step 1: Email -->
+    <div id="step-email">
+      <label style="display:block;font-size:11px;color:#6a7a9e;letter-spacing:0.15em;margin-bottom:8px;">EMAIL ADDRESS</label>
+      <input id="inp-email" type="email" placeholder="you@example.com" autocomplete="email"
+        style="width:100%;padding:13px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(232,168,32,0.2);border-radius:8px;color:#dde4f5;font-size:15px;font-family:'Inter',sans-serif;margin-bottom:16px;outline:none;box-sizing:border-box;">
+      <button id="send-btn" onclick="requestCode()"
+        style="width:100%;padding:14px;background:#1e3d8f;border:1px solid rgba(232,168,32,0.35);border-radius:10px;color:#ffd060;font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:0.15em;cursor:pointer;">
+        SEND CODE &nbsp;&#x2192;
       </button>
-
-      <!-- Phone -->
-      <button onclick="showView('phone')" style="width:100%;display:flex;align-items:center;justify-content:center;gap:12px;padding:13px 20px;background:rgba(255,255,255,0.05);border:1px solid rgba(232,168,32,0.2);border-radius:10px;color:#dde4f5;font-family:'Inter',sans-serif;font-size:14px;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.09)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e8a820" stroke-width="1.8"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="17" r="1" fill="#e8a820"/></svg>
-        Continue with Phone
-      </button>
-
-      <div style="text-align:center;margin-top:20px;font-size:11px;color:#3a4a6a;line-height:1.6;">By continuing, you agree to our Terms of Service<br>and Privacy Policy.</div>
+      <div id="send-status" style="min-height:18px;margin-top:10px;text-align:center;font-size:13px;color:#ef4444;"></div>
     </div>
 
-
-
-    <!-- View: Email form -->
-    <div id="view-email" style="display:none;">
-      <button onclick="showView('choose')" style="background:none;border:none;color:#6a7a9e;font-size:13px;cursor:pointer;margin-bottom:20px;padding:0;display:flex;align-items:center;gap:6px;">&#8592; Back</button>
-
-      <!-- Login / Register tabs -->
-      <div style="display:flex;gap:0;margin-bottom:22px;border:1px solid rgba(232,168,32,0.2);border-radius:8px;overflow:hidden;">
-        <button id="tab-login" onclick="switchEmailTab('login')" style="flex:1;padding:10px;background:#1e3d8f;border:none;color:#ffd060;font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:0.1em;cursor:pointer;">SIGN IN</button>
-        <button id="tab-register" onclick="switchEmailTab('register')" style="flex:1;padding:10px;background:rgba(255,255,255,0.03);border:none;color:#6a7a9e;font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:0.1em;cursor:pointer;">CREATE ACCOUNT</button>
+    <!-- Step 2: Code -->
+    <div id="step-code" style="display:none;">
+      <div style="font-size:13px;color:#6a7a9e;margin-bottom:20px;text-align:center;">
+        Code sent to <strong style="color:#dde4f5;" id="code-sent-to"></strong>
       </div>
-
-      <div id="email-step-1">
-        <!-- Name field — only shown for registration -->
-        <div id="field-name">
-          <label style="display:block;font-size:12px;color:#6a7a9e;letter-spacing:0.08em;margin-bottom:6px;">FULL NAME</label>
-          <input id="inp-name" type="text" placeholder="Your name" style="width:100%;padding:11px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(232,168,32,0.2);border-radius:8px;color:#dde4f5;font-size:14px;font-family:'Inter',sans-serif;margin-bottom:14px;outline:none;">
-        </div>
-        <label style="display:block;font-size:12px;color:#6a7a9e;letter-spacing:0.08em;margin-bottom:6px;">EMAIL ADDRESS</label>
-        <input id="inp-email" type="email" placeholder="you@example.com" style="width:100%;padding:11px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(232,168,32,0.2);border-radius:8px;color:#dde4f5;font-size:14px;font-family:'Inter',sans-serif;margin-bottom:14px;outline:none;">
-        <label style="display:block;font-size:12px;color:#6a7a9e;letter-spacing:0.08em;margin-bottom:6px;">PASSWORD</label>
-        <input id="inp-pass" type="password" placeholder="Enter your password" style="width:100%;padding:11px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(232,168,32,0.2);border-radius:8px;color:#dde4f5;font-size:14px;font-family:'Inter',sans-serif;margin-bottom:20px;outline:none;">
-        <button id="email-submit-btn" onclick="submitEmail()" style="width:100%;padding:13px;background:#1e3d8f;border:1px solid rgba(232,168,32,0.35);border-radius:10px;color:#ffd060;font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:0.15em;cursor:pointer;">SIGN IN &nbsp;&#x2192;</button>
-      </div>
-      <div id="email-success" style="display:none;text-align:center;padding:16px 0;">
-        <div style="font-size:32px;margin-bottom:12px;">&#10003;</div>
-        <div id="success-title" style="color:#e8a820;font-size:15px;font-weight:500;margin-bottom:6px;">Signed In!</div>
-        <div id="success-msg" style="color:#6a7a9e;font-size:13px;"></div>
-      </div>
+      <label style="display:block;font-size:11px;color:#6a7a9e;letter-spacing:0.15em;margin-bottom:8px;">6-DIGIT CODE</label>
+      <input id="inp-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code"
+        style="width:100%;padding:13px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(232,168,32,0.2);border-radius:8px;color:#dde4f5;font-size:24px;font-family:'Share Tech Mono',monospace;letter-spacing:0.35em;text-align:center;margin-bottom:16px;outline:none;box-sizing:border-box;">
+      <button id="verify-btn" onclick="verifyCode()"
+        style="width:100%;padding:14px;background:#1e3d8f;border:1px solid rgba(232,168,32,0.35);border-radius:10px;color:#ffd060;font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:0.15em;cursor:pointer;margin-bottom:10px;">
+        SIGN IN &nbsp;&#x2192;
+      </button>
+      <button onclick="showStep('email')"
+        style="width:100%;padding:10px;background:none;border:none;color:#4a5a7a;font-size:13px;cursor:pointer;">
+        &#8592; Use a different email
+      </button>
+      <div id="verify-status" style="min-height:18px;margin-top:8px;text-align:center;font-size:13px;color:#ef4444;"></div>
     </div>
 
-    <!-- View: Phone form -->
-    <div id="view-phone" style="display:none;">
-      <button onclick="showView('choose')" style="background:none;border:none;color:#6a7a9e;font-size:13px;cursor:pointer;margin-bottom:20px;padding:0;display:flex;align-items:center;gap:6px;">&#8592; Back</button>
-      <label style="display:block;font-size:12px;color:#6a7a9e;letter-spacing:0.08em;margin-bottom:6px;">PHONE NUMBER</label>
-      <input id="inp-phone" type="tel" placeholder="+1 (555) 000-0000" style="width:100%;padding:11px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(232,168,32,0.2);border-radius:8px;color:#dde4f5;font-size:14px;font-family:'Inter',sans-serif;margin-bottom:20px;outline:none;">
-      <button onclick="submitPhone()" style="width:100%;padding:13px;background:#1e3d8f;border:1px solid rgba(232,168,32,0.35);border-radius:10px;color:#ffd060;font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:0.15em;cursor:pointer;">SEND CODE &nbsp;&#x2192;</button>
+    <!-- Success -->
+    <div id="step-success" style="display:none;text-align:center;padding:16px 0;">
+      <div style="font-size:40px;margin-bottom:14px;color:#22c55e;">&#10003;</div>
+      <div style="color:#e8a820;font-size:16px;font-weight:500;margin-bottom:8px;">Signed In!</div>
+      <div id="success-sub" style="color:#6a7a9e;font-size:13px;"></div>
     </div>
 
   </div>
 </div>
 
 <script>
+const EMAILJS_SERVICE_ID    = 'service_lvdwr4o';
+const EMAILJS_PUBLIC_KEY    = 'oV9_mb8asjyRBR1iX';
+const EMAILJS_OTP_TEMPLATE  = 'template_otpcode'; // set in EmailJS dashboard
+
 function openModal(dest) {
-  // Check if user is already logged in
-  const user = window._lfCurrentUser || (window._lfAuth && window._lfAuth.currentUser);
-  if (user) {
-    // Already authenticated — go straight to destination, no login needed
+  if (window._lfCurrentUser) {
     if (dest === 'account') window.location.href = 'lion-forge-account.html';
     else if (dest === 'cart') window.location.href = 'lion-forge-cart.html';
     else window.location.href = 'lion-forge-shop.html';
     return;
   }
-  // Not logged in — show login modal
+  window._authDest = dest || 'shop';
   document.getElementById('auth-overlay').style.display = 'flex';
-  showView('choose');
+  showStep('email');
+  setTimeout(() => document.getElementById('inp-email').focus(), 50);
 }
 function closeModal() {
   document.getElementById('auth-overlay').style.display = 'none';
 }
-function showView(name) {
-  ['choose','email','phone'].forEach(v => {
-    const el = document.getElementById('view-' + v);
+function showStep(name) {
+  ['email','code','success'].forEach(s => {
+    const el = document.getElementById('step-' + s);
     if (el) el.style.display = 'none';
   });
-  const target = document.getElementById('view-' + name);
-  if (target) target.style.display = 'block';
+  document.getElementById('step-' + name).style.display = 'block';
 }
 
-// Track which tab is active: 'login' or 'register'
-window._emailMode = 'login';
-
-function switchEmailTab(mode) {
-  window._emailMode = mode;
-  const nameField  = document.getElementById('field-name');
-  const submitBtn  = document.getElementById('email-submit-btn');
-  const tabLogin   = document.getElementById('tab-login');
-  const tabReg     = document.getElementById('tab-register');
-  const passInput  = document.getElementById('inp-pass');
-
-  if (mode === 'login') {
-    nameField.style.display  = 'none';
-    submitBtn.textContent    = 'SIGN IN  →';
-    tabLogin.style.background  = '#1e3d8f';
-    tabLogin.style.color       = '#ffd060';
-    tabReg.style.background    = 'rgba(255,255,255,0.03)';
-    tabReg.style.color         = '#6a7a9e';
-    passInput.placeholder      = 'Enter your password';
-  } else {
-    nameField.style.display  = 'block';
-    submitBtn.textContent    = 'CREATE ACCOUNT  →';
-    tabReg.style.background    = '#1e3d8f';
-    tabReg.style.color         = '#ffd060';
-    tabLogin.style.background  = 'rgba(255,255,255,0.03)';
-    tabLogin.style.color       = '#6a7a9e';
-    passInput.placeholder      = 'Create a password';
-  }
-}
-
-// Hide name field by default (login mode is default)
-document.addEventListener('DOMContentLoaded', () => {
-  const nf = document.getElementById('field-name');
-  if (nf) nf.style.display = 'none';
-});
-
-function submitEmail() {
-  const mode  = window._emailMode || 'login';
-  const name  = document.getElementById('inp-name').value.trim();
+async function requestCode() {
   const email = document.getElementById('inp-email').value.trim();
-  const pass  = document.getElementById('inp-pass').value;
-
-  if (!email || !pass) { alert('Please enter your email and password.'); return; }
-  if (mode === 'register' && !name) { alert('Please enter your full name.'); return; }
-
-  const auth  = window._lfAuth;
-  const fns   = window._lfFns;
-  const step1 = document.getElementById('email-step-1');
-  const succ  = document.getElementById('email-success');
-  const msg   = document.getElementById('success-msg');
-  const title = document.getElementById('success-title');
-
-  // Where to go after login — honour ?dest=account/cart, default to shop
-  const _destParam = new URLSearchParams(window.location.search).get('dest') || 'shop';
-  const _destUrl = _destParam === 'account' ? 'lion-forge-account.html'
-                 : _destParam === 'cart'    ? 'lion-forge-cart.html'
-                 : 'lion-forge-shop.html';
-
-  if (mode === 'login') {
-    fetch('/api/auth/login', { method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, password:pass}) })
-      .then(r => r.json().then(d => ({ ok: r.ok, d })))
-      .then(({ ok, d }) => {
-        if (!ok) {
-          const m = d.error || 'Sign in failed';
-          if (m.includes('Invalid')) alert('Incorrect email or password. Please try again.');
-          else alert(m);
-          return;
-        }
-        window._lfCurrentUser = d;
-        step1.style.display = 'none'; succ.style.display = 'block';
-        if (title) title.textContent = 'Signed In!';
-        msg.textContent = 'Welcome back, ' + (d.displayName || email) + '! Redirecting...';
-        setTimeout(() => { window.location.href = _destUrl; }, 1500);
-      })
-      .catch(err => alert('Sign in failed: ' + err.message));
-  } else {
-    fetch('/api/auth/register', { method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, password:pass, displayName:name}) })
-      .then(r => r.json().then(d => ({ ok: r.ok, d })))
-      .then(({ ok, d }) => {
-        if (!ok) {
-          const m = d.error || 'Registration failed';
-          if (m.includes('already')) alert('An account with that email already exists. Use "Sign In" instead.');
-          else alert(m);
-          return;
-        }
-        window._lfCurrentUser = d;
-        step1.style.display = 'none'; succ.style.display = 'block';
-        if (title) title.textContent = 'Account Created!';
-        msg.textContent = 'Welcome, ' + name + '! Redirecting...';
-        setTimeout(() => { window.location.href = _destUrl; }, 1500);
-      })
-      .catch(err => alert('Error: ' + err.message));
+  const statusEl = document.getElementById('send-status');
+  statusEl.textContent = '';
+  if (!email || !email.includes('@')) {
+    statusEl.textContent = 'Please enter a valid email address.';
+    return;
+  }
+  const btn = document.getElementById('send-btn');
+  btn.disabled = true; btn.textContent = 'Sending...';
+  try {
+    const r = await fetch('/api/auth/request-code', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed to send code');
+    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_OTP_TEMPLATE, {
+      to_email: email, code: d.code, expires_min: '15'
+    });
+    document.getElementById('code-sent-to').textContent = email;
+    showStep('code');
+    document.getElementById('inp-code').value = '';
+    document.getElementById('inp-code').focus();
+  } catch(e) {
+    btn.disabled = false; btn.textContent = 'SEND CODE  →';
+    statusEl.textContent = e.message || 'Something went wrong. Try again.';
   }
 }
 
-function submitPhone() {
-  const phone = document.getElementById('inp-phone').value.trim();
-  if (!phone) { alert('Please enter your phone number.'); return; }
-  document.getElementById('view-phone').innerHTML +=
-    '<div style="text-align:center;padding:20px 0;color:#e8a820;font-size:14px;">Redirecting...</div>';
-  setTimeout(() => { window.location.href = 'lion-forge-shop.html'; }, 1500);
+async function verifyCode() {
+  const email = document.getElementById('inp-email').value.trim();
+  const code  = document.getElementById('inp-code').value.trim();
+  const statusEl = document.getElementById('verify-status');
+  statusEl.textContent = '';
+  if (code.length !== 6) { statusEl.textContent = 'Please enter the 6-digit code.'; return; }
+  const btn = document.getElementById('verify-btn');
+  btn.disabled = true; btn.textContent = 'Verifying...';
+  try {
+    const r = await fetch('/api/auth/verify-code', {
+      method: 'POST', credentials: 'include', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email, code })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Invalid code');
+    window._lfCurrentUser = d;
+    showStep('success');
+    document.getElementById('success-sub').textContent = 'Welcome, ' + (d.displayName || email) + '! Redirecting...';
+    const dest = window._authDest || 'shop';
+    const url  = dest === 'account' ? 'lion-forge-account.html'
+               : dest === 'cart'    ? 'lion-forge-cart.html'
+               : 'lion-forge-shop.html';
+    setTimeout(() => { window.location.href = url; }, 1500);
+  } catch(e) {
+    btn.disabled = false; btn.textContent = 'SIGN IN  →';
+    statusEl.textContent = e.message;
+  }
 }
 
+// Allow Enter key in both inputs
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('auth-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('auth-overlay')) closeModal();
+  });
+  document.getElementById('inp-email').addEventListener('keydown', e => { if (e.key === 'Enter') requestCode(); });
+  document.getElementById('inp-code').addEventListener('keydown',  e => { if (e.key === 'Enter') verifyCode(); });
+});
 document.addEventListener('DOMContentLoaded', () => {
   const overlay = document.getElementById('auth-overlay');
   if (overlay) overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });

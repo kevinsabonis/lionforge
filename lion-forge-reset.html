@@ -292,6 +292,9 @@
     document.getElementById('email').addEventListener('keydown', e => {
       if (e.key === 'Enter') window.sendReset();
     });
+
+    // Passwordless auth — redirect to home where sign-in is handled
+    window.location.replace('index.html');
   </script>
 
 </body>
