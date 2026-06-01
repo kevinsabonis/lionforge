@@ -471,13 +471,7 @@ let ORDER_NUM = null;
 window.addEventListener('load', async function() {
   cart = loadCartData();
 
-  // Order number is assigned by the server at placement time
-  ORDER_NUM = null;
-
-  ['display-order-num','summary-order-num','success-order-num'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = '#' + ORDER_NUM;
-  });
+  // Order number is assigned by the server at placement time — leave default #— in place
 
   if (cart.length === 0) {
     const grid = document.querySelector('.checkout-grid');
@@ -693,8 +687,10 @@ window.placeOrder = async function() {
   cart = [];
 
   // Show success (reflect the server-confirmed order number everywhere)
-  const sEl = document.getElementById('success-order-num');
-  if (sEl) sEl.textContent = '#' + orderNumber;
+  ['display-order-num','summary-order-num','success-order-num'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '#' + orderNumber;
+  });
   document.getElementById('success-overlay').style.display = 'flex';
   document.querySelector('.success-shop-btn').textContent = 'VIEW MY ACCOUNT';
   document.querySelector('.success-shop-btn').href = '#';

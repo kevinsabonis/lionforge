@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -871,39 +871,6 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2400);
 }
 </script>
-
-<!-- ── COMING SOON OVERLAY ── -->
-<div id="coming-soon-overlay" style="
-  position:fixed;inset:0;z-index:9999;
-  display:flex;align-items:center;justify-content:center;
-  background:rgba(5,11,24,0.92);
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-">
-  <div style="
-    background:linear-gradient(145deg,rgba(16,26,56,0.98) 0%,rgba(8,14,32,0.99) 100%);
-    border:1px solid rgba(232,168,32,0.3);
-    border-radius:20px;
-    padding:56px 52px 48px;
-    max-width:460px;width:90%;
-    text-align:center;
-    box-shadow:0 0 80px rgba(232,168,32,0.08),0 30px 80px rgba(0,0,0,0.6);
-  ">
-    <div style="font-size:48px;margin-bottom:20px;">🚀</div>
-    <div style="font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.35em;color:#6a7a9e;text-transform:uppercase;margin-bottom:10px;">Lion Forge Peptides</div>
-    <h2 style="font-size:28px;font-weight:700;color:#ffffff;letter-spacing:4px;margin:0 0 16px;">COMING SOON</h2>
-    <div style="width:48px;height:2px;background:linear-gradient(90deg,transparent,#e8a820,transparent);margin:0 auto 24px;"></div>
-    <p style="color:#7a99c4;font-size:14px;line-height:1.8;margin:0 0 32px;">
-      We're not quite ready to take orders yet.<br>Browse our compounds and check back soon!
-    </p>
-    <button onclick="document.getElementById('coming-soon-overlay').style.display='none'" style="
-      background:linear-gradient(135deg,#e8a820,#c8880a);
-      color:#080e20;border:none;border-radius:8px;
-      padding:14px 36px;font-size:13px;font-weight:700;
-      letter-spacing:0.1em;cursor:pointer;
-      font-family:'Share Tech Mono',monospace;
-    ">BROWSE SITE</button>
-  </div>
-</div>
 
 </body>
 </html>
