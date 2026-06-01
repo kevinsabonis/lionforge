@@ -4,3 +4,5 @@
 functions/
 wrangler.toml
 .assetsignore
+firebase.json
+.firebaserc
