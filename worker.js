@@ -125,7 +125,7 @@ export default {
 
       // ── Shipping ─────────────────────────────────────────────────────────────
       const labelMatch = path.match(/^\/api\/admin\/orders\/([^/]+)\/create-label$/);
-      if (labelMatch && method === 'POST') return handleCreateLabel(request, env, labelMatch[1]);
+      if (labelMatch && method === 'POST') return await handleCreateLabel(request, env, labelMatch[1]);
 
       // ── Admin routes ─────────────────────────────────────────────────────
       if (path.startsWith('/api/admin/')) return handleAdmin(request, env, path, method);
@@ -133,7 +133,7 @@ export default {
       return err('Not found', 404);
     } catch (e) {
       console.error(e);
-      return err('Internal server error', 500);
+      return err(e.message || 'Internal server error', 500);
     }
   },
 
