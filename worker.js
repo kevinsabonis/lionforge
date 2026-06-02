@@ -253,7 +253,7 @@ const round2 = n => Math.round(n * 100) / 100;
 
 async function handlePlaceOrder(request, env) {
   const user = await getUser(request, env.JWT_SECRET);
-  const uid = user ? user.uid : 'guest';
+  let uid = user ? user.uid : 'guest';
   const authEmail = user ? user.email : null;
 
   const data = await request.json();
