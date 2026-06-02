@@ -420,6 +420,7 @@ async function verifyCode() {
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Invalid code');
     window._lfCurrentUser = d;
+    try { sessionStorage.setItem('lfp_user', JSON.stringify(d)); } catch(e) {}
     showStep('success');
     document.getElementById('success-sub').textContent = 'Welcome, ' + (d.displayName || email) + '! Redirecting...';
     const dest = window._authDest || 'shop';
