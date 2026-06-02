@@ -409,7 +409,7 @@ function renderOrders(orders) {
         <div style="font-size:13px;color:#fca5a5;">Cancelled on ${cancelDate}${o.cancelReason ? ' &mdash; <em>' + o.cancelReason + '</em>' : ''}</div>
       </div>`;
     } else if (isShipped) {
-      trackPanel = `<div class="shipped-info">&#10003; Shipped via ${o.carrier||''} — ${o.trackingNumber||''}</div>`;
+      trackPanel = `<div class="shipped-info">&#10003; Shipped via ${o.carrier||''} — ${o.tracking_number||''}</div>`;
     } else {
       trackPanel = `<div class="track-panel">
           <h4>Add Tracking &amp; Ship</h4>
@@ -459,7 +459,7 @@ function renderOrders(orders) {
         <div class="detail-cols">
           <div><h4>Items</h4><div class="items-block">${items}</div></div>
           <div><h4>Details</h4>
-            <div class="detail-row"><span>Shipping</span><span>${o.shippingMethod||'Ground'} $${(o.shipping||10).toFixed(2)}</span></div>
+            <div class="detail-row"><span>Shipping</span><span>${o.shipping_method||'Ground'} $${(o.shipping||10).toFixed(2)}</span></div>
             <div class="detail-row"><span>Payment</span><span>${o.paymentMethod||'—'}</span></div>
             <div class="detail-row"><span>Ship to</span><span>${o.address||'—'}</span></div>
             <div class="detail-row"><span>Email</span><span>${o.email||'—'}</span></div>
@@ -580,7 +580,7 @@ function renderCancelledOrders() {
         <div class="detail-cols">
           <div><h4>Items</h4><div class="items-block">${items}</div></div>
           <div><h4>Details</h4>
-            <div class="detail-row"><span>Shipping</span><span>${o.shippingMethod||'Ground'} $${(o.shipping||10).toFixed(2)}</span></div>
+            <div class="detail-row"><span>Shipping</span><span>${o.shipping_method||'Ground'} $${(o.shipping||10).toFixed(2)}</span></div>
             <div class="detail-row"><span>Payment</span><span>${o.paymentMethod||'—'}</span></div>
             <div class="detail-row"><span>Ship to</span><span>${o.address||'—'}</span></div>
             <div class="detail-row"><span>Email</span><span>${o.email||'—'}</span></div>
