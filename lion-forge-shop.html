@@ -246,7 +246,7 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
       Check back soon — the lab is almost ready.
     </div>
     <button class="cs-close" onclick="closeComingSoon()">GOT IT</button>
-    <button id="lfp-signout" onclick="fetch('/api/auth/logout',{method:'POST',credentials:'include'}).finally(()=>window.location.href='index.html')" style="display:none;background:none;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:6px 14px;color:#6a7a9e;font-size:12px;font-family:Inter,sans-serif;cursor:pointer;letter-spacing:0.04em;" onmouseover="this.style.color='#ef4444';this.style.borderColor='rgba(239,68,68,0.4)'" onmouseout="this.style.color='#6a7a9e';this.style.borderColor='rgba(255,255,255,0.12)'">Sign Out</button>
+    <button id="lfp-signout" onclick="fetch('/api/auth/logout',{method:'POST',credentials:'include'}).finally(()=>{try{sessionStorage.removeItem('lfp_user');}catch(e){}window.location.href='index.html';})" style="display:none;background:none;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:6px 14px;color:#6a7a9e;font-size:12px;font-family:Inter,sans-serif;cursor:pointer;letter-spacing:0.04em;" onmouseover="this.style.color='#ef4444';this.style.borderColor='rgba(239,68,68,0.4)'" onmouseout="this.style.color='#6a7a9e';this.style.borderColor='rgba(255,255,255,0.12)'">Sign Out</button>
     <div class="cs-note">LION FORGE PEPTIDES &mdash; LAUNCHING SOON</div>
   </div>
 </div>
@@ -255,17 +255,23 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
 (async function() {
   let user;
   try {
-    // Fast path: use sessionStorage if available while cookie check runs
+    // Load from sessionStorage as immediate fallback
     try { const cached = sessionStorage.getItem('lfp_user'); if (cached) user = JSON.parse(cached); } catch(e) {}
-    let r;
+    // Try cookie auth with retries
+    let cookieOk = false;
     for (let attempt = 0; attempt < 4; attempt++) {
       if (attempt > 0) await new Promise(res => setTimeout(res, attempt * 500));
-      r = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
-      if (r.ok) break;
-      if (attempt === 3) { window.location.href = 'index.html?dest=shop'; return; }
+      try {
+        const r = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
+        if (r.ok) {
+          user = await r.json();
+          try { sessionStorage.setItem('lfp_user', JSON.stringify(user)); } catch(e) {}
+          cookieOk = true; break;
+        }
+      } catch(e) {}
     }
-    user = await r.json();
-    try { sessionStorage.setItem('lfp_user', JSON.stringify(user)); } catch(e) {}
+    // Only redirect if no session data at all
+    if (!user) { sessionStorage.removeItem('lfp_user'); window.location.href = 'index.html?dest=shop'; return; }
     window._lfCurrentUser = user;
   } catch(e) { window.location.href = 'index.html?dest=shop'; return; }
 
@@ -308,7 +314,7 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
       CART <span id="cart-count">0</span>
     </button>
-    <button id="lfp-signout" onclick="fetch('/api/auth/logout',{method:'POST',credentials:'include'}).finally(()=>window.location.href='index.html')" style="display:none;background:none;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:6px 14px;color:#6a7a9e;font-size:12px;font-family:Inter,sans-serif;cursor:pointer;letter-spacing:0.04em;" onmouseover="this.style.color='#ef4444';this.style.borderColor='rgba(239,68,68,0.4)'" onmouseout="this.style.color='#6a7a9e';this.style.borderColor='rgba(255,255,255,0.12)'">Sign Out</button>
+    <button id="lfp-signout" onclick="fetch('/api/auth/logout',{method:'POST',credentials:'include'}).finally(()=>{try{sessionStorage.removeItem('lfp_user');}catch(e){}window.location.href='index.html';})" style="display:none;background:none;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:6px 14px;color:#6a7a9e;font-size:12px;font-family:Inter,sans-serif;cursor:pointer;letter-spacing:0.04em;" onmouseover="this.style.color='#ef4444';this.style.borderColor='rgba(239,68,68,0.4)'" onmouseout="this.style.color='#6a7a9e';this.style.borderColor='rgba(255,255,255,0.12)'">Sign Out</button>
   </div>
 </nav>
 

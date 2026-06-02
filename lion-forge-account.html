@@ -137,7 +137,7 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
     <li><a href="lion-forge-calculator.html">CALCULATOR</a></li>
     <li><a href="#" class="active">ACCOUNT</a></li>
   </ul>
-  <div class="nav-right"><button id="lfp-signout" onclick="fetch('/api/auth/logout',{method:'POST',credentials:'include'}).finally(()=>window.location.href='index.html')" style="display:none;background:none;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:6px 14px;color:#6a7a9e;font-size:12px;font-family:Inter,sans-serif;cursor:pointer;letter-spacing:0.04em;" onmouseover="this.style.color='#ef4444';this.style.borderColor='rgba(239,68,68,0.4)'" onmouseout="this.style.color='#6a7a9e';this.style.borderColor='rgba(255,255,255,0.12)'">Sign Out</button></div>
+  <div class="nav-right"><button id="lfp-signout" onclick="fetch('/api/auth/logout',{method:'POST',credentials:'include'}).finally(()=>{try{sessionStorage.removeItem('lfp_user');}catch(e){}window.location.href='index.html';})" style="display:none;background:none;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:6px 14px;color:#6a7a9e;font-size:12px;font-family:Inter,sans-serif;cursor:pointer;letter-spacing:0.04em;" onmouseover="this.style.color='#ef4444';this.style.borderColor='rgba(239,68,68,0.4)'" onmouseout="this.style.color='#6a7a9e';this.style.borderColor='rgba(255,255,255,0.12)'">Sign Out</button></div>
 </nav>
 <script>fetch('/api/auth/me',{credentials:'include'}).then(r=>r.ok?r.json():null).then(u=>{if(u){var b=document.getElementById('lfp-signout');if(b)b.style.display='inline-block';}}).catch(()=>{});</script>
 <div class="page">
@@ -206,9 +206,16 @@ document.addEventListener('DOMContentLoaded', () => {
   (async function() {
       let user;
       try {
-        const r = await fetch('/api/auth/me', { credentials: 'include' });
-        if (!r.ok) { window.location.href = 'index.html?dest=account'; return; }
-        user = await r.json();
+        try { const cached = sessionStorage.getItem('lfp_user'); if (cached) user = JSON.parse(cached); } catch(e) {}
+        let cookieOk = false;
+        for (let attempt = 0; attempt < 4; attempt++) {
+          if (attempt > 0) await new Promise(res => setTimeout(res, attempt * 500));
+          try {
+            const r = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
+            if (r.ok) { user = await r.json(); try { sessionStorage.setItem('lfp_user', JSON.stringify(user)); } catch(e) {} cookieOk = true; break; }
+          } catch(e) {}
+        }
+        if (!user) { sessionStorage.removeItem('lfp_user'); window.location.href = 'index.html?dest=account'; return; }
         window._lfCurrentUser = user;
       } catch(e) { window.location.href = 'index.html?dest=account'; return; }
 
