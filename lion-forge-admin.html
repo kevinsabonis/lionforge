@@ -405,6 +405,7 @@ function renderOrders(orders) {
     const cancelDate = o.cancelled_at ? new Date(o.cancelled_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
     const trackPanel = `<div class="track-panel" style="${isCancelled ? 'border-color:rgba(239,68,68,0.2);' : ''}">
       ${isCancelled ? `<div style="margin-bottom:12px;padding:10px 14px;background:rgba(239,68,68,0.07);border-radius:8px;"><span style="color:var(--red);font-weight:600;">&#x26D4; Cancelled</span>${cancelDate ? ' &mdash; '+cancelDate : ''}${o.cancel_reason ? ' &mdash; <em style=color:#fca5a5>'+o.cancel_reason+'</em>' : ''}</div>` : ''}
+      ${o.tracking_number ? `<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px;"><span style="font-size:11px;color:#6a7a9e;">Shipping notification sent to customer?</span><button onclick="sendShippingEmail(allOrders.find(function(x){return x.fid==='${o.fid}'}));showToast('Shipping email resent!')" style="background:none;border:1px solid rgba(232,168,32,0.3);border-radius:6px;padding:4px 12px;color:#e8a820;font-size:11px;cursor:pointer;">&#9993; Resend Shipping Email</button></div>` : ''}
       ${o.tracking_number ? `<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:12px 14px;background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.25);border-radius:8px;flex-wrap:wrap;"><div style="flex:1;min-width:180px;"><div style="font-size:10px;color:#6a7a9e;letter-spacing:0.12em;margin-bottom:3px;">TRACKING &mdash; ${o.carrier||'USPS'}</div><div style="font-family:'Share Tech Mono',monospace;font-size:15px;color:#22c55e;letter-spacing:0.05em;">${o.tracking_number}</div></div>${o.label_url ? `<a href="${o.label_url}" target="_blank" style="padding:8px 16px;background:#22c55e;border-radius:8px;color:#080e20;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;font-family:'Share Tech Mono',monospace;letter-spacing:0.08em;">&#x2B07; DOWNLOAD LABEL</a>` : '<span style="font-size:12px;color:#6a7a9e;">No label stored</span>'}</div>` : ''}
       <h4>${o.tracking_number ? 'Recreate Label' : 'Create Label'}</h4>
       <div style="margin-bottom:12px;padding:10px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><div class="tf" style="flex:1;min-width:120px;"><label>Weight (oz)</label><input id="weight-${o.fid}" type="number" min="1" max="160" value="8" style="width:100%;"></div><button onclick="createLabel('${o.fid}')" id="label-btn-${o.fid}" style="padding:10px 18px;background:#22c55e;border:none;border-radius:8px;color:#080e20;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.1em;white-space:nowrap;">&#x1F4E6; ${o.tracking_number ? 'RECREATE LABEL' : 'CREATE LABEL'}</button><span id="label-result-${o.fid}" style="font-size:12px;color:#22c55e;"></span></div>
@@ -467,9 +468,26 @@ window.relabelOrder = async function(fid) {
     if (result) result.innerHTML = '<a href="'+d.labelUrl+'" target="_blank" style="color:#22c55e;text-decoration:underline;">&#x2B07; Download New Label</a> — '+d.tracking;
     var order = allOrders.find(function(o){return o.fid===fid;});
     if (order) { order.tracking_number=d.tracking; order.carrier=d.carrier; order.label_url=d.labelUrl; }
+    sendShippingEmail(order);
     showToast('New label created: '+d.tracking);
   } catch(e) { if(result) result.textContent = 'Error: '+e.message; }
 };
+function sendShippingEmail(order) {
+  if (typeof emailjs === 'undefined' || !order || !order.email) return Promise.resolve();
+  emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+  var itemsList = (order.items||[]).map(function(i){ return i.name+' ('+i.variant+') x'+i.qty+'  $'+(i.price*i.qty).toFixed(2); }).join('\n');
+  return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_SHIP_TEMPLATE, {
+    to_name:         order.display_name||'Customer',
+    to_email:        order.email,
+    order_number:    '#'+order.order_num,
+    carrier:         order.carrier||'USPS',
+    tracking_number: order.tracking_number||'',
+    items_list:      itemsList,
+    order_total:     '$'+(order.total||0).toFixed(2),
+    ship_to:         order.address||'—'
+  }).then(function(){ console.log('Shipping email sent to '+order.email); })
+    .catch(function(e){ console.error('Shipping email failed:', e); });
+}
 window.createLabel = async function(fid) {
   var weightOz = parseFloat(document.getElementById('weight-'+fid)?.value) || 8;
   var btn = document.getElementById('label-btn-'+fid);
@@ -489,6 +507,7 @@ window.createLabel = async function(fid) {
     if (btn) { btn.disabled=false; btn.textContent='✓ Done'; }
     var order = allOrders.find(function(o){return o.fid===fid;});
     if (order) { order.status='shipped'; order.tracking_number=d.tracking; order.carrier=d.carrier; order.label_url=d.labelUrl||''; }
+    sendShippingEmail(order);
     updateStats();
     showToast('Shipped: ' + d.tracking + ' via ' + d.carrier);
   } catch(e) {
