@@ -443,7 +443,7 @@ async function easypost(path, body, apiKey) {
   const r = await fetch(`https://api.easypost.com/v2${path}`, {
     method: 'POST',
     headers: {
-      'Authorization': 'Basic ' + btoa(apiKey + ':'),
+      'Authorization': 'Basic ' + btoa(apiKey.trim() + ':'),
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
