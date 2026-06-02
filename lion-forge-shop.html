@@ -252,6 +252,7 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
 </div>
 
 <script>
+function apiFetch(url,opts){opts=opts||{};opts.credentials='include';try{var t=sessionStorage.getItem('lfp_token');if(t){opts.headers=opts.headers||{};opts.headers['Authorization']='Bearer '+t;}}catch(e){}return fetch(url,opts);}
 (async function() {
   let user;
   try {
