@@ -136,6 +136,10 @@ export default {
       return err('Internal server error', 500);
     }
   },
+
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(processNewOrders(env));
+  },
 };
 
 // ── Auth handlers ──────────────────────────────────────────────────────────
@@ -503,10 +507,6 @@ async function handleCreateLabel(request, env, orderId) {
 
 // ── Gmail cron handler ─────────────────────────────────────────────────────
 // Runs on schedule, reads unread order emails, creates labels automatically.
-
-export async function scheduled(event, env, ctx) {
-  ctx.waitUntil(processNewOrders(env));
-}
 
 async function processNewOrders(env) {
   // Get Gmail access token via OAuth2 refresh
