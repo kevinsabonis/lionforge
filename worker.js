@@ -530,25 +530,31 @@ async function handleCreateLabel(request, env, orderId) {
   if (labelUrl) {
     const itemsList = JSON.parse(order.items || '[]')
       .map(i => `${i.name} (${i.variant}) x${i.qty}`).join(', ');
-    fetch('https://api.emailjs.com/api/v1.0/email/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        service_id:  'service_lvdwr4o',
-        template_id: 'template_cxsl0hq',
-        user_id:     'oV9_mb8asjyRBR1iX',
-        template_params: {
-          order_number:  `#${order.order_num}`,
-          customer_name: order.display_name,
-          ship_to:       order.address,
-          items_list:    itemsList,
-          carrier,
-          tracking_number: tracking,
-          label_url:     labelUrl,
-          to_email:      'support@lionforgepeptides.com',
-        },
-      }),
-    }).catch(e => console.error('Label email error:', e));
+    try {
+      const emailRes = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          service_id:  'service_lvdwr4o',
+          template_id: 'template_cxsl0hq',
+          user_id:     'oV9_mb8asjyRBR1iX',
+          template_params: {
+            order_number:    `#${order.order_num}`,
+            customer_name:   order.display_name,
+            ship_to:         order.address,
+            items_list:      itemsList,
+            carrier,
+            tracking_number: tracking,
+            label_url:       labelUrl,
+            to_email:        'support@lionforgepeptides.com',
+          },
+        }),
+      });
+      const emailBody = await emailRes.text();
+      console.log('EmailJS label response:', emailRes.status, emailBody);
+    } catch(e) {
+      console.error('Label email error:', e.message);
+    }
   }
 
   return json({ ok: true, tracking, carrier, labelUrl, rate: cheapest.rate, debug: { tracking_code: bought.tracking_code, postage_label: bought.postage_label } });

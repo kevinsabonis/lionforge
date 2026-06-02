@@ -496,8 +496,8 @@ window.createLabel = async function(fid) {
     if (btn) { btn.disabled=false; btn.textContent='✓ Done'; }
     var order = allOrders.find(function(o){return o.fid===fid;});
     if (order) { order.status='shipped'; order.tracking_number=d.tracking; order.carrier=d.carrier; }
-    updateStats(); filterOrders();
-    showToast('\u{1F4E6} Label created! Order marked shipped');
+    updateStats();
+    showToast('Shipped: ' + d.tracking + ' via ' + d.carrier);
   } catch(e) {
     if (btn) { btn.disabled=false; btn.textContent='\u{1F4E6} CREATE LABEL'; }
     alert('Error: '+e.message);
