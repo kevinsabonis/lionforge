@@ -409,7 +409,7 @@ function renderOrders(orders) {
         <div style="font-size:13px;color:#fca5a5;">Cancelled on ${cancelDate}${o.cancel_reason ? ' &mdash; <em>' + o.cancel_reason + '</em>' : ''}</div>
       </div>`;
     } else if (isShipped) {
-      trackPanel = `<div class="shipped-info">&#10003; Shipped via ${o.carrier||''} — ${o.tracking_number||''}</div>`;
+      trackPanel = `<div class="shipped-info">&#10003; Shipped via ${o.carrier||''} — ${o.tracking_number||''}${o.label_url ? ' <a href="'+o.label_url+'" target="_blank" style="color:#22c55e;margin-left:12px;font-size:12px;">&#x2B07; Download Label</a>' : ''}</div>`;
     } else {
       trackPanel = `<div class="track-panel">
           <h4>Add Tracking &amp; Ship</h4>

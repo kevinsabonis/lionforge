@@ -377,7 +377,7 @@ async function handleAdmin(request, env, path, method) {
   if (!user || user.role !== 'admin') return err('Forbidden', 403);
 
   if (path === '/api/admin/orders' && method === 'GET') {
-    const { results } = await env.DB.prepare('SELECT * FROM orders ORDER BY created_at DESC').all();
+    const { results } = await env.DB.prepare('SELECT * FROM orders ORDER BY order_num DESC').all();
     return json(results.map(o => ({ ...o, items: JSON.parse(o.items) })));
   }
   const orderMatch = path.match(/^\/api\/admin\/orders\/([^/]+)$/);
@@ -523,8 +523,8 @@ async function handleCreateLabel(request, env, orderId) {
 
   // Update order to shipped
   await env.DB.prepare(
-    'UPDATE orders SET status=?, carrier=?, tracking_number=?, shipped_at=? WHERE id=?'
-  ).bind('shipped', carrier, tracking || '', shippedAt, orderId).run();
+    'UPDATE orders SET status=?, carrier=?, tracking_number=?, shipped_at=?, label_url=? WHERE id=?'
+  ).bind('shipped', carrier, tracking || '', shippedAt, labelUrl || '', orderId).run();
 
   // Email label to admin via EmailJS REST API
   if (labelUrl) {
