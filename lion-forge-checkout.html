@@ -201,6 +201,7 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
     const r = await fetch('/api/auth/me', { credentials: 'include' });
     if (r.ok) {
       window._lfCurrentUser = await r.json();
+      const b = document.getElementById('lfp-signout'); if(b) b.style.display='inline-block';
       var _sb=document.getElementById('lfp-signout');if(_sb)_sb.style.display='inline-block';
     }
   } catch(e) {}

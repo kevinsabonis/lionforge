@@ -255,11 +255,16 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
 (async function() {
   let user;
   try {
-    const r = await fetch('/api/auth/me', { credentials: 'include' });
-    if (!r.ok) { window.location.href = 'index.html'; return; }
+    let r = await fetch('/api/auth/me', { credentials: 'include' });
+    if (!r.ok) {
+      // Retry once — mobile cookies can take a moment to propagate
+      await new Promise(res => setTimeout(res, 600));
+      r = await fetch('/api/auth/me', { credentials: 'include' });
+      if (!r.ok) { window.location.href = 'index.html?dest=shop'; return; }
+    }
     user = await r.json();
     window._lfCurrentUser = user;
-  } catch(e) { window.location.href = 'index.html'; return; }
+  } catch(e) { window.location.href = 'index.html?dest=shop'; return; }
 
   if (user.role === 'admin') {
     const btn = document.getElementById('admin-nav-btn');

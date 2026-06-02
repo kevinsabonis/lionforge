@@ -349,7 +349,7 @@ async function saveName() {
 }
 function logout() {
   fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
-    .finally(() => { window.location.href = 'index.html'; });
+    .finally(() => { window.location.href = 'index.html?dest=account'; });
 }
 
 function showToast(msg) {

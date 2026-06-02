@@ -64,11 +64,11 @@ async function getUser(request, secret) {
 }
 
 function sessionCookie(token) {
-  return `session=${token}; HttpOnly; Secure; SameSite=Strict; Max-Age=604800; Path=/`;
+  return `session=${token}; HttpOnly; Secure; SameSite=Lax; Max-Age=604800; Path=/`;
 }
 
 function clearCookie() {
-  return `session=; HttpOnly; Secure; SameSite=Strict; Max-Age=0; Path=/`;
+  return `session=; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Path=/`;
 }
 
 // ── Router ─────────────────────────────────────────────────────────────────
