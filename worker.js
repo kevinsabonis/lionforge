@@ -511,6 +511,9 @@ async function handleCreateLabel(request, env, orderId) {
     rate: { id: cheapest.id },
   }, env.EASYPOST_API_KEY);
 
+  // Log full EasyPost buy response for debugging
+  console.log('EasyPost buy response:', JSON.stringify({ tracking_code: bought.tracking_code, tracker: bought.tracker, postage_label: bought.postage_label, selected_rate: bought.selected_rate }));
+
   // EasyPost returns tracking_code at top level after buy
   const tracking  = bought.tracking_code || bought.tracker?.tracking_code || '';
   const labelUrl  = bought.postage_label?.label_url || bought.postage_label?.label_pdf_url || '';
