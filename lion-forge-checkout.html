@@ -427,17 +427,24 @@ function apiFetch(url,opts){opts=opts||{};opts.credentials='include';try{var t=s
 
 <!-- SUCCESS OVERLAY -->
 <div class="success-overlay" id="success-overlay" style="display:none;">
-  <div class="success-card">
+  <div class="success-card" style="max-width:480px;">
     <div class="success-icon">&#10003;</div>
-    <div class="success-title">ORDER PLACED!</div>
-    <div class="success-msg">Thank you for your order. Please send your payment to the selected method with your order number in the comment.</div>
-    <div class="success-order" id="success-order-num">#—</div>
-    <div class="success-note">
-      Orders are processed within 24–48 hours.<br>
-      Paid orders by 4pm CST ship same day Mon–Fri.<br>
-      You will receive a confirmation at your email.
+    <div class="success-title">ORDER CONFIRMED!</div>
+    <div class="success-order" id="success-order-num" style="margin-bottom:6px;">#&mdash;</div>
+    <div style="font-size:12px;color:#6a7a9e;margin-bottom:24px;letter-spacing:0.05em;">Save this number &mdash; you'll need it for payment</div>
+    <div id="payment-instructions" style="background:rgba(232,168,32,0.08);border:1px solid rgba(232,168,32,0.35);border-radius:12px;padding:20px 24px;margin-bottom:20px;text-align:left;">
+      <div style="font-size:10px;letter-spacing:0.25em;color:#e8a820;font-family:'Share Tech Mono',monospace;margin-bottom:12px;">SEND PAYMENT</div>
+      <div id="payment-send-line" style="font-size:16px;font-weight:600;color:#edf1ff;margin-bottom:10px;"></div>
+      <div style="display:flex;align-items:center;gap:10px;background:rgba(0,0,0,0.25);border-radius:8px;padding:10px 14px;">
+        <div style="flex:1;">
+          <div style="font-size:10px;color:#6a7a9e;letter-spacing:0.15em;margin-bottom:3px;">PUT THIS IN THE NOTES / MEMO:</div>
+          <div id="payment-ref-display" style="font-family:'Share Tech Mono',monospace;font-size:22px;font-weight:700;color:#ffd060;letter-spacing:0.1em;"></div>
+        </div>
+        <button id="copy-ref-btn" onclick="copyOrderRef()" style="background:#1e3d8f;border:1px solid rgba(232,168,32,0.3);border-radius:8px;padding:8px 14px;color:#ffd060;font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer;white-space:nowrap;letter-spacing:0.1em;">COPY</button>
+      </div>
     </div>
-    <a href="lion-forge-shop.html" class="success-shop-btn">CONTINUE SHOPPING</a>
+    <div class="success-note" style="text-align:left;">&#10004; Confirmation email sent to you<br>&#10004; Orders paid by 4pm CST ship same day Mon&ndash;Fri<br>&#10004; Track your order under My Account</div>
+    <a href="lion-forge-shop.html" class="success-shop-btn">VIEW MY ACCOUNT</a>
   </div>
 </div>
 
@@ -691,18 +698,29 @@ window.placeOrder = async function() {
   try { localStorage.removeItem('lfp_cart'); } catch(e) {}
   cart = [];
 
-  // Show success (reflect the server-confirmed order number everywhere)
+  // Show success — populate personalized payment instructions
+  const refLabel = '#' + orderNumber;
   ['display-order-num','summary-order-num','success-order-num'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.textContent = '#' + orderNumber;
+    if (el) el.textContent = refLabel;
   });
+  document.getElementById('payment-ref-display').textContent = refLabel;
+  // Payment handle per method
+  const handles = { venmo: '@lionforgeps on Venmo', cashapp: '$LionforgeLFG on Cash App', paypal: '@lionforgeLFG on PayPal' };
+  const methodName = handles[selectedPayment] || (selectedPayment || 'your selected payment method');
+  document.getElementById('payment-send-line').textContent = 'Send $' + serverTotal.toFixed(2) + ' to ' + methodName;
   document.getElementById('success-overlay').style.display = 'flex';
-  document.querySelector('.success-shop-btn').textContent = 'VIEW MY ACCOUNT';
-  document.querySelector('.success-shop-btn').href = '#';
-  document.querySelector('.success-shop-btn').onclick = function() {
-    window.location.href = 'lion-forge-account.html';
-  };
+  document.querySelector('.success-shop-btn').href = 'lion-forge-account.html';
 };
+
+function copyOrderRef() {
+  const ref = document.getElementById('payment-ref-display').textContent;
+  navigator.clipboard?.writeText(ref).then(() => {
+    const btn = document.getElementById('copy-ref-btn');
+    btn.textContent = 'COPIED!'; btn.style.background = '#22c55e'; btn.style.color = '#080e20';
+    setTimeout(() => { btn.textContent = 'COPY'; btn.style.background = '#1e3d8f'; btn.style.color = '#ffd060'; }, 2000);
+  }).catch(() => { showToast('Tap and hold to copy: ' + ref); });
+}
 
 function showToast(msg) {
   let t = document.getElementById('co-toast');
