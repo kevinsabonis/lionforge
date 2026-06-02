@@ -290,7 +290,10 @@ function apiFetch(url,opts){opts=opts||{};opts.credentials='include';try{var t=s
       nextId = Math.max(...products.map(p => p.id)) + 1;
       renderProducts();
     }
-  } catch(e) { console.warn('Product sync failed:', e.message); }
+  } catch(e) {
+    console.warn('Product sync failed:', e.message);
+    document.getElementById('product-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:#6a7a9e;">Unable to load products. Please refresh the page.</div>';
+  }
 })();
 </script>
 </head>
@@ -403,55 +406,7 @@ function apiFetch(url,opts){opts=opts||{};opts.credentials='include';try{var t=s
 
 <script>
 // ─── DATA ────────────────────────────────────────────────────────
-let products = [
-  {id:1,  name:"RETATRUTIDE",              subtitle:"",                          variants:[{label:"10MG",price:25,stock:5},{label:"20MG",price:30,stock:8},{label:"30MG",price:35,stock:3},{label:"50MG",price:45,stock:0}]},
-  {id:2,  name:"TIRZEPATIDE",              subtitle:"",                          variants:[{label:"20MG",price:20,stock:0},{label:"30MG",price:25,stock:0},{label:"40MG",price:30,stock:6},{label:"60MG",price:40,stock:4}]},
-  {id:3,  name:"SEMAGLUTIDE",              subtitle:"",                          variants:[{label:"10MG",price:15,stock:8},{label:"20MG",price:22,stock:2}]},
-  {id:4,  name:"TESAMORELIN",              subtitle:"",                          variants:[{label:"10MG",price:30,stock:10},{label:"20MG",price:50,stock:5}]},
-  {id:5,  name:"IPAMORELIN",               subtitle:"",                          variants:[{label:"10MG",price:20,stock:7}]},
-  {id:6,  name:"TESA/IPA",                 subtitle:"TESAMORELIN / IPAMORELIN BLEND", variants:[{label:"11MG/6MG",price:45,stock:4}]},
-  {id:7,  name:"VENDOR BACTERIOSTATIC WATER", subtitle:"",                       variants:[{label:"2ML",price:3,stock:6},{label:"3ML",price:5,stock:6},{label:"10ML",price:8,stock:6}]},
-  {id:8,  name:"N-ACETYL SELANK AMIDATE",  subtitle:"",                          variants:[{label:"10MG",price:20,stock:999}]},
-  {id:9,  name:"N-ACETYL SEMAX AMIDATE",   subtitle:"",                          variants:[{label:"10MG",price:20,stock:5}]},
-  {id:10, name:"KLOW",                     subtitle:"GHK-CU, BPC157, TB500, KPV", variants:[{label:"80MG",price:35,stock:999}]},
-  {id:11, name:"GLOW",                     subtitle:"GHKCU, BPC157, TB500",       variants:[{label:"70MG",price:30,stock:2}]},
-  {id:12, name:"BPC-157/TB500",            subtitle:"WOLVERINE BLEND",            variants:[{label:"10MG/10MG",price:45,stock:999},{label:"5MG/5MG",price:30,stock:999}]},
-  {id:13, name:"BPC-157",                  subtitle:"",                          variants:[{label:"10MG",price:15,stock:9}]},
-  {id:14, name:"TB-500",                   subtitle:"",                          variants:[{label:"10MG",price:25,stock:999}]},
-  {id:15, name:"KISSPEPTIN",               subtitle:"",                          variants:[{label:"10MG",price:20,stock:0}]},
-  {id:16, name:"KPV",                      subtitle:"",                          variants:[{label:"10MG",price:20,stock:999}]},
-  {id:17, name:"LIPO C WITH B12",          subtitle:"",                          variants:[{label:"216MG/ML 10ML VIAL",price:30,stock:999}]},
-  {id:18, name:"LIPO CLEAR",               subtitle:"",                          variants:[{label:"10ML",price:30,stock:4}]},
-  {id:19, name:"LL37",                     subtitle:"",                          variants:[{label:"5MG",price:20,stock:3}]},
-  {id:20, name:"MT-2",                     subtitle:"",                          variants:[{label:"10MG",price:15,stock:999}]},
-  {id:21, name:"NAD BUFFERED",             subtitle:"",                          variants:[{label:"500MG",price:20,stock:2},{label:"1000MG",price:35,stock:2}]},
-  {id:22, name:"OXYTOCIN",                 subtitle:"",                          variants:[{label:"5MG",price:20,stock:999}]},
-  {id:23, name:"PE-22-28",                 subtitle:"",                          variants:[{label:"8MG",price:15,stock:1}]},
-  {id:24, name:"PT-141",                   subtitle:"",                          variants:[{label:"10MG",price:15,stock:999}]},
-  {id:25, name:"SLUPP-332",               subtitle:"",                          variants:[{label:"5MG",price:25,stock:999}]},
-  {id:26, name:"SNAP-8",                   subtitle:"",                          variants:[{label:"20MG",price:25,stock:999}]},
-  {id:27, name:"THYMOSIN ALPHA-1",         subtitle:"",                          variants:[{label:"10MG",price:30,stock:999}]},
-  {id:28, name:"TOPICAL GHK-CU",           subtitle:"",                          variants:[{label:"1 GRAM",price:25,stock:4}]},
-  {id:29, name:"VIP",                      subtitle:"",                          variants:[{label:"10MG",price:25,stock:8}]},
-  {id:30, name:"CJC NO DAC/IPAMORELIN",    subtitle:"",                          variants:[{label:"5MG/5MG",price:25,stock:999}]},
-  {id:31, name:"GHK-CU",                   subtitle:"",                          variants:[{label:"50MG",price:15,stock:999},{label:"100MG",price:25,stock:999}]},
-  {id:32, name:"MOTS-C",                   subtitle:"",                          variants:[{label:"10MG",price:15,stock:999},{label:"40MG",price:25,stock:999}]},
-  {id:33, name:"$$-31",                    subtitle:"",                          variants:[{label:"30MG",price:40,stock:7},{label:"50MG",price:55,stock:7}]},
-  {id:34, name:"5AMINO1MQ",               subtitle:"",                          variants:[{label:"50MG",price:40,stock:0}]},
-  {id:35, name:"AOD",                      subtitle:"",                          variants:[{label:"5MG",price:20,stock:0},{label:"10MG",price:30,stock:0}]},
-  {id:36, name:"ARA-290",                  subtitle:"",                          variants:[{label:"16MG",price:25,stock:0}]},
-  {id:37, name:"CAGRILINTIDE",             subtitle:"",                          variants:[{label:"5MG",price:20,stock:8},{label:"10MG",price:35,stock:8}]},
-  {id:38, name:"DSIP",                     subtitle:"",                          variants:[{label:"5MG",price:15,stock:4}]},
-  {id:39, name:"EPITHALON",               subtitle:"",                          variants:[{label:"10MG",price:15,stock:999}]},
-  {id:40, name:"RELAXATION BLEND",         subtitle:"",                          variants:[{label:"10ML",price:35,stock:5}]},
-  {id:41, name:"L-CARNITINE",              subtitle:"",                          variants:[{label:"700MG/ML-10ML",price:30,stock:2},{label:"1200MG/ML-10ML",price:40,stock:2}]},
-  {id:42, name:"HGH",                      subtitle:"",                          variants:[{label:"10IU",price:15,stock:1},{label:"36IU",price:45,stock:1}]},
-  {id:43, name:"HCG",                      subtitle:"",                          variants:[{label:"10000IU",price:40,stock:999}]},
-  {id:44, name:"SERMORELIN",               subtitle:"",                          variants:[{label:"10MG",price:30,stock:10}]},
-  {id:45, name:"GLUTATHIONE",              subtitle:"",                          variants:[{label:"1200MG",price:25,stock:999},{label:"1500MG",price:35,stock:999}]},
-  {id:46, name:"HSN BLEND",               subtitle:"HAIR NAILS SKIN",           variants:[{label:"10ML",price:35,stock:2}]},
-  {id:47, name:"HOSPIRA BACTERIOSTATIC WATER", subtitle:"",                     variants:[{label:"30ML",price:8,stock:20}]},
-];
+let products = []
 let nextId = 48;
 
 // Track selected variant per product card
