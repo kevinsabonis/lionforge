@@ -284,53 +284,65 @@ function apiFetch(url,opts){opts=opts||{};opts.credentials='include';try{var t=s
         <div class="section-head"><h3>Payment</h3></div>
         <div class="section-body">
 
-          <div class="payment-rules">
-            <h4>Payment Rules:</h4>
-            <ul>
-              <li>Send payment via selected method</li>
-              <li>Payment Comment should ONLY include order number</li>
-              <li>Upload payment screenshot (required)</li>
-            </ul>
-          </div>
-
-          <div class="order-num-box">
-            <div class="label">Your Order Number</div>
-            <div class="num" id="display-order-num">#—</div>
-            <div class="sublabel">Include this number in your payment comment</div>
-          </div>
-
-          <div class="ff-warning">
-            <div class="ff-title">⚠ FRIENDS &amp; FAMILY ONLY</div>
-            <div class="ff-sub">ENSURE PAYMENT PROTECTION IS OFF</div>
-          </div>
-
-          <div class="payment-methods-label">Select Payment Method</div>
-          <div class="payment-methods-grid">
-            <div class="pay-method" id="pm-venmo" onclick="selectPayment('venmo')">
-              <div class="pay-method-name">Venmo</div>
-              <div class="pay-method-handle">@lionforgeps
-                <button class="copy-btn" onclick="event.stopPropagation();copyText('@lionforgeps')" title="Copy">&#x2398;</button>
+          <!-- STEP 1: ORDER NUMBER -->
+          <div style="margin-bottom:20px;">
+            <div style="font-size:10px;letter-spacing:0.25em;color:var(--gold);font-family:'Share Tech Mono',monospace;margin-bottom:10px;">STEP 1 — YOUR ORDER NUMBER</div>
+            <div style="background:rgba(232,168,32,0.07);border:1px solid rgba(232,168,32,0.3);border-radius:10px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+              <div>
+                <div style="font-family:'Share Tech Mono',monospace;font-size:36px;font-weight:700;color:#edf1ff;line-height:1;" id="display-order-num">#—</div>
+                <div style="font-size:11px;color:#6a7a9e;margin-top:4px;">Use this as your payment note — nothing else</div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+                <button onclick="copyText(document.getElementById('display-order-num').textContent)" style="background:#1e3d8f;border:1px solid rgba(232,168,32,0.3);border-radius:8px;padding:8px 16px;color:#ffd060;font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:0.1em;">COPY #</button>
+                <div id="order-total-display" style="font-size:13px;color:#22c55e;font-weight:600;"></div>
               </div>
             </div>
-            <div class="pay-method" id="pm-cashapp" onclick="selectPayment('cashapp')">
-              <div class="pay-method-name">Cash App</div>
-              <div class="pay-method-handle">$LionforgeLFG
-                <button class="copy-btn" onclick="event.stopPropagation();copyText('$LionforgeLFG')" title="Copy">&#x2398;</button>
+          </div>
+
+          <!-- STEP 2: SEND PAYMENT -->
+          <div style="margin-bottom:20px;">
+            <div style="font-size:10px;letter-spacing:0.25em;color:var(--gold);font-family:'Share Tech Mono',monospace;margin-bottom:10px;">STEP 2 — SEND PAYMENT</div>
+
+            <!-- F&F Warning -->
+            <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.35);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;">
+              <span style="color:#ef4444;font-weight:700;">&#9888; Friends &amp; Family only</span>
+              <span style="color:#9a7a7a;"> — When sending payment, select <strong style="color:#fca5a5;">Friends &amp; Family</strong> or <strong style="color:#fca5a5;">Personal</strong>. Do NOT use Goods &amp; Services — it adds fees and may flag your payment.</span>
+            </div>
+
+            <div class="payment-methods-label">Select your payment method:</div>
+            <div class="payment-methods-grid">
+              <div class="pay-method" id="pm-venmo" onclick="selectPayment('venmo')">
+                <div class="pay-method-name">Venmo</div>
+                <div class="pay-method-handle">@lionforgeps
+                  <button class="copy-btn" onclick="event.stopPropagation();copyText('@lionforgeps')" title="Copy">&#x2398;</button>
+                </div>
+              </div>
+              <div class="pay-method" id="pm-cashapp" onclick="selectPayment('cashapp')">
+                <div class="pay-method-name">Cash App</div>
+                <div class="pay-method-handle">$LionforgeLFG
+                  <button class="copy-btn" onclick="event.stopPropagation();copyText('$LionforgeLFG')" title="Copy">&#x2398;</button>
+                </div>
+              </div>
+              <div class="pay-method" id="pm-paypal" onclick="selectPayment('paypal')">
+                <div class="pay-method-name">PayPal (F&amp;F Only)</div>
+                <div class="pay-method-handle">@lionforgeLFG
+                  <button class="copy-btn" onclick="event.stopPropagation();copyText('@lionforgeLFG')" title="Copy">&#x2398;</button>
+                </div>
               </div>
             </div>
-            <div class="pay-method" id="pm-paypal" onclick="selectPayment('paypal')">
-              <div class="pay-method-name">PayPal (F&amp;F Only)</div>
-              <div class="pay-method-handle">@lionforgeLFG
-                <button class="copy-btn" onclick="event.stopPropagation();copyText('@lionforgeLFG')" title="Copy">&#x2398;</button>
-              </div>
+
+            <!-- Dynamic instructions — shown after method selected -->
+            <div id="payment-guide" style="display:none;background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.25);border-radius:10px;padding:14px 16px;margin-top:12px;font-size:13px;line-height:1.9;">
+              <div id="guide-line-1" style="color:#edf1ff;"></div>
+              <div id="guide-line-2" style="color:#ffd060;font-family:'Share Tech Mono',monospace;font-size:14px;"></div>
+              <div id="guide-line-3" style="color:#6a7a9e;font-size:12px;">Then come back here, take a screenshot of the completed payment, and upload it below.</div>
             </div>
           </div>
           <div class="field-error" id="err-payment" style="display:none;margin-bottom:10px;">Please select a payment method</div>
 
-          <!-- SCREENSHOT UPLOAD -->
-          <div class="upload-label-text">
-            Payment Screenshot <span class="req">* REQUIRED</span>
-          </div>
+          <!-- STEP 3: SCREENSHOT -->
+          <div style="font-size:10px;letter-spacing:0.25em;color:var(--gold);font-family:'Share Tech Mono',monospace;margin-bottom:10px;margin-top:4px;">STEP 3 — UPLOAD PAYMENT SCREENSHOT</div>
+          <div style="font-size:12px;color:#6a7a9e;margin-bottom:8px;">After sending payment, screenshot the confirmation and upload it here. <span class="req">* REQUIRED</span></div>
           <div class="upload-zone" id="upload-zone">
             <input type="file" id="payment-file" accept="image/*,.pdf" onchange="handleFile(this)">
             <div class="upload-icon">
@@ -483,7 +495,17 @@ let ORDER_NUM = null;
 window.addEventListener('load', async function() {
   cart = loadCartData();
 
-  // Order number is assigned by the server at placement time — leave default #— in place
+  // Pre-fetch next order number so customer knows what to put in payment notes
+  try {
+    const nr = await apiFetch('/api/orders/next-num');
+    if (nr.ok) {
+      const nd = await nr.json();
+      ORDER_NUM = nd.orderNum;
+      ['display-order-num','summary-order-num'].forEach(function(id){
+        var el = document.getElementById(id); if(el) el.textContent = '#' + ORDER_NUM;
+      });
+    }
+  } catch(e) { console.warn('pre-fetch order num failed'); }
 
   if (cart.length === 0) {
     const grid = document.querySelector('.checkout-grid');
@@ -494,6 +516,9 @@ window.addEventListener('load', async function() {
     return;
   }
   renderSummary();
+  // Show estimated total in order number box
+  var td = document.getElementById('order-total-display');
+  if(td){ var s=cart.reduce(function(a,i){return a+(i.price||0)*(i.qty||1);},0); td.textContent='Total to send: $'+(s+10).toFixed(2); }
 });
 
 function getSubtotal() {
@@ -520,6 +545,9 @@ window.selectShipping = function(method, cost) {
   document.getElementById('ship-ground').classList.toggle('selected', method === 'ground');
   document.getElementById('ship-expedited').classList.toggle('selected', method === 'expedited');
   renderSummary();
+  // Show estimated total in order number box
+  var td = document.getElementById('order-total-display');
+  if(td){ var s=cart.reduce(function(a,i){return a+(i.price||0)*(i.qty||1);},0); td.textContent='Total to send: $'+(s+10).toFixed(2); }
 };
 
 window.applyDiscount = function() {
@@ -537,10 +565,21 @@ window.applyDiscount = function() {
   }
   msg.style.display = 'block';
   renderSummary();
+  // Show estimated total in order number box
+  var td = document.getElementById('order-total-display');
+  if(td){ var s=cart.reduce(function(a,i){return a+(i.price||0)*(i.qty||1);},0); td.textContent='Total to send: $'+(s+10).toFixed(2); }
 };
 
+const paymentHandles = { venmo: '@lionforgeps on Venmo', cashapp: '$LionforgeLFG on Cash App', paypal: '@lionforgeLFG on PayPal (F&F)' };
 window.selectPayment = function(method) {
   selectedPayment = method;
+  // Update dynamic payment guide
+  const total = typeof cartTotal !== 'undefined' ? cartTotal : 0;
+  const handle = paymentHandles[method] || method;
+  const orderRef = document.getElementById('display-order-num')?.textContent || '#—';
+  document.getElementById('guide-line-1').textContent = 'Open ' + handle.split(' on ')[1] + ' and send to ' + handle.split(' on ')[0];
+  document.getElementById('guide-line-2').textContent = 'In the notes/memo, type ONLY: ' + orderRef;
+  document.getElementById('payment-guide').style.display = 'block';
   ['venmo','cashapp'].forEach(m => {
     const el = document.getElementById('pm-' + m);
     if (el) el.classList.toggle('selected', m === method);

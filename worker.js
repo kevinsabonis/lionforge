@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Lion Forge Peptides — Cloudflare Worker
  * Handles /api/* routes; all other requests fall through to static assets.
  * Auth: passwordless email OTP — 6-digit code, 15-minute expiry.
@@ -129,6 +129,9 @@ export default {
         return handlePlaceOrder(request, env);
       if (path === '/api/orders' && method === 'GET')
         return handleGetOrders(request, env);
+
+      if (path === '/api/orders/next-num' && method === 'GET')
+        return handleNextNum(env);
 
       // ── Shipping ─────────────────────────────────────────────────────────────
       const labelMatch = path.match(/^\/api\/admin\/orders\/([^/]+)\/create-label$/);
@@ -354,6 +357,11 @@ async function handlePlaceOrder(request, env) {
   ]);
 
   return json({ orderId, orderNum, items: lineItems, subtotal, shipping, discount, total });
+}
+
+async function handleNextNum(env) {
+  const row = await env.DB.prepare("SELECT value FROM config WHERE key = 'lastOrderNum'").first();
+  return json({ orderNum: (row ? Number(row.value) : 53) + 1 });
 }
 
 async function handleGetOrders(request, env) {
