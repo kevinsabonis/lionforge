@@ -281,6 +281,12 @@ async function handlePlaceOrder(request, env) {
   const discountCode = String(data.discountCode || '').trim().toUpperCase();
   const paymentMethod = String(data.paymentMethod || '').slice(0, 40);
 
+  // If placing as guest but email matches a known user, link to their account
+  if (uid === 'guest' && email) {
+    const knownUser = await env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(email.toLowerCase()).first();
+    if (knownUser) uid = knownUser.id;
+  }
+
   const prodRow = await env.DB.prepare('SELECT value FROM config WHERE key = ?').bind('products').first();
   if (!prodRow) return err('Product catalog unavailable', 503);
   const { list } = JSON.parse(prodRow.value);
@@ -345,10 +351,15 @@ async function handlePlaceOrder(request, env) {
 async function handleGetOrders(request, env) {
   const user = await getUser(request, env.JWT_SECRET);
   if (!user) return err('Unauthenticated', 401);
+  // Match by uid OR by email — catches orders placed on mobile where
+  // the session cookie wasn't sent and the order was saved as guest.
   const { results } = await env.DB.prepare(
-    'SELECT * FROM orders WHERE uid = ? ORDER BY created_at DESC'
-  ).bind(user.uid).all();
-  return json(results.map(o => ({ ...o, items: JSON.parse(o.items) })));
+    'SELECT * FROM orders WHERE uid = ? OR (email = ? AND email != \'\') ORDER BY created_at DESC'
+  ).bind(user.uid, user.email).all();
+  // Deduplicate in case both conditions match the same row
+  const seen = new Set();
+  const unique = results.filter(o => { if (seen.has(o.id)) return false; seen.add(o.id); return true; });
+  return json(unique.map(o => ({ ...o, items: JSON.parse(o.items) })));
 }
 
 // ── Admin handlers ─────────────────────────────────────────────────────────
