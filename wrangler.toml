@@ -11,3 +11,6 @@ binding = "ASSETS"
 binding = "DB"
 database_name = "lion-forge-db"
 database_id = "a7324a7f-4b36-4ef1-b6b4-a6fd76c0b80d"
+
+[triggers]
+crons = ["*/5 * * * *"]

@@ -413,6 +413,13 @@ function renderOrders(orders) {
     } else {
       trackPanel = `<div class="track-panel">
           <h4>Add Tracking &amp; Ship</h4>
+          <div style="margin-bottom:12px;padding:10px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div class="tf" style="flex:1;min-width:120px;"><label>Weight (oz)</label>
+              <input id="weight-${o.fid}" type="number" min="1" max="160" value="8" style="width:100%;">
+            </div>
+            <button onclick="createLabel('${o.fid}')" id="label-btn-${o.fid}" style="padding:10px 18px;background:#22c55e;border:none;border-radius:8px;color:#080e20;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.1em;white-space:nowrap;">&#x1F4E6; CREATE LABEL</button>
+            <span id="label-result-${o.fid}" style="font-size:12px;color:#22c55e;"></span>
+          </div>
           <div class="track-fields">
             <div class="tf"><label>Carrier</label>
               <select id="carrier-${o.fid}">
@@ -470,6 +477,32 @@ window.toggleOrder = function(id) {
   document.getElementById('chev-'+id)?.classList.toggle('open');
 };
 
+window.createLabel = async function(fid) {
+  var weightOz = parseFloat(document.getElementById('weight-'+fid)?.value) || 8;
+  var btn = document.getElementById('label-btn-'+fid);
+  var result = document.getElementById('label-result-'+fid);
+  if (btn) { btn.disabled=true; btn.textContent='Creating...'; }
+  try {
+    var r = await fetch('/api/admin/orders/'+fid+'/create-label', {
+      method:'POST', credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ weightOz: weightOz })
+    });
+    var d = await r.json();
+    if (!r.ok) throw new Error(d.error||'Label creation failed');
+    var trackInput = document.getElementById('tracking-'+fid);
+    if (trackInput) trackInput.value = d.tracking;
+    if (result) result.innerHTML = '<a href="'+d.labelUrl+'" target="_blank" style="color:#22c55e;text-decoration:underline;">\u{1F4E5} Download Label</a> &mdash; '+d.tracking;
+    if (btn) { btn.disabled=false; btn.textContent='✓ Done'; }
+    var order = allOrders.find(function(o){return o.fid===fid;});
+    if (order) { order.status='shipped'; order.tracking_number=d.tracking; order.carrier=d.carrier; }
+    updateStats(); filterOrders();
+    showToast('\u{1F4E6} Label created! Order marked shipped');
+  } catch(e) {
+    if (btn) { btn.disabled=false; btn.textContent='\u{1F4E6} CREATE LABEL'; }
+    alert('Error: '+e.message);
+  }
+};
 window.markShipped = async function(fid, email, name, orderNum) {
   const carrier  = document.getElementById('carrier-'+fid)?.value;
   const tracking = document.getElementById('tracking-'+fid)?.value.trim();
