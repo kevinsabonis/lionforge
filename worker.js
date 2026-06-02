@@ -57,10 +57,17 @@ const err = (msg, status = 400) => json({ error: msg }, status);
 // ── Auth middleware ────────────────────────────────────────────────────────
 
 async function getUser(request, secret) {
+  // Try cookie first, then Authorization: Bearer header (mobile fallback)
   const cookie = request.headers.get('Cookie') || '';
-  const match = cookie.match(/(?:^|;\s*)session=([^;]+)/);
-  if (!match) return null;
-  return jwtVerify(match[1], secret);
+  const cookieMatch = cookie.match(/(?:^|;\s*)session=([^;]+)/);
+  if (cookieMatch) {
+    const user = await jwtVerify(cookieMatch[1], secret);
+    if (user) return user;
+  }
+  const auth = request.headers.get('Authorization') || '';
+  const bearerMatch = auth.match(/^Bearer\s+(.+)$/i);
+  if (bearerMatch) return jwtVerify(bearerMatch[1], secret);
+  return null;
 }
 
 function sessionCookie(token) {
@@ -188,7 +195,8 @@ async function handleVerifyCode(request, env) {
     { uid: user.id, email: user.email, displayName: user.display_name, role: user.role, exp: Math.floor(Date.now() / 1000) + 604800 },
     env.JWT_SECRET
   );
-  return json({ uid: user.id, email: user.email, displayName: user.display_name, role: user.role }, 200, {
+  // Return token in body so mobile clients can use Bearer auth as cookie fallback
+  return json({ uid: user.id, email: user.email, displayName: user.display_name, role: user.role, _token: token }, 200, {
     'Set-Cookie': sessionCookie(token),
   });
 }

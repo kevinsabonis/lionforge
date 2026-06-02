@@ -350,6 +350,20 @@ const EMAILJS_SERVICE_ID    = 'service_lvdwr4o';
 const EMAILJS_PUBLIC_KEY    = 'oV9_mb8asjyRBR1iX';
 const EMAILJS_OTP_TEMPLATE  = 'template_6dz0v04';
 
+// Mobile auth helper — adds Bearer token to API calls when cookie may not be sent
+function apiFetch(url, opts) {
+  opts = opts || {};
+  opts.credentials = 'include';
+  try {
+    var token = sessionStorage.getItem('lfp_token');
+    if (token) {
+      opts.headers = opts.headers || {};
+      opts.headers['Authorization'] = 'Bearer ' + token;
+    }
+  } catch(e) {}
+  return fetch(url, opts);
+}
+window.apiFetch = apiFetch;
 function openModal(dest) {
   if (window._lfCurrentUser) {
     if (dest === 'account') window.location.href = 'lion-forge-account.html';
@@ -420,7 +434,7 @@ async function verifyCode() {
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Invalid code');
     window._lfCurrentUser = d;
-    try { sessionStorage.setItem('lfp_user', JSON.stringify(d)); } catch(e) {}
+    try { sessionStorage.setItem('lfp_user', JSON.stringify(d)); if(d._token) sessionStorage.setItem('lfp_token', d._token); } catch(e) {}
     showStep('success');
     document.getElementById('success-sub').textContent = 'Welcome, ' + (d.displayName || email) + '! Redirecting...';
     const dest = window._authDest || 'shop';

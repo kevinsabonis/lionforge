@@ -122,7 +122,9 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
 }
 </style>
 <script>window._lfFns = {}; window._lfAuth = {};</script>
-</head>
+<script>
+function apiFetch(url,opts){opts=opts||{};opts.credentials='include';try{var t=sessionStorage.getItem('lfp_token');if(t){opts.headers=opts.headers||{};opts.headers['Authorization']='Bearer '+t;}}catch(e){}return fetch(url,opts);}
+</script></head>
 <body>
 
 <nav>
@@ -211,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let attempt = 0; attempt < 4; attempt++) {
           if (attempt > 0) await new Promise(res => setTimeout(res, attempt * 500));
           try {
-            const r = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
+            const r = await apiFetch('/api/auth/me', { cache: 'no-store' });
             if (r.ok) { user = await r.json(); try { sessionStorage.setItem('lfp_user', JSON.stringify(user)); } catch(e) {} cookieOk = true; break; }
           } catch(e) {}
         }
@@ -233,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Load orders
       try {
-        const r = await fetch('/api/orders', { credentials: 'include' });
+        const r = await apiFetch('/api/orders');
         const orders = await r.json();
         renderOrders(orders);
       } catch(e) {
