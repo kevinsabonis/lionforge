@@ -532,7 +532,7 @@ async function handleCreateLabel(request, env, orderId) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         service_id:  'service_lvdwr4o',
-        template_id: 'template_label',
+        template_id: 'template_cxsl0hq',
         user_id:     'oV9_mb8asjyRBR1iX',
         template_params: {
           order_number:  `#${order.order_num}`,
