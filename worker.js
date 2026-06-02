@@ -511,17 +511,44 @@ async function handleCreateLabel(request, env, orderId) {
     rate: { id: cheapest.id },
   }, env.EASYPOST_API_KEY);
 
-  const tracking = bought.tracking_code;
-  const labelUrl = bought.postage_label?.label_url;
-  const carrier  = `USPS ${cheapest.service}`;
+  // EasyPost returns tracking_code at top level after buy
+  const tracking  = bought.tracking_code || bought.tracker?.tracking_code || '';
+  const labelUrl  = bought.postage_label?.label_url || bought.postage_label?.label_pdf_url || '';
+  const labelFile = bought.postage_label?.label_file_type || 'PNG';
+  const carrier   = `USPS ${bought.selected_rate?.service || cheapest.service}`;
   const shippedAt = new Date().toISOString();
 
   // Update order to shipped
   await env.DB.prepare(
     'UPDATE orders SET status=?, carrier=?, tracking_number=?, shipped_at=? WHERE id=?'
-  ).bind('shipped', carrier, tracking, shippedAt, orderId).run();
+  ).bind('shipped', carrier, tracking || '', shippedAt, orderId).run();
 
-  return json({ ok: true, tracking, carrier, labelUrl, rate: cheapest.rate });
+  // Email label to admin via EmailJS REST API
+  if (labelUrl) {
+    const itemsList = JSON.parse(order.items || '[]')
+      .map(i => `${i.name} (${i.variant}) x${i.qty}`).join(', ');
+    fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        service_id:  'service_lvdwr4o',
+        template_id: 'template_label',
+        user_id:     'oV9_mb8asjyRBR1iX',
+        template_params: {
+          order_number:  `#${order.order_num}`,
+          customer_name: order.display_name,
+          ship_to:       order.address,
+          items_list:    itemsList,
+          carrier,
+          tracking_number: tracking,
+          label_url:     labelUrl,
+          to_email:      'support@lionforgepeptides.com',
+        },
+      }),
+    }).catch(e => console.error('Label email error:', e));
+  }
+
+  return json({ ok: true, tracking, carrier, labelUrl, rate: cheapest.rate, debug: { tracking_code: bought.tracking_code, postage_label: bought.postage_label } });
 }
 
 // ── Gmail cron handler ─────────────────────────────────────────────────────
