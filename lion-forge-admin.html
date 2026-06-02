@@ -403,10 +403,10 @@ function renderOrders(orders) {
     const items = (o.items||[]).map(i=>`<div>${i.name} (${i.variant}) x${i.qty} — <strong>$${(i.price*i.qty).toFixed(2)}</strong></div>`).join('');
     let trackPanel;
     if (isCancelled) {
-      const cancelDate = o.cancelledAt ? new Date(o.cancelledAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+      const cancelDate = o.cancelled_at ? new Date(o.cancelled_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
       trackPanel = `<div class="track-panel" style="border-color:rgba(239,68,68,0.2);">
         <h4 style="color:var(--red);">&#x26D4; Order Cancelled</h4>
-        <div style="font-size:13px;color:#fca5a5;">Cancelled on ${cancelDate}${o.cancelReason ? ' &mdash; <em>' + o.cancelReason + '</em>' : ''}</div>
+        <div style="font-size:13px;color:#fca5a5;">Cancelled on ${cancelDate}${o.cancel_reason ? ' &mdash; <em>' + o.cancel_reason + '</em>' : ''}</div>
       </div>`;
     } else if (isShipped) {
       trackPanel = `<div class="shipped-info">&#10003; Shipped via ${o.carrier||''} — ${o.tracking_number||''}</div>`;
@@ -460,7 +460,7 @@ function renderOrders(orders) {
           <div><h4>Items</h4><div class="items-block">${items}</div></div>
           <div><h4>Details</h4>
             <div class="detail-row"><span>Shipping</span><span>${o.shipping_method||'Ground'} $${(o.shipping||10).toFixed(2)}</span></div>
-            <div class="detail-row"><span>Payment</span><span>${o.paymentMethod||'—'}</span></div>
+            <div class="detail-row"><span>Payment</span><span>${o.payment_method||'—'}</span></div>
             <div class="detail-row"><span>Ship to</span><span>${o.address||'—'}</span></div>
             <div class="detail-row"><span>Email</span><span>${o.email||'—'}</span></div>
             <div class="detail-row"><span>Total</span><span>$${(o.total||0).toFixed(2)}</span></div>
@@ -560,7 +560,7 @@ function renderCancelledOrders() {
   }
   listEl.innerHTML = cancelled.map(o => {
     const date = o.date ? new Date(o.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
-    const cancelDate = o.cancelledAt ? new Date(o.cancelledAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+    const cancelDate = o.cancelled_at ? new Date(o.cancelled_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
     const items = (o.items||[]).map(i=>`<div>${i.name} (${i.variant}) x${i.qty} — <strong>$${(i.price*i.qty).toFixed(2)}</strong></div>`).join('');
     return `<div class="order-card cancelled" id="cc-${o.fid}" style="margin:0 12px 10px;">
       <div class="order-head" onclick="toggleCancelledOrder('${o.fid}')">
@@ -581,7 +581,7 @@ function renderCancelledOrders() {
           <div><h4>Items</h4><div class="items-block">${items}</div></div>
           <div><h4>Details</h4>
             <div class="detail-row"><span>Shipping</span><span>${o.shipping_method||'Ground'} $${(o.shipping||10).toFixed(2)}</span></div>
-            <div class="detail-row"><span>Payment</span><span>${o.paymentMethod||'—'}</span></div>
+            <div class="detail-row"><span>Payment</span><span>${o.payment_method||'—'}</span></div>
             <div class="detail-row"><span>Ship to</span><span>${o.address||'—'}</span></div>
             <div class="detail-row"><span>Email</span><span>${o.email||'—'}</span></div>
             <div class="detail-row"><span>Order Total</span><span>$${(o.total||0).toFixed(2)}</span></div>
@@ -589,7 +589,7 @@ function renderCancelledOrders() {
         </div>
         <div class="track-panel" style="border-color:rgba(239,68,68,0.2);">
           <h4 style="color:var(--red);">&#x26D4; Cancellation Details</h4>
-          <div style="font-size:13px;color:#fca5a5;">Cancelled on ${cancelDate}${o.cancelReason ? ' &mdash; <em>' + o.cancelReason + '</em>' : ' &mdash; No reason provided'}</div>
+          <div style="font-size:13px;color:#fca5a5;">Cancelled on ${cancelDate}${o.cancel_reason ? ' &mdash; <em>' + o.cancel_reason + '</em>' : ' &mdash; No reason provided'}</div>
         </div>
       </div>
     </div>`;
