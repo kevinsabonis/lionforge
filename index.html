@@ -227,6 +227,78 @@
 </head>
 <body>
 
+<!-- ── LEGAL DISCLAIMER GATE ─────────────────────────────────── -->
+<div id="disclaimer-gate">
+  <div class="disc-card">
+
+    <div class="disc-logo">
+      <div class="disc-logo-name">Lion<span>Forge</span> Peptides</div>
+      <div class="disc-logo-sub">Research Supply &bull; For Science Only</div>
+    </div>
+
+    <div class="disc-notice">
+      <div class="disc-notice-icon">&#9888;</div>
+      <div>
+        <div class="disc-notice-label">Important Legal Notice &mdash; Please Read</div>
+        <div style="font-size:12px;color:#9aafcc;line-height:1.5;">You must read and accept the terms below before entering this site.</div>
+      </div>
+    </div>
+
+    <div class="disc-body">
+      The products on this website are intended <strong>exclusively for legitimate laboratory and research purposes.</strong>
+      They are not intended to prevent, treat, or cure any illness or disease, and are
+      <strong>not approved for human or veterinary consumption.</strong>
+      <br><br>
+      By accessing this site, you acknowledge that you are <strong>at least 21 years of age,</strong>
+      understand these terms, and have a legitimate research basis for purchasing these products.
+    </div>
+
+    <div class="disc-note">
+      <strong>NOTE:</strong> All compounds are sold in lyophilized powder form and require reconstitution
+      with bacteriostatic water prior to research use. Lion Forge Peptides assumes no liability
+      for misuse of any product.
+    </div>
+
+    <label class="disc-check-row" for="disc-checkbox">
+      <input type="checkbox" id="disc-checkbox" onchange="toggleEnter(this.checked)">
+      <span class="disc-check-label">
+        I confirm that I am at least 21 years of age, understand these products are
+        for research purposes only, and agree to the terms stated above.
+      </span>
+    </label>
+
+    <div class="disc-btns">
+      <button class="disc-enter" id="disc-enter-btn" onclick="enterSite()">&#10003; ENTER SITE</button>
+      <button class="disc-decline" onclick="declineSite()">DECLINE</button>
+    </div>
+
+    <div class="disc-footer">Lion Forge Peptides &mdash; For Research Use Only &mdash; Not For Human Consumption</div>
+  </div>
+</div>
+
+<script>
+(function() {
+  // Show gate on every new session; sessionStorage clears when browser is closed
+  if (sessionStorage.getItem('lfp_disclaimer') === 'accepted') {
+    document.getElementById('disclaimer-gate').style.display = 'none';
+  }
+})();
+function toggleEnter(checked) {
+  var btn = document.getElementById('disc-enter-btn');
+  btn.classList.toggle('active', checked);
+}
+function enterSite() {
+  sessionStorage.setItem('lfp_disclaimer', 'accepted');
+  var gate = document.getElementById('disclaimer-gate');
+  gate.style.transition = 'opacity .4s ease';
+  gate.style.opacity = '0';
+  setTimeout(function() { gate.style.display = 'none'; }, 400);
+}
+function declineSite() {
+  window.location.replace('https://www.google.com');
+}
+</script>
+
 <nav>
   <a href="#" class="nav-logo">LION FORGE PEPTIDES</a>
   <ul class="nav-links">
