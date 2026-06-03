@@ -167,6 +167,10 @@ async function handleRequestCode(request, env) {
     'INSERT INTO otp_codes (id, email, code, expires_at) VALUES (?, ?, ?, ?)'
   ).bind(crypto.randomUUID(), email.toLowerCase(), code, expires).run();
 
+  // Log the event
+  await env.DB.prepare('INSERT INTO login_events (id, email, event) VALUES (?, ?, ?)')
+    .bind(crypto.randomUUID(), email.toLowerCase(), 'code_requested').run();
+
   // Return the code — client sends it via EmailJS
   return json({ ok: true, code });
 }
@@ -179,7 +183,11 @@ async function handleVerifyCode(request, env) {
     "SELECT * FROM otp_codes WHERE email = ? AND code = ? AND used = 0 AND expires_at > datetime('now')"
   ).bind(email.toLowerCase(), String(code)).first();
 
-  if (!row) return err('Invalid or expired code. Request a new one.', 401);
+  if (!row) {
+    await env.DB.prepare('INSERT INTO login_events (id, email, event) VALUES (?, ?, ?)')
+      .bind(crypto.randomUUID(), email.toLowerCase(), 'login_failed').run();
+    return err('Invalid or expired code. Request a new one.', 401);
+  }
 
   await env.DB.prepare('UPDATE otp_codes SET used = 1 WHERE id = ?').bind(row.id).run();
 
@@ -198,6 +206,10 @@ async function handleVerifyCode(request, env) {
     { uid: user.id, email: user.email, displayName: user.display_name, role: user.role, exp: Math.floor(Date.now() / 1000) + 604800 },
     env.JWT_SECRET
   );
+  // Log successful login
+  await env.DB.prepare('INSERT INTO login_events (id, email, event) VALUES (?, ?, ?)')
+    .bind(crypto.randomUUID(), user.email, 'login_success').run();
+
   // Return token in body so mobile clients can use Bearer auth as cookie fallback
   return json({ uid: user.id, email: user.email, displayName: user.display_name, role: user.role, _token: token }, 200, {
     'Set-Cookie': sessionCookie(token),
@@ -411,6 +423,13 @@ async function handleAdmin(request, env, path, method) {
     const body = await request.json();
     await env.DB.prepare('UPDATE config SET value = ? WHERE key = ?').bind(JSON.stringify(body), 'products').run();
     return json({ ok: true });
+  }
+
+  if (path === '/api/admin/login-events' && method === 'GET') {
+    const { results } = await env.DB.prepare(
+      'SELECT * FROM login_events ORDER BY created_at DESC LIMIT 200'
+    ).all();
+    return json(results);
   }
 
   if (path === '/api/admin/announcements' && method === 'GET') {
