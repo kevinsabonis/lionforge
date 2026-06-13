@@ -464,7 +464,7 @@ async function handleAdmin(request, env, path, method) {
 
 const FROM_ADDRESS = {
   name:    'Lion Forge Peptides',
-  street1: '1401 Cedar Springs Dr',
+  street1: 'PO Box 514',
   city:    'Prosper',
   state:   'TX',
   zip:     '75078',
