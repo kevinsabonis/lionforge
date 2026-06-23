@@ -502,10 +502,6 @@ async function requestCode() {
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Failed to send code');
-    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_OTP_TEMPLATE, {
-      to_email: email, code: d.code, expires_min: '15'
-    });
     document.getElementById('code-sent-to').textContent = email;
     showStep('code');
     document.getElementById('inp-code').value = '';

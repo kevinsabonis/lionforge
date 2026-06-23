@@ -171,8 +171,32 @@ async function handleRequestCode(request, env) {
   await env.DB.prepare('INSERT INTO login_events (id, email, event) VALUES (?, ?, ?)')
     .bind(crypto.randomUUID(), email.toLowerCase(), 'code_requested').run();
 
-  // Return the code — client sends it via EmailJS
-  return json({ ok: true, code });
+  // Send OTP email via Resend
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: 'Lion Forge Peptides <support@lionforgepeptides.com>',
+        to: [email],
+        subject: 'Your Lion Forge Peptides Sign-In Code',
+        html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#060a18;color:#c8d4e8;border-radius:8px;">
+          <h2 style="color:#e8a820;letter-spacing:0.05em;margin-bottom:8px;">LION FORGE PEPTIDES</h2>
+          <p style="color:#6a7a9e;font-size:13px;margin-bottom:32px;">SIGN-IN CODE</p>
+          <p style="font-size:15px;margin-bottom:16px;">Your sign-in code is:</p>
+          <div style="font-size:40px;font-weight:700;letter-spacing:0.15em;color:#ffd060;background:#0d1535;padding:24px;border-radius:6px;text-align:center;">${code}</div>
+          <p style="font-size:13px;color:#6a7a9e;margin-top:24px;">This code expires in 15 minutes. If you did not request this, you can safely ignore this email.</p>
+        </div>`
+      })
+    });
+  } catch(e) {
+    console.error('Resend OTP error:', e.message);
+  }
+
+  return json({ ok: true });
 }
 
 async function handleVerifyCode(request, env) {
