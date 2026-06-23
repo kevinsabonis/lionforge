@@ -180,7 +180,7 @@ async function handleRequestCode(request, env) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'Lion Forge Peptides <support@lionforgepeptides.com>',
+        from: 'Lion Forge Peptides <onboarding@resend.dev>',
         to: [email],
         subject: 'Your Lion Forge Peptides Sign-In Code',
         html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#060a18;color:#c8d4e8;border-radius:8px;">
