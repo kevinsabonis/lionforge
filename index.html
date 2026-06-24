@@ -391,7 +391,6 @@ loadAnnouncements();
 
 
 <!-- Login Modal -->
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <div id="auth-overlay" style="display:none; position:fixed; inset:0; z-index:1000; background:rgba(4,8,22,0.88); backdrop-filter:blur(6px); align-items:center; justify-content:center;">
   <div id="auth-modal" style="background:#0d1535; border:1px solid rgba(232,168,32,0.25); border-radius:18px; padding:40px 44px; width:100%; max-width:420px; position:relative; box-shadow:0 8px 60px rgba(0,0,0,0.6);">
 
@@ -444,9 +443,6 @@ loadAnnouncements();
 </div>
 
 <script>
-const EMAILJS_SERVICE_ID    = 'service_lvdwr4o';
-const EMAILJS_PUBLIC_KEY    = 'oV9_mb8asjyRBR1iX';
-const EMAILJS_OTP_TEMPLATE  = 'template_6dz0v04';
 
 // Mobile auth helper — adds Bearer token to API calls when cookie may not be sent
 function apiFetch(url, opts) {
