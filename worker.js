@@ -152,6 +152,22 @@ export default {
   },
 };
 
+// ── Email helper ───────────────────────────────────────────────────────────
+
+async function sendResendEmail(apiKey, { to, subject, html }) {
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: 'Lion Forge Peptides <onboarding@resend.dev>', to: [to], subject, html })
+    });
+    const body = await res.text();
+    console.log('Resend response:', res.status, body);
+  } catch(e) {
+    console.error('Resend email error:', e.message);
+  }
+}
+
 // ── Auth handlers ──────────────────────────────────────────────────────────
 
 async function handleRequestCode(request, env) {
@@ -392,6 +408,46 @@ async function handlePlaceOrder(request, env) {
         discountRate ? discountCode : '', total, orderDate),
   ]);
 
+  const itemsHtml = lineItems.map(i =>
+    `<tr><td style="padding:6px 0;color:#c8d4e8;">${i.name} (${i.variant}) x${i.qty}</td><td style="padding:6px 0;color:#ffd060;text-align:right;">$${i.lineTotal.toFixed(2)}</td></tr>`
+  ).join('');
+  const shipLabel = shippingMethod === 'expedited' ? 'Expedited' : 'Ground';
+
+  // Customer confirmation
+  await sendResendEmail(env.RESEND_API_KEY, {
+    to: email,
+    subject: `Your Lion Forge Peptides Order #${orderNum}`,
+    html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px;background:#060a18;color:#c8d4e8;border-radius:8px;">
+      <h2 style="color:#e8a820;letter-spacing:0.05em;">LION FORGE PEPTIDES</h2>
+      <p style="color:#6a7a9e;font-size:13px;">ORDER CONFIRMATION</p>
+      <p>Hi ${displayName}, thank you for your order!</p>
+      <table style="width:100%;border-top:1px solid rgba(232,168,32,0.2);margin:20px 0;">${itemsHtml}</table>
+      <table style="width:100%;border-top:1px solid rgba(232,168,32,0.2);padding-top:12px;">
+        <tr><td style="color:#6a7a9e;">Subtotal</td><td style="text-align:right;">$${subtotal.toFixed(2)}</td></tr>
+        <tr><td style="color:#6a7a9e;">Shipping (${shipLabel})</td><td style="text-align:right;">$${shipping.toFixed(2)}</td></tr>
+        ${discount > 0 ? `<tr><td style="color:#6a7a9e;">Discount</td><td style="text-align:right;">-$${discount.toFixed(2)}</td></tr>` : ''}
+        <tr><td style="color:#ffd060;font-weight:700;">Total</td><td style="text-align:right;color:#ffd060;font-weight:700;">$${total.toFixed(2)}</td></tr>
+      </table>
+      <p style="margin-top:20px;color:#6a7a9e;font-size:13px;">Ship to: ${address}</p>
+      <p style="color:#6a7a9e;font-size:12px;margin-top:24px;">Orders paid by 4pm CST ship same day Mon–Fri. Track your order under My Account.</p>
+    </div>`
+  });
+
+  // Admin notification
+  await sendResendEmail(env.RESEND_API_KEY, {
+    to: 'support@lionforgepeptides.com',
+    subject: `New Order #${orderNum} — ${displayName}`,
+    html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px;background:#060a18;color:#c8d4e8;border-radius:8px;">
+      <h2 style="color:#e8a820;">NEW ORDER #${orderNum}</h2>
+      <p><strong>Customer:</strong> ${displayName} (${email})</p>
+      <p><strong>Payment:</strong> ${paymentMethod || '—'}</p>
+      <p><strong>Shipping:</strong> ${shipLabel}</p>
+      <p><strong>Ship to:</strong> ${address}</p>
+      <table style="width:100%;border-top:1px solid rgba(232,168,32,0.2);margin:20px 0;">${itemsHtml}</table>
+      <p style="color:#ffd060;font-weight:700;">Total: $${total.toFixed(2)}</p>
+    </div>`
+  });
+
   return json({ orderId, orderNum, items: lineItems, subtotal, shipping, discount, total });
 }
 
@@ -577,35 +633,23 @@ async function handleCreateLabel(request, env, orderId) {
     'UPDATE orders SET status=?, carrier=?, tracking_number=?, shipped_at=?, label_url=? WHERE id=?'
   ).bind('shipped', carrier, tracking || '', shippedAt, labelUrl || '', orderId).run();
 
-  // Email label to admin via EmailJS REST API
+  // Email label to admin via Resend
   if (labelUrl) {
     const itemsList = JSON.parse(order.items || '[]')
       .map(i => `${i.name} (${i.variant}) x${i.qty}`).join(', ');
-    try {
-      const emailRes = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          service_id:  'service_lvdwr4o',
-          template_id: 'template_cxsl0hq',
-          user_id:     'oV9_mb8asjyRBR1iX',
-          template_params: {
-            order_number:    `#${order.order_num}`,
-            customer_name:   order.display_name,
-            ship_to:         order.address,
-            items_list:      itemsList,
-            carrier,
-            tracking_number: tracking,
-            label_url:       labelUrl,
-            to_email:        'support@lionforgepeptides.com',
-          },
-        }),
-      });
-      const emailBody = await emailRes.text();
-      console.log('EmailJS label response:', emailRes.status, emailBody);
-    } catch(e) {
-      console.error('Label email error:', e.message);
-    }
+    await sendResendEmail(env.RESEND_API_KEY, {
+      to: 'support@lionforgepeptides.com',
+      subject: `Label Created — Order #${order.order_num}`,
+      html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px;background:#060a18;color:#c8d4e8;border-radius:8px;">
+        <h2 style="color:#e8a820;">LABEL CREATED — ORDER #${order.order_num}</h2>
+        <p><strong>Customer:</strong> ${order.display_name}</p>
+        <p><strong>Ship to:</strong> ${order.address}</p>
+        <p><strong>Items:</strong> ${itemsList}</p>
+        <p><strong>Carrier:</strong> ${carrier}</p>
+        <p><strong>Tracking:</strong> ${tracking}</p>
+        <p style="margin-top:20px;"><a href="${labelUrl}" style="background:#e8a820;color:#060a18;padding:12px 24px;border-radius:4px;text-decoration:none;font-weight:700;">DOWNLOAD LABEL</a></p>
+      </div>`
+    });
   }
 
   return json({ ok: true, tracking, carrier, labelUrl, rate: cheapest.rate, debug: { tracking_code: bought.tracking_code, postage_label: bought.postage_label } });

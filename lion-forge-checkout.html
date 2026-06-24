@@ -460,14 +460,7 @@ function apiFetch(url,opts){opts=opts||{};opts.credentials='include';try{var t=s
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script type="module">
-
-// ── EmailJS CONFIG ────────────────────────────────────────────────
-const EMAILJS_SERVICE_ID   = 'service_lvdwr4o';
-const EMAILJS_TEMPLATE_ID  = 'template_nsksbrg';
-const EMAILJS_PUBLIC_KEY        = 'oV9_mb8asjyRBR1iX';
-const EMAILJS_ADMIN_TEMPLATE_ID = 'template_m2ozfxz'; // New admin notification template
 
 // ── CART DATA ─────────────────────────────────────────────────────
 function loadCartData() {
@@ -694,43 +687,6 @@ window.placeOrder = async function() {
   const serverTotal  = res.total;
   const shipMethod   = shipMethodKey === 'expedited' ? 'Expedited' : 'Ground';
 
-  // Send confirmation email (using server-verified values)
-  try {
-    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
-    const itemsList = serverItems.map(i =>
-      i.name + ' (' + i.variant + ') x' + i.qty + '  $' + (i.price*i.qty).toFixed(2)
-    ).join('\n');
-    // Send customer confirmation
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-      to_name: name, to_email: email,
-      order_number: '#' + orderNumber,
-      items_list: itemsList,
-      subtotal: '$' + serverSubtot.toFixed(2),
-      shipping_method: shipMethod,
-      shipping_cost: '$' + serverShip.toFixed(2),
-      order_total: '$' + serverTotal.toFixed(2),
-      ship_to: address,
-      ship_note: 'Orders paid by 4pm CST ship same day Mon–Fri. Processing within 24–48 hours.'
-    });
-    console.log('Customer confirmation sent');
-
-    // Send admin notification
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_ADMIN_TEMPLATE_ID, {
-      to_email:       'support@lionforgepeptides.com',
-      to_name:        'Lion Forge Support',
-      order_number:   '#' + orderNumber,
-      customer_name:  name,
-      customer_email: email,
-      items_list:     itemsList,
-      subtotal:       '$' + serverSubtot.toFixed(2),
-      shipping_method: shipMethod,
-      shipping_cost:  '$' + serverShip.toFixed(2),
-      order_total:    '$' + serverTotal.toFixed(2),
-      ship_to:        address,
-      payment_method: selectedPayment ? selectedPayment.charAt(0).toUpperCase()+selectedPayment.slice(1) : '—',
-    });
-    console.log('Admin notification sent');
-  } catch(e) { console.error('Email error:', e); }
 
 
   // Clear the cart now that the order is placed and recorded server-side.
