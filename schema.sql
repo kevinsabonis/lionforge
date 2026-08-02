@@ -26,6 +26,8 @@ CREATE TABLE IF NOT EXISTS orders (
   discount_code TEXT,
   total        REAL,
   date         TEXT,
+  payment_confirmed    INTEGER NOT NULL DEFAULT 0,
+  payment_confirmed_at TEXT,
   created_at   TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_orders_uid ON orders(uid);

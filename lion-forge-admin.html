@@ -403,6 +403,7 @@ function renderOrders(orders) {
     const isShipped = o.status==='shipped'||o.status==='delivered';
     const isCancelled = o.status==='cancelled';
     const isPickedUp = o.status==='picked_up';
+    const isPaymentConfirmed = !!o.payment_confirmed;
     const pillClass = 'pill-'+(o.status||'pending');
     const date = o.date ? new Date(o.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
     const items = (o.items||[]).map(i=>`<div>${i.name} (${i.variant}) x${i.qty} — <strong>$${(i.price*i.qty).toFixed(2)}</strong></div>`).join('');
@@ -412,8 +413,10 @@ function renderOrders(orders) {
     const trackPanel = `<div class="track-panel" style="${isCancelled ? 'border-color:rgba(239,68,68,0.2);' : ''}">
       ${isCancelled ? `<div style="margin-bottom:12px;padding:10px 14px;background:rgba(239,68,68,0.07);border-radius:8px;"><span style="color:var(--red);font-weight:600;">&#x26D4; Cancelled</span>${cancelDate ? ' &mdash; '+cancelDate : ''}${o.cancel_reason ? ' &mdash; <em style=color:#fca5a5>'+o.cancel_reason+'</em>' : ''}</div>` : ''}
       ${isPickedUp ? `<div style="margin-bottom:12px;padding:10px 14px;background:rgba(167,139,250,0.07);border-radius:8px;"><span style="color:#a78bfa;font-weight:600;">&#x1F91D; Picked Up in Person</span>${pickedUpDate ? ' &mdash; '+pickedUpDate : ''}</div>` : ''}
+      ${(isPaymentConfirmed && o.status==='pending') ? `<div style="margin-bottom:12px;padding:10px 14px;background:rgba(249,115,22,0.07);border-radius:8px;"><span style="color:var(--orange);font-weight:600;">&#x26A0; Payment confirmed, label purchase pending</span> &mdash; will retry automatically, or use Create Label below to retry now.</div>` : ''}
       ${o.tracking_number ? `<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px;"><span style="font-size:11px;color:#6a7a9e;">Shipping notification sent to customer?</span><button onclick="resendShippingEmail('${o.fid}')" style="background:none;border:1px solid rgba(232,168,32,0.3);border-radius:6px;padding:4px 12px;color:#e8a820;font-size:11px;cursor:pointer;">&#9993; Resend Shipping Email</button></div>` : ''}
       ${o.tracking_number ? `<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:12px 14px;background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.25);border-radius:8px;flex-wrap:wrap;"><div style="flex:1;min-width:180px;"><div style="font-size:10px;color:#6a7a9e;letter-spacing:0.12em;margin-bottom:3px;">TRACKING &mdash; ${o.carrier||'USPS'}</div><div style="font-family:'Share Tech Mono',monospace;font-size:15px;color:#22c55e;letter-spacing:0.05em;">${o.tracking_number}</div></div>${o.label_url ? `<a href="${o.label_url}" target="_blank" style="padding:8px 16px;background:#22c55e;border-radius:8px;color:#080e20;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;font-family:'Share Tech Mono',monospace;letter-spacing:0.08em;">&#x2B07; DOWNLOAD LABEL</a>` : '<span style="font-size:12px;color:#6a7a9e;">No label stored</span>'}</div>` : ''}
+      ${(!isPaymentConfirmed && o.status==='pending') ? `<div style="margin-bottom:12px;padding:10px 14px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;"><span style="font-size:12px;color:#6a7a9e;">Payment received (Venmo/Zelle/etc)?</span><button onclick="confirmPayment('${o.fid}')" style="padding:8px 16px;background:#22c55e;border:none;border-radius:8px;color:#080e20;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.08em;white-space:nowrap;">&#x2713; CONFIRM PAYMENT</button></div>` : ''}
       ${!isPickedUp ? `<div style="margin-bottom:12px;padding:10px 14px;background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.2);border-radius:8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;"><span style="font-size:12px;color:#6a7a9e;">Picked up in person instead of shipping?</span><button onclick="markPickedUp('${o.fid}')" style="padding:8px 16px;background:#a78bfa;border:none;border-radius:8px;color:#080e20;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.08em;white-space:nowrap;">&#x1F91D; MARK PICKED UP</button></div>` : ''}
       <h4>${o.tracking_number ? 'Recreate Label' : 'Create Label'}</h4>
       <div style="margin-bottom:12px;padding:10px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><div class="tf" style="flex:1;min-width:120px;"><label>Weight (oz)</label><input id="weight-${o.fid}" type="number" min="1" max="160" value="8" style="width:100%;"></div><button onclick="createLabel('${o.fid}')" id="label-btn-${o.fid}" style="padding:10px 18px;background:#22c55e;border:none;border-radius:8px;color:#080e20;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.1em;white-space:nowrap;">&#x1F4E6; ${o.tracking_number ? 'RECREATE LABEL' : 'CREATE LABEL'}</button><span id="label-result-${o.fid}" style="font-size:12px;color:#22c55e;"></span></div>
@@ -519,6 +522,21 @@ window.markShipped = async function(fid, email, name, orderNum) {
     updateStats(); filterOrders();
     showToast('Marked shipped + email sent!');
   } catch(e) { console.error(e); alert('Error: '+e.message); if(btn){btn.disabled=false;btn.textContent='MARK SHIPPED →';} }
+};
+window.confirmPayment = async function(fid) {
+  if (!confirm('Confirm payment received? This will immediately buy a USPS label and mark the order shipped.')) return;
+  try {
+    const r = await fetch('/api/admin/orders/'+fid+'/confirm-payment', { method:'POST', credentials:'include' });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error||'Failed');
+    const order = allOrders.find(o=>o.fid===fid);
+    if (order) {
+      order.payment_confirmed = 1;
+      if (d.shipped) { order.status='shipped'; order.carrier=d.carrier; order.tracking_number=d.tracking; order.label_url=d.labelUrl||''; }
+    }
+    updateStats(); filterOrders();
+    showToast(d.shipped ? 'Payment confirmed — shipped! '+d.tracking : 'Payment confirmed — label purchase failed, will retry automatically.');
+  } catch(e) { console.error(e); alert('Error: '+e.message); }
 };
 window.markPickedUp = async function(fid) {
   if (!confirm('Mark this order as picked up in person? No shipping email will be sent.')) return;

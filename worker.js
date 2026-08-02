@@ -537,6 +537,22 @@ async function handleAdmin(request, env, path, method) {
     await sendShippingNotification(env, order);
     return json({ ok: true });
   }
+  const confirmMatch = path.match(/^\/api\/admin\/orders\/([^/]+)\/confirm-payment$/);
+  if (confirmMatch && method === 'POST') {
+    const orderId = confirmMatch[1];
+    const order = await env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(orderId).first();
+    if (!order) return err('Order not found', 404);
+    await env.DB.prepare(
+      'UPDATE orders SET payment_confirmed = 1, payment_confirmed_at = ? WHERE id = ?'
+    ).bind(new Date().toISOString(), orderId).run();
+    try {
+      const { tracking, carrier, labelUrl } = await buyAndRecordLabel(env, order, 8);
+      return json({ ok: true, shipped: true, tracking, carrier, labelUrl });
+    } catch (e) {
+      console.error(`Label purchase failed for order #${order.order_num} after payment confirmation:`, e.message);
+      return json({ ok: true, shipped: false, error: e.message });
+    }
+  }
 
   if (path === '/api/admin/products' && method === 'GET') {
     const row = await env.DB.prepare('SELECT value FROM config WHERE key = ?').bind('products').first();
@@ -624,22 +640,14 @@ async function easypost(path, body, apiKey) {
   return r.json();
 }
 
-// ── Create label handler ───────────────────────────────────────────────────
+// ── Shared label purchase ──────────────────────────────────────────────────
+// Buys the cheapest USPS label via EasyPost, marks the order shipped, and
+// sends the customer + admin notifications. Used by both the manual
+// "Create Label" admin action and the payment-confirmed auto-ship path.
 
-async function handleCreateLabel(request, env, orderId) {
-  const user = await getUser(request, env.JWT_SECRET);
-  if (!user || user.role !== 'admin') return err('Forbidden', 403);
-
-  const { weightOz } = await request.json();
-  if (!weightOz || weightOz < 1 || weightOz > 160)
-    return err('Weight must be between 1 and 160 oz');
-
-  const order = await env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(orderId).first();
-  if (!order) return err('Order not found', 404);
-
+async function buyAndRecordLabel(env, order, weightOz) {
   const toAddr = parseShippingAddress(order.address || '');
 
-  // Create shipment with all USPS rates
   const shipment = await easypost('/shipments', {
     shipment: {
       to_address:   { name: order.display_name, ...toAddr, country: 'US' },
@@ -648,38 +656,30 @@ async function handleCreateLabel(request, env, orderId) {
     },
   }, env.EASYPOST_API_KEY);
 
-  // Pick cheapest USPS rate
   const uspsRates = (shipment.rates || [])
     .filter(r => r.carrier === 'USPS')
     .sort((a, b) => parseFloat(a.rate) - parseFloat(b.rate));
 
-  if (!uspsRates.length) return err('No USPS rates available for this shipment');
+  if (!uspsRates.length) throw new Error('No USPS rates available for this shipment');
   const cheapest = uspsRates[0];
 
-  // Buy the label
   const bought = await easypost(`/shipments/${shipment.id}/buy`, {
     rate: { id: cheapest.id },
   }, env.EASYPOST_API_KEY);
 
-  // Log full EasyPost buy response for debugging
   console.log('EasyPost buy response:', JSON.stringify({ tracking_code: bought.tracking_code, tracker: bought.tracker, postage_label: bought.postage_label, selected_rate: bought.selected_rate }));
 
-  // EasyPost returns tracking_code at top level after buy
   const tracking  = bought.tracking_code || bought.tracker?.tracking_code || '';
   const labelUrl  = bought.postage_label?.label_url || bought.postage_label?.label_pdf_url || '';
-  const labelFile = bought.postage_label?.label_file_type || 'PNG';
   const carrier   = `USPS ${bought.selected_rate?.service || cheapest.service}`;
   const shippedAt = new Date().toISOString();
 
-  // Update order to shipped
   await env.DB.prepare(
     'UPDATE orders SET status=?, carrier=?, tracking_number=?, shipped_at=?, label_url=? WHERE id=?'
-  ).bind('shipped', carrier, tracking || '', shippedAt, labelUrl || '', orderId).run();
+  ).bind('shipped', carrier, tracking || '', shippedAt, labelUrl || '', order.id).run();
 
-  // Notify the customer their order shipped (server-side via Resend)
   await sendShippingNotification(env, { ...order, status: 'shipped', carrier, tracking_number: tracking });
 
-  // Email label to admin via Resend
   if (labelUrl) {
     const itemsList = JSON.parse(order.items || '[]')
       .map(i => `${i.name} (${i.variant}) x${i.qty}`).join(', ');
@@ -698,129 +698,43 @@ async function handleCreateLabel(request, env, orderId) {
     });
   }
 
-  return json({ ok: true, tracking, carrier, labelUrl, rate: cheapest.rate, debug: { tracking_code: bought.tracking_code, postage_label: bought.postage_label } });
+  return { tracking, carrier, labelUrl, rate: cheapest.rate, bought };
 }
 
-// ── Gmail cron handler ─────────────────────────────────────────────────────
-// Runs on schedule, reads unread order emails, creates labels automatically.
+// ── Create label handler ───────────────────────────────────────────────────
+
+async function handleCreateLabel(request, env, orderId) {
+  const user = await getUser(request, env.JWT_SECRET);
+  if (!user || user.role !== 'admin') return err('Forbidden', 403);
+
+  const { weightOz } = await request.json();
+  if (!weightOz || weightOz < 1 || weightOz > 160)
+    return err('Weight must be between 1 and 160 oz');
+
+  const order = await env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(orderId).first();
+  if (!order) return err('Order not found', 404);
+
+  const { tracking, carrier, labelUrl, rate, bought } = await buyAndRecordLabel(env, order, weightOz);
+  return json({ ok: true, tracking, carrier, labelUrl, rate, debug: { tracking_code: bought.tracking_code, postage_label: bought.postage_label } });
+}
+
+// ── Payment-confirmed backstop cron ────────────────────────────────────────
+// The primary path ships an order the instant its payment is confirmed
+// (see the /confirm-payment route in handleAdmin). This cron is only a
+// safety net for orders that got marked payment_confirmed but, for whatever
+// reason (a transient EasyPost error), never actually shipped.
 
 async function processNewOrders(env) {
-  // Get Gmail access token via OAuth2 refresh
-  const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id:     env.GMAIL_CLIENT_ID,
-      client_secret: env.GMAIL_CLIENT_SECRET,
-      refresh_token: env.GMAIL_REFRESH_TOKEN,
-      grant_type:    'refresh_token',
-    }),
-  });
-  if (!tokenRes.ok) { console.error('Gmail token refresh failed:', tokenRes.status, await tokenRes.text()); return; }
-  const { access_token } = await tokenRes.json();
+  const { results } = await env.DB.prepare(
+    "SELECT * FROM orders WHERE status = 'pending' AND payment_confirmed = 1"
+  ).all();
 
-  // Search for unread Lion Forge order notification emails
-  const searchRes = await fetch(
-    'https://gmail.googleapis.com/gmail/v1/users/me/messages?q=from:support@lionforgepeptides.com+subject:"New+Order"+is:unread&maxResults=10',
-    { headers: { Authorization: `Bearer ${access_token}` } }
-  );
-  if (!searchRes.ok) return;
-  const { messages } = await searchRes.json();
-  if (!messages?.length) return;
-
-  for (const msg of messages) {
+  for (const order of results) {
     try {
-      // Get full email
-      const msgRes = await fetch(
-        `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=full`,
-        { headers: { Authorization: `Bearer ${access_token}` } }
-      );
-      const email = await msgRes.json();
-
-      // Decode body
-      const bodyPart = email.payload?.parts?.find(p => p.mimeType === 'text/plain')
-                    || email.payload;
-      const bodyB64  = bodyPart?.body?.data || '';
-      const body     = atob(bodyB64.replace(/-/g, '+').replace(/_/g, '/'));
-
-      // Parse order number
-      const orderNumMatch = body.match(/Order #(\d+)/i) || email.payload?.headers
-        ?.find(h => h.name === 'Subject')?.value?.match(/#(\d+)/);
-      if (!orderNumMatch) continue;
-      const orderNum = parseInt(orderNumMatch[1]);
-
-      // Parse Ship To address
-      const shipMatch = body.match(/Ship To[:\s]+([^\n]+)/i);
-      if (!shipMatch) continue;
-      const address = shipMatch[1].trim();
-
-      // Parse customer name
-      const nameMatch = body.match(/Name[:\s]+([^\n]+)/i);
-      const name = nameMatch ? nameMatch[1].trim() : 'Customer';
-
-      // Look up order in D1
-      const order = await env.DB.prepare(
-        'SELECT * FROM orders WHERE order_num = ? AND status = ?'
-      ).bind(orderNum, 'pending').first();
-
-      if (!order) {
-        console.log(`Order #${orderNum} not found or already processed`);
-        // Mark email as read anyway
-        await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}/modify`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${access_token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ removeLabelIds: ['UNREAD'] }),
-        });
-        continue;
-      }
-
-      // Default weight 8oz — midpoint of typical range
-      const weightOz = 8;
-      const toAddr   = parseShippingAddress(order.address || address);
-
-      // Create and buy EasyPost label
-      const shipment = await easypost('/shipments', {
-        shipment: {
-          to_address:   { name: order.display_name || name, ...toAddr, country: 'US' },
-          from_address: FROM_ADDRESS,
-          parcel:       { weight: weightOz, length: 9, width: 6, height: 2 },
-        },
-      }, env.EASYPOST_API_KEY);
-
-      const uspsRates = (shipment.rates || [])
-        .filter(r => r.carrier === 'USPS')
-        .sort((a, b) => parseFloat(a.rate) - parseFloat(b.rate));
-
-      if (!uspsRates.length) { console.error(`No USPS rates for order #${orderNum}`); continue; }
-
-      const bought = await easypost(`/shipments/${shipment.id}/buy`, {
-        rate: { id: uspsRates[0].id },
-      }, env.EASYPOST_API_KEY);
-
-      const tracking  = bought.tracking_code;
-      const carrier   = `USPS ${uspsRates[0].service}`;
-      const shippedAt = new Date().toISOString();
-      const labelUrl  = bought.postage_label?.label_url;
-
-      // Update D1 order to shipped
-      await env.DB.prepare(
-        'UPDATE orders SET status=?, carrier=?, tracking_number=?, shipped_at=? WHERE id=?'
-      ).bind('shipped', carrier, tracking, shippedAt, order.id).run();
-
-      // Notify the customer their order shipped (server-side via Resend)
-      await sendShippingNotification(env, { ...order, status: 'shipped', carrier, tracking_number: tracking });
-
-      console.log(`Order #${orderNum} labelled: ${tracking} — ${labelUrl}`);
-
-      // Mark email as read
-      await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}/modify`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${access_token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ removeLabelIds: ['UNREAD'] }),
-      });
-
+      await buyAndRecordLabel(env, order, 8);
+      console.log(`Order #${order.order_num} labelled via backstop cron`);
     } catch (e) {
-      console.error(`Error processing message ${msg.id}:`, e.message);
+      console.error(`Backstop cron failed to label order #${order.order_num}:`, e.message);
     }
   }
 }
