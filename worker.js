@@ -716,7 +716,7 @@ async function processNewOrders(env) {
       grant_type:    'refresh_token',
     }),
   });
-  if (!tokenRes.ok) { console.error('Gmail token refresh failed'); return; }
+  if (!tokenRes.ok) { console.error('Gmail token refresh failed:', tokenRes.status, await tokenRes.text()); return; }
   const { access_token } = await tokenRes.json();
 
   // Search for unread Lion Forge order notification emails
