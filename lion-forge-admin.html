@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lion Forge — Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{--gold:#e8a820;--gold-bright:#ffd060;--gold-dim:#9a6e12;--navy:#080e20;
@@ -100,6 +99,7 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
 .pill-shipped{color:var(--green);background:rgba(34,197,94,0.12);}
 .pill-delivered{color:#60a5fa;background:rgba(96,165,250,0.12);}
 .pill-cancelled{color:var(--red);background:rgba(239,68,68,0.12);}
+.pill-picked_up{color:#a78bfa;background:rgba(167,139,250,0.12);}
 .chevron{color:var(--muted);transition:transform .25s;font-size:11px;}
 .chevron.open{transform:rotate(180deg);}
 
@@ -238,6 +238,7 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
       <div class="stat"><div class="stat-num" id="s-total">—</div><div class="stat-label">Total</div></div>
       <div class="stat"><div class="stat-num" id="s-pending" style="color:var(--orange)">—</div><div class="stat-label">Pending</div></div>
       <div class="stat"><div class="stat-num" id="s-shipped" style="color:var(--green)">—</div><div class="stat-label">Shipped</div></div>
+      <div class="stat"><div class="stat-num" id="s-pickedup" style="color:#a78bfa">—</div><div class="stat-label">Picked Up</div></div>
       <div class="stat"><div class="stat-num" id="s-rev" style="color:var(--gold)">—</div><div class="stat-label">Revenue</div></div>
       <div class="stat"><div class="stat-num" id="s-cancelled" style="color:var(--red)">—</div><div class="stat-label">Cancelled</div></div>
     </div>
@@ -246,6 +247,7 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
       <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
       <button class="filter-btn" onclick="setFilter('pending',this)">Pending</button>
       <button class="filter-btn" onclick="setFilter('shipped',this)">Shipped</button>
+      <button class="filter-btn" onclick="setFilter('picked_up',this)">Picked Up</button>
       <button class="filter-btn" onclick="setFilter('delivered',this)">Delivered</button>
       <button class="filter-btn" onclick="setFilter('cancelled',this)">Cancelled</button>
     </div>
@@ -301,10 +303,6 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
 <div class="toast" id="toast"></div>
 
 <script>
-const EMAILJS_SERVICE_ID       = 'service_lvdwr4o';
-const EMAILJS_PUBLIC_KEY       = 'oV9_mb8asjyRBR1iX';
-const EMAILJS_SHIP_TEMPLATE    = 'template_b0htp5a';
-
 let allOrders = [];
 let currentFilter = 'all';
 
@@ -374,6 +372,7 @@ function updateStats() {
   document.getElementById('s-total').textContent   = allOrders.length;
   document.getElementById('s-pending').textContent = allOrders.filter(o=>o.status==='pending'||o.status==='processing').length;
   document.getElementById('s-shipped').textContent = allOrders.filter(o=>o.status==='shipped'||o.status==='delivered').length;
+  document.getElementById('s-pickedup').textContent = allOrders.filter(o=>o.status==='picked_up').length;
   document.getElementById('s-rev').textContent     = '$'+allOrders.reduce((s,o)=>s+(o.total||0),0).toFixed(0);
   document.getElementById('s-cancelled').textContent = allOrders.filter(o=>o.status==='cancelled').length;
 }
@@ -403,19 +402,23 @@ function renderOrders(orders) {
   el.innerHTML = orders.map(o => {
     const isShipped = o.status==='shipped'||o.status==='delivered';
     const isCancelled = o.status==='cancelled';
+    const isPickedUp = o.status==='picked_up';
     const pillClass = 'pill-'+(o.status||'pending');
     const date = o.date ? new Date(o.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
     const items = (o.items||[]).map(i=>`<div>${i.name} (${i.variant}) x${i.qty} — <strong>$${(i.price*i.qty).toFixed(2)}</strong></div>`).join('');
     // Universal shipping panel
     const cancelDate = o.cancelled_at ? new Date(o.cancelled_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+    const pickedUpDate = o.shipped_at ? new Date(o.shipped_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
     const trackPanel = `<div class="track-panel" style="${isCancelled ? 'border-color:rgba(239,68,68,0.2);' : ''}">
       ${isCancelled ? `<div style="margin-bottom:12px;padding:10px 14px;background:rgba(239,68,68,0.07);border-radius:8px;"><span style="color:var(--red);font-weight:600;">&#x26D4; Cancelled</span>${cancelDate ? ' &mdash; '+cancelDate : ''}${o.cancel_reason ? ' &mdash; <em style=color:#fca5a5>'+o.cancel_reason+'</em>' : ''}</div>` : ''}
-      ${o.tracking_number ? `<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px;"><span style="font-size:11px;color:#6a7a9e;">Shipping notification sent to customer?</span><button onclick="sendShippingEmail(allOrders.find(function(x){return x.fid==='${o.fid}'}));showToast('Shipping email resent!')" style="background:none;border:1px solid rgba(232,168,32,0.3);border-radius:6px;padding:4px 12px;color:#e8a820;font-size:11px;cursor:pointer;">&#9993; Resend Shipping Email</button></div>` : ''}
+      ${isPickedUp ? `<div style="margin-bottom:12px;padding:10px 14px;background:rgba(167,139,250,0.07);border-radius:8px;"><span style="color:#a78bfa;font-weight:600;">&#x1F91D; Picked Up in Person</span>${pickedUpDate ? ' &mdash; '+pickedUpDate : ''}</div>` : ''}
+      ${o.tracking_number ? `<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px;"><span style="font-size:11px;color:#6a7a9e;">Shipping notification sent to customer?</span><button onclick="resendShippingEmail('${o.fid}')" style="background:none;border:1px solid rgba(232,168,32,0.3);border-radius:6px;padding:4px 12px;color:#e8a820;font-size:11px;cursor:pointer;">&#9993; Resend Shipping Email</button></div>` : ''}
       ${o.tracking_number ? `<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:12px 14px;background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.25);border-radius:8px;flex-wrap:wrap;"><div style="flex:1;min-width:180px;"><div style="font-size:10px;color:#6a7a9e;letter-spacing:0.12em;margin-bottom:3px;">TRACKING &mdash; ${o.carrier||'USPS'}</div><div style="font-family:'Share Tech Mono',monospace;font-size:15px;color:#22c55e;letter-spacing:0.05em;">${o.tracking_number}</div></div>${o.label_url ? `<a href="${o.label_url}" target="_blank" style="padding:8px 16px;background:#22c55e;border-radius:8px;color:#080e20;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;font-family:'Share Tech Mono',monospace;letter-spacing:0.08em;">&#x2B07; DOWNLOAD LABEL</a>` : '<span style="font-size:12px;color:#6a7a9e;">No label stored</span>'}</div>` : ''}
+      ${!isPickedUp ? `<div style="margin-bottom:12px;padding:10px 14px;background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.2);border-radius:8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;"><span style="font-size:12px;color:#6a7a9e;">Picked up in person instead of shipping?</span><button onclick="markPickedUp('${o.fid}')" style="padding:8px 16px;background:#a78bfa;border:none;border-radius:8px;color:#080e20;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.08em;white-space:nowrap;">&#x1F91D; MARK PICKED UP</button></div>` : ''}
       <h4>${o.tracking_number ? 'Recreate Label' : 'Create Label'}</h4>
       <div style="margin-bottom:12px;padding:10px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><div class="tf" style="flex:1;min-width:120px;"><label>Weight (oz)</label><input id="weight-${o.fid}" type="number" min="1" max="160" value="8" style="width:100%;"></div><button onclick="createLabel('${o.fid}')" id="label-btn-${o.fid}" style="padding:10px 18px;background:#22c55e;border:none;border-radius:8px;color:#080e20;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.1em;white-space:nowrap;">&#x1F4E6; ${o.tracking_number ? 'RECREATE LABEL' : 'CREATE LABEL'}</button><span id="label-result-${o.fid}" style="font-size:12px;color:#22c55e;"></span></div>
       <div class="track-fields"><div class="tf"><label>Carrier</label><select id="carrier-${o.fid}"><option>USPS</option><option>UPS</option><option>FedEx</option><option>DHL</option></select></div><div class="tf" style="flex:2;"><label>Tracking Number</label><input id="tracking-${o.fid}" type="text" placeholder="Enter tracking #" value="${o.tracking_number||''}"></div><button class="ship-btn" onclick="markShipped('${o.fid}','${o.email}','${o.display_name||''}','${o.order_num}')">MARK SHIPPED &#x2192;</button></div>
-      ${!isCancelled ? `<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.05);display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;"><div class="tf" style="flex:2;min-width:160px;"><label>Cancel Reason (optional)</label><input id="cancel-reason-${o.fid}" type="text" placeholder="e.g. Customer request, out of stock..."></div><button class="cancel-order-btn" onclick="cancelOrder('${o.fid}','${o.order_num}')">&#x26D4; CANCEL ORDER</button></div>` : ''}
+      ${(!isCancelled && !isPickedUp) ? `<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.05);display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;"><div class="tf" style="flex:2;min-width:160px;"><label>Cancel Reason (optional)</label><input id="cancel-reason-${o.fid}" type="text" placeholder="e.g. Customer request, out of stock..."></div><button class="cancel-order-btn" onclick="cancelOrder('${o.fid}','${o.order_num}')">&#x26D4; CANCEL ORDER</button></div>` : ''}
     </div>`;
 
         return `<div class="order-card ${o.status||'pending'}" id="oc-${o.fid}">
@@ -427,7 +430,7 @@ function renderOrders(orders) {
           </div>
         </div>
         <div class="order-head-right">
-          <span class="status-pill ${pillClass}">${(o.status||'pending').toUpperCase()}</span>
+          <span class="status-pill ${pillClass}">${(o.status||'pending').replace('_',' ').toUpperCase()}</span>
           <span class="order-amt">$${(o.total||0).toFixed(2)}</span>
           <span class="chevron" id="chev-${o.fid}">&#9660;</span>
         </div>
@@ -473,26 +476,9 @@ window.relabelOrder = async function(fid) {
     if (result) result.innerHTML = '<a href="'+d.labelUrl+'" target="_blank" style="color:#22c55e;text-decoration:underline;">&#x2B07; Download New Label</a> — '+d.tracking;
     var order = allOrders.find(function(o){return o.fid===fid;});
     if (order) { order.tracking_number=d.tracking; order.carrier=d.carrier; order.label_url=d.labelUrl; }
-    sendShippingEmail(order);
     showToast('New label created: '+d.tracking);
   } catch(e) { if(result) result.textContent = 'Error: '+e.message; }
 };
-function sendShippingEmail(order) {
-  if (typeof emailjs === 'undefined' || !order || !order.email) return Promise.resolve();
-  emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
-  var itemsList = (order.items||[]).map(function(i){ return i.name+' ('+i.variant+') x'+i.qty+'  $'+(i.price*i.qty).toFixed(2); }).join('\n');
-  return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_SHIP_TEMPLATE, {
-    to_name:         order.display_name||'Customer',
-    to_email:        order.email,
-    order_number:    '#'+order.order_num,
-    carrier:         order.carrier||'USPS',
-    tracking_number: order.tracking_number||'',
-    items_list:      itemsList,
-    order_total:     '$'+(order.total||0).toFixed(2),
-    ship_to:         order.address||'—'
-  }).then(function(){ console.log('Shipping email sent to '+order.email); })
-    .catch(function(e){ console.error('Shipping email failed:', e); });
-}
 window.createLabel = async function(fid) {
   var weightOz = parseFloat(document.getElementById('weight-'+fid)?.value) || 8;
   var btn = document.getElementById('label-btn-'+fid);
@@ -512,8 +498,7 @@ window.createLabel = async function(fid) {
     if (btn) { btn.disabled=false; btn.textContent='✓ Done'; }
     var order = allOrders.find(function(o){return o.fid===fid;});
     if (order) { order.status='shipped'; order.tracking_number=d.tracking; order.carrier=d.carrier; order.label_url=d.labelUrl||''; }
-    sendShippingEmail(order);
-    updateStats();
+    updateStats(); filterOrders();
     showToast('Shipped: ' + d.tracking + ' via ' + d.carrier);
   } catch(e) {
     if (btn) { btn.disabled=false; btn.textContent='\u{1F4E6} CREATE LABEL'; }
@@ -528,22 +513,31 @@ window.markShipped = async function(fid, email, name, orderNum) {
   if (btn) { btn.disabled=true; btn.textContent='Updating...'; }
   try {
     const r = await fetch('/api/admin/orders/'+fid, { method:'PUT', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ status:'shipped', carrier, trackingNumber:tracking, shippedAt:new Date().toISOString() }) }); if (!r.ok) throw new Error('Update failed');
+    // The server sends the customer shipping notification via Resend.
     const order = allOrders.find(o=>o.fid===fid);
-    // Send shipping email
-    if (typeof emailjs!=='undefined' && email) {
-      emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
-      const itemsList = (order?.items||[]).map(i=>i.name+' ('+i.variant+') x'+i.qty+'  $'+(i.price*i.qty).toFixed(2)).join('\n');
-      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_SHIP_TEMPLATE, {
-        to_name: name||'Customer', to_email: email,
-        order_number: '#'+orderNum, carrier, tracking_number: tracking,
-        items_list: itemsList, order_total: '$'+(order?.total||0).toFixed(2),
-        ship_to: order?.address||'—'
-      });
-    }
-    if (order) { order.status='shipped'; order.carrier=carrier; order.trackingNumber=tracking; }
+    if (order) { order.status='shipped'; order.carrier=carrier; order.tracking_number=tracking; }
     updateStats(); filterOrders();
     showToast('Marked shipped + email sent!');
   } catch(e) { console.error(e); alert('Error: '+e.message); if(btn){btn.disabled=false;btn.textContent='MARK SHIPPED →';} }
+};
+window.markPickedUp = async function(fid) {
+  if (!confirm('Mark this order as picked up in person? No shipping email will be sent.')) return;
+  try {
+    const pickedUpAt = new Date().toISOString();
+    const r = await fetch('/api/admin/orders/'+fid, { method:'PUT', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ status:'picked_up', shippedAt:pickedUpAt }) });
+    if (!r.ok) throw new Error('Update failed');
+    const order = allOrders.find(o=>o.fid===fid);
+    if (order) { order.status='picked_up'; order.shipped_at=pickedUpAt; }
+    updateStats(); filterOrders();
+    showToast('Marked picked up!');
+  } catch(e) { console.error(e); alert('Error: '+e.message); }
+};
+window.resendShippingEmail = async function(fid) {
+  try {
+    const r = await fetch('/api/admin/orders/'+fid+'/resend-shipping-email', { method:'POST', credentials:'include' });
+    if (!r.ok) throw new Error('Failed');
+    showToast('Shipping email resent!');
+  } catch(e) { alert('Error: '+e.message); }
 };
 
 window.cancelOrder = async function(fid, orderNum) {

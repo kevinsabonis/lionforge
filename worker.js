@@ -168,6 +168,30 @@ async function sendResendEmail(apiKey, { to, subject, html }) {
   }
 }
 
+// Customer-facing "your order shipped" email. Accepts a raw orders row.
+async function sendShippingNotification(env, order) {
+  if (!order?.email) return;
+  const items = (() => { try { return JSON.parse(order.items || '[]'); } catch { return []; } })();
+  const itemsHtml = items.map(i =>
+    `<tr><td style="padding:6px 0;color:#c8d4e8;">${i.name} (${i.variant}) x${i.qty}</td></tr>`
+  ).join('');
+  const tracking = order.tracking_number || '';
+  const carrier  = order.carrier || 'USPS';
+  await sendResendEmail(env.RESEND_API_KEY, {
+    to: order.email,
+    subject: `Your Lion Forge Peptides Order #${order.order_num} Has Shipped`,
+    html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px;background:#060a18;color:#c8d4e8;border-radius:8px;">
+      <h2 style="color:#e8a820;letter-spacing:0.05em;">LION FORGE PEPTIDES</h2>
+      <p style="color:#6a7a9e;font-size:13px;">ORDER SHIPPED</p>
+      <p>Hi ${order.display_name || 'there'}, your order is on its way!</p>
+      <table style="width:100%;border-top:1px solid rgba(232,168,32,0.2);margin:20px 0;">${itemsHtml}</table>
+      <p style="color:#6a7a9e;">Carrier: <span style="color:#c8d4e8;">${carrier}</span></p>
+      ${tracking ? `<p style="color:#6a7a9e;">Tracking: <span style="color:#ffd060;font-weight:700;">${tracking}</span></p>` : ''}
+      <p style="margin-top:20px;color:#6a7a9e;font-size:13px;">Ship to: ${order.address || '—'}</p>
+    </div>`
+  });
+}
+
 // ── Auth handlers ──────────────────────────────────────────────────────────
 
 async function handleRequestCode(request, env) {
@@ -483,15 +507,34 @@ async function handleAdmin(request, env, path, method) {
   const orderMatch = path.match(/^\/api\/admin\/orders\/([^/]+)$/);
   if (orderMatch && method === 'PUT') {
     const body = await request.json();
+    const orderId = orderMatch[1];
+    // Capture prior status so we only notify on a fresh transition to "shipped".
+    const prev = await env.DB.prepare('SELECT status FROM orders WHERE id = ?').bind(orderId).first();
+    // COALESCE keeps existing carrier/tracking/shipped_at when a field isn't supplied
+    // (e.g. a cancellation PUT carries no tracking and must not wipe it).
     await env.DB.prepare(
-      'UPDATE orders SET status = ?, carrier = ?, tracking_number = ?, shipped_at = ? WHERE id = ?'
+      `UPDATE orders SET status = ?, carrier = COALESCE(?, carrier),
+         tracking_number = COALESCE(?, tracking_number), shipped_at = COALESCE(?, shipped_at)
+       WHERE id = ?`
     ).bind(
       body.status || 'pending',
-      body.carrier || '',
-      body.trackingNumber || '',
-      body.shippedAt || '',
-      orderMatch[1]
+      body.carrier ?? null,
+      body.trackingNumber ?? null,
+      body.shippedAt ?? null,
+      orderId
     ).run();
+    // Notify the customer when an order first becomes shipped.
+    if ((body.status || '') === 'shipped' && prev?.status !== 'shipped') {
+      const order = await env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(orderId).first();
+      if (order?.email) await sendShippingNotification(env, order);
+    }
+    return json({ ok: true });
+  }
+  const resendMatch = path.match(/^\/api\/admin\/orders\/([^/]+)\/resend-shipping-email$/);
+  if (resendMatch && method === 'POST') {
+    const order = await env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(resendMatch[1]).first();
+    if (!order) return err('Order not found', 404);
+    await sendShippingNotification(env, order);
     return json({ ok: true });
   }
 
@@ -633,6 +676,9 @@ async function handleCreateLabel(request, env, orderId) {
     'UPDATE orders SET status=?, carrier=?, tracking_number=?, shipped_at=?, label_url=? WHERE id=?'
   ).bind('shipped', carrier, tracking || '', shippedAt, labelUrl || '', orderId).run();
 
+  // Notify the customer their order shipped (server-side via Resend)
+  await sendShippingNotification(env, { ...order, status: 'shipped', carrier, tracking_number: tracking });
+
   // Email label to admin via Resend
   if (labelUrl) {
     const itemsList = JSON.parse(order.items || '[]')
@@ -760,6 +806,9 @@ async function processNewOrders(env) {
       await env.DB.prepare(
         'UPDATE orders SET status=?, carrier=?, tracking_number=?, shipped_at=? WHERE id=?'
       ).bind('shipped', carrier, tracking, shippedAt, order.id).run();
+
+      // Notify the customer their order shipped (server-side via Resend)
+      await sendShippingNotification(env, { ...order, status: 'shipped', carrier, tracking_number: tracking });
 
       console.log(`Order #${orderNum} labelled: ${tracking} — ${labelUrl}`);
 
