@@ -309,6 +309,9 @@ function renderOrders(orders) {
           <span class="detail-label">Order Date</span>
           <span class="detail-val">${dateStr}</span>
         </div>
+        <div style="text-align:center;margin-top:14px;padding-top:12px;border-top:1px solid rgba(232,168,32,0.1);font-size:12px;">
+          <a href="mailto:support@lionforgepeptides.com?subject=Order%20%23${o.order_num}" style="color:#e8a820;text-decoration:none;">Questions about this order? Email us &rarr;</a>
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -367,5 +370,10 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2200);
 }
 </script>
+
+<footer style="position:relative;z-index:1;text-align:center;padding:24px;border-top:1px solid rgba(232,168,32,0.1);font-size:12px;color:#2e3a52;letter-spacing:0.05em;">
+  <a href="mailto:support@lionforgepeptides.com" style="color:#e8a820;text-decoration:none;">Contact Support</a>
+</footer>
+
 </body>
 </html>
