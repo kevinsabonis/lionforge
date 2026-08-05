@@ -7,3 +7,4 @@ wrangler.toml
 .assetsignore
 schema.sql
 worker.js
+lion-forge-guide.html
