@@ -949,192 +949,123 @@
   }
   .gl-no-results.visible { display: block; }
 
-  /* ── CALCULATOR PAGE ────────────────────────── */
-  .calc-page {
-    position: relative; z-index: 1;
-    max-width: 640px; margin: 0 auto;
-    padding: 48px 24px 80px;
+  /* ── CALCULATOR PAGE (ported from Lion Forge Peptides) ── */
+  .rc-calc {
+    --bg:#080e20; --surface:#101a38; --surface2:#0d1535;
+    --border:rgba(232,168,32,0.15); --border-active:#e8a820;
+    --text:#dde4f5; --muted:#6a7a9e;
+    --accent:#e8a820; --accent-glow:rgba(232,168,32,0.12); --accent2:#ffd060;
+    --success:#22c55e; --warn:#f97316;
+    --radius:8px; --radius-lg:14px;
+    max-width: 680px; margin: 0 auto;
+    font-family: 'Inter', 'DM Sans', sans-serif;
   }
-  .calc-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(22px, 5vw, 32px);
-    letter-spacing: 3px; text-align: center;
-    color: var(--gold-bright); margin-bottom: 6px;
+  .rc-calc header { text-align: center; margin-bottom: 2.5rem; }
+  .rc-calc header h1 {
+    font-family: 'DM Mono', monospace; font-weight: 400; font-size: 1.1rem;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 0.4rem;
   }
-  .calc-subtitle { text-align: center; color: var(--text-dim); font-size: 12px; margin-bottom: 4px; }
-  .calc-disclaimer { text-align: center; color: var(--text-muted); font-size: 11px; margin-bottom: 32px; font-style: italic; }
-
-  .calc-card {
-    background: var(--navy-card);
-    border: 1px solid var(--border-dim);
-    border-radius: 6px;
-    padding: 20px;
-    margin-bottom: 14px;
-    position: relative;
+  .rc-calc header p { font-size: 0.85rem; color: var(--muted); letter-spacing: 0.03em; }
+  .rc-calc .divider { width: 48px; height: 1px; background: var(--accent); margin: 1rem auto; opacity: 0.4; }
+  .rc-calc .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1rem;
   }
-  .calc-card-label {
+  .rc-calc .card-title {
+    font-family: 'DM Mono', monospace; font-size: 0.7rem; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 1rem;
     display: flex; align-items: center; gap: 8px;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 9px; font-weight: 700; letter-spacing: 2.5px;
-    text-transform: uppercase; color: var(--text-muted);
-    margin-bottom: 14px;
   }
-  .calc-step-num {
-    width: 18px; height: 18px; flex-shrink: 0;
-    background: linear-gradient(135deg, var(--gold), var(--gold-light));
-    color: var(--navy); font-family: 'Bebas Neue', sans-serif;
-    font-size: 11px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
+  .rc-calc .card-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .rc-calc .step-num {
+    width: 20px; height: 20px; background: var(--accent); color: #000;
+    border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace; font-size: 0.65rem; font-weight: 500; flex-shrink: 0;
   }
-
-  /* Pill selector */
-  .calc-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-  .calc-pill {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 12px; font-weight: 600; letter-spacing: 0.5px;
-    padding: 6px 14px; border-radius: 3px;
-    border: 1px solid var(--border);
-    background: transparent; color: var(--text-dim);
-    cursor: pointer; transition: all .15s;
+  .rc-calc .btn-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 0.75rem; }
+  .rc-calc .opt-btn {
+    font-family: 'DM Mono', monospace; font-size: 0.8rem; padding: 8px 14px;
+    background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+    color: var(--muted); cursor: pointer; transition: all 0.15s ease; white-space: nowrap;
   }
-  .calc-pill:hover { border-color: var(--gold-dim); color: var(--gold-light); }
-  .calc-pill.selected {
-    background: linear-gradient(135deg, var(--gold), var(--gold-light));
-    border-color: var(--gold);
-    color: var(--navy); font-weight: 700;
+  .rc-calc .opt-btn:hover { border-color: var(--accent); color: var(--text); }
+  .rc-calc .opt-btn.active { background: var(--accent-glow); border-color: var(--accent); color: var(--accent); }
+  .rc-calc .custom-row { display: flex; align-items: center; gap: 8px; margin-top: 0.5rem; }
+  .rc-calc .custom-row label { font-size: 0.78rem; color: var(--muted); white-space: nowrap; font-family: 'DM Mono', monospace; }
+  .rc-calc .custom-input {
+    font-family: 'DM Mono', monospace; font-size: 0.85rem; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: var(--radius); color: var(--text);
+    padding: 7px 12px; width: 110px; outline: none; transition: border-color 0.15s;
   }
-
-  /* Custom input row */
-  .calc-custom-row { display: flex; align-items: center; gap: 8px; }
-  .calc-custom-label { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
-  .calc-custom-input {
-    width: 90px; padding: 6px 10px;
-    background: rgba(13,22,40,0.9);
-    border: 1px solid var(--border-dim);
-    border-radius: 3px; color: var(--text);
-    font-family: 'Barlow', sans-serif; font-size: 12px;
-    outline: none; transition: border-color .2s;
+  .rc-calc .custom-input:focus { border-color: var(--accent); }
+  .rc-calc .custom-input::placeholder { color: var(--muted); opacity: 0.5; }
+  .rc-calc .syringe-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .rc-calc .syringe-opt {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 1rem 0.75rem; cursor: pointer; transition: all 0.15s ease; text-align: center;
   }
-  .calc-custom-input:focus { border-color: var(--gold); }
-  .calc-custom-input::placeholder { color: var(--text-muted); }
-
-  /* Syringe size cards */
-  .syringe-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
-  .syringe-card {
-    background: rgba(8,13,26,0.6);
-    border: 1px solid var(--border-dim);
-    border-radius: 5px;
-    padding: 14px 10px 12px;
-    text-align: center; cursor: pointer;
-    transition: all .15s;
-    position: relative;
+  .rc-calc .syringe-opt:hover { border-color: var(--accent); }
+  .rc-calc .syringe-opt.active { background: var(--accent-glow); border-color: var(--accent); }
+  .rc-calc .syringe-opt .syr-size {
+    font-family: 'DM Mono', monospace; font-size: 1.1rem; font-weight: 500;
+    color: var(--text); display: block; margin-bottom: 3px;
   }
-  .syringe-card:hover { border-color: var(--gold-dim); }
-  .syringe-card.selected {
-    border-color: var(--gold);
-    background: rgba(201,146,42,0.08);
-    box-shadow: 0 0 0 1px var(--gold);
+  .rc-calc .syringe-opt.active .syr-size { color: var(--accent); }
+  .rc-calc .syringe-opt .syr-units { font-size: 0.72rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .rc-calc .syringe-opt.active .syr-units { color: var(--accent); opacity: 0.7; }
+  .rc-calc .syringe-icon { width: 100%; height: 36px; margin-bottom: 8px; }
+  .rc-calc .result-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 1.75rem 1.5rem; margin-top: 1.5rem; position: relative; overflow: hidden;
   }
-  /* Mini syringe SVG */
-  .syringe-svg-wrap {
-    display: flex; justify-content: center;
-    margin-bottom: 8px;
+  .rc-calc .result-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--accent); opacity: 0; transition: opacity 0.3s;
   }
-  .syringe-vol {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px; letter-spacing: 1px;
-    color: #f0f5ff; line-height: 1;
-    margin-bottom: 2px;
+  .rc-calc .result-card.has-result::before { opacity: 1; }
+  .rc-calc .result-placeholder {
+    text-align: center; padding: 1.5rem 0; color: var(--muted); font-size: 0.85rem;
+    font-family: 'DM Mono', monospace; letter-spacing: 0.05em;
   }
-  .syringe-card.selected .syringe-vol { color: var(--gold-bright); }
-  .syringe-units {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 10px; color: var(--text-dim); letter-spacing: 1px;
+  .rc-calc .result-content { display: none; }
+  .rc-calc .result-content.visible { display: block; }
+  .rc-calc .result-placeholder.hidden { display: none; }
+  .rc-calc .result-label {
+    font-family: 'DM Mono', monospace; font-size: 0.7rem; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem;
   }
-  .syringe-card.selected .syringe-units { color: var(--gold); }
-
-  /* Results card */
-  .calc-results {
-    background: var(--navy-card);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 22px 20px 18px;
-    margin-bottom: 14px;
+  .rc-calc .result-main { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  .rc-calc .result-stat {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 1rem; text-align: center;
   }
-  .calc-results-label {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 9px; font-weight: 700; letter-spacing: 2.5px;
-    text-transform: uppercase; color: var(--text-muted);
-    margin-bottom: 16px;
+  .rc-calc .result-stat .stat-val {
+    font-family: 'DM Mono', monospace; font-size: 2rem; font-weight: 500;
+    color: var(--accent); display: block; line-height: 1.2;
   }
-  .results-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
-  .result-box {
-    background: rgba(8,13,26,0.7);
-    border: 1px solid var(--border-dim);
-    border-radius: 4px;
-    padding: 14px 12px; text-align: center;
+  .rc-calc .result-stat .stat-unit { font-size: 0.75rem; color: var(--muted); font-family: 'DM Mono', monospace; margin-top: 3px; }
+  .rc-calc .syringe-visual { margin: 1.25rem 0; }
+  .rc-calc #result-syringe { width: 100%; height: auto; display: block; color: var(--accent); overflow: visible; }
+  .rc-calc .result-detail {
+    background: var(--surface2); border-radius: var(--radius); padding: 0.85rem 1rem;
+    font-size: 0.8rem; color: var(--muted); font-family: 'DM Mono', monospace; line-height: 1.7;
   }
-  .result-val {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 36px; letter-spacing: 2px;
-    color: #f0f5ff; line-height: 1; margin-bottom: 4px;
+  .rc-calc .result-detail span { color: var(--text); }
+  .rc-calc .warn-msg {
+    margin-top: 0.75rem; background: rgba(210,153,34,0.1); border: 1px solid rgba(210,153,34,0.3);
+    border-radius: var(--radius); padding: 0.75rem 1rem; font-size: 0.78rem;
+    color: var(--warn); font-family: 'DM Mono', monospace; display: none;
   }
-  .result-unit { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; }
-
-  /* Syringe fill visualizer */
-  .fill-label {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
-    color: var(--text-muted); margin-bottom: 10px;
+  .rc-calc .warn-msg.show { display: block; }
+  .rc-calc footer {
+    text-align: center; margin-top: 2.5rem; font-size: 0.75rem;
+    color: var(--muted); font-family: 'DM Mono', monospace; opacity: 0.5;
   }
-  .syringe-viz {
-    background: rgba(8,13,26,0.8);
-    border: 1px solid var(--border-dim);
-    border-radius: 4px;
-    padding: 14px 16px 10px;
-    margin-bottom: 12px;
+  @media (max-width: 480px) {
+    .rc-calc .result-main { grid-template-columns: 1fr 1fr; }
+    .rc-calc .opt-btn { font-size: 0.75rem; padding: 6px 10px; }
   }
-  .syringe-track {
-    position: relative; height: 28px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 3px; overflow: hidden;
-    margin-bottom: 6px;
-  }
-  .syringe-fill {
-    position: absolute; left: 0; top: 0; bottom: 0;
-    background: linear-gradient(90deg, var(--gold-dim), var(--gold));
-    border-radius: 3px 0 0 3px;
-    transition: width .4s ease;
-  }
-  .syringe-ticks {
-    display: flex; justify-content: space-between;
-    padding: 0 2px;
-  }
-  .syringe-ticks span {
-    font-size: 9px; color: var(--text-muted);
-    font-family: 'Barlow Condensed', sans-serif;
-  }
-
-  /* Calc summary */
-  .calc-summary {
-    font-size: 12px; color: var(--text-dim);
-    line-height: 1.8;
-    border-top: 1px solid var(--border-dim);
-    padding-top: 12px; margin-top: 4px;
-  }
-  .calc-summary strong { color: var(--gold-bright); }
-  .calc-summary .hl { color: var(--text); }
-
-  .calc-warning {
-    display: none;
-    background: rgba(192,64,64,0.08);
-    border: 1px solid rgba(192,64,64,0.3);
-    border-radius: 4px; padding: 10px 14px;
-    font-size: 12px; color: #e08080;
-    margin-top: 10px;
-  }
-  .calc-warning.visible { display: block; }
 
   /* ══════════════════════════════════════════
      MOBILE & RESPONSIVE STYLES
@@ -1277,11 +1208,9 @@
       <a class="nav-tab active" href="#" onclick="showPage('guide',this)">Peptide Guide</a>
       <a class="nav-tab" href="#" onclick="showPage('start',this)">Start Here</a>
       <a class="nav-tab" href="#" onclick="showPage('stacks',this)">Stacks</a>
-      <a class="nav-tab" href="#">Reconstitution</a>
       <a class="nav-tab" href="#" onclick="showPage('sideeffects',this)">Side Effects</a>
       <a class="nav-tab" href="#" onclick="showPage('injection',this)">Injection Info</a>
       <a class="nav-tab" href="#" onclick="showPage('glossary',this)">Glossary</a>
-      <a class="nav-tab" href="#" onclick="showPage('calculator',this)">Calculator</a>
       <a class="nav-tab" href="lion-forge-shop.html" target="_blank" rel="noopener">Shop</a>
       <a class="nav-tab" href="#">FAQ</a>
     </div>
@@ -1296,8 +1225,6 @@
     <a class="nav-tab" href="#" onclick="showPage('sideeffects',this);closeMenu()">Side Effects</a>
     <a class="nav-tab" href="#" onclick="showPage('injection',this);closeMenu()">Injection Info</a>
     <a class="nav-tab" href="#" onclick="showPage('glossary',this);closeMenu()">Glossary</a>
-    <a class="nav-tab" href="#" onclick="showPage('calculator',this);closeMenu()">Calculator</a>
-    <a class="nav-tab" href="#">Reconstitution</a>
     <a class="nav-tab" href="lion-forge-shop.html" target="_blank" rel="noopener" onclick="closeMenu()">Shop</a>
     <a class="nav-tab" href="#">FAQ</a>
   </div>
@@ -2724,176 +2651,162 @@
 
 <!-- PAGE: CALCULATOR -->
 <div id="page-calculator" class="page">
-  <div class="calc-page">
+  <div class="rc-calc">
 
-    <div class="calc-title">Reconstitution &amp; Dose Calculator</div>
-    <div class="calc-subtitle">Peptide Compounds</div>
-    <div class="calc-disclaimer">For research use only — not medical advice</div>
+    <header>
+      <h1>Reconstitution &amp; Dose Calculator</h1>
+      <div class="divider"></div>
+      <p>Peptide Compounds</p>
+      <p style="font-size:0.75rem;color:var(--muted);margin-top:0.5rem;letter-spacing:0.05em;">For research use only — not medical advice</p>
+    </header>
 
-    <!-- STEP 1: Vial Contents -->
-    <div class="calc-card">
-      <div class="calc-card-label">
-        <div class="calc-step-num">1</div>
-        Vial Contents
+    <!-- STEP 1 -->
+    <div class="card">
+      <div class="card-title"><span class="step-num">1</span> Vial contents</div>
+      <div class="btn-grid" id="rc-vial-btns">
+        <button class="opt-btn" data-val="5">5 mg</button>
+        <button class="opt-btn" data-val="10">10 mg</button>
+        <button class="opt-btn" data-val="15">15 mg</button>
+        <button class="opt-btn" data-val="20">20 mg</button>
+        <button class="opt-btn" data-val="30">30 mg</button>
+        <button class="opt-btn" data-val="60">60 mg</button>
       </div>
-      <div class="calc-pills" id="vialPills">
-        <button class="calc-pill" onclick="selectPill('vial',5,this)">5 mg</button>
-        <button class="calc-pill selected" onclick="selectPill('vial',10,this)">10 mg</button>
-        <button class="calc-pill" onclick="selectPill('vial',15,this)">15 mg</button>
-        <button class="calc-pill" onclick="selectPill('vial',20,this)">20 mg</button>
-        <button class="calc-pill" onclick="selectPill('vial',30,this)">30 mg</button>
-        <button class="calc-pill" onclick="selectPill('vial',60,this)">60 mg</button>
-      </div>
-      <div class="calc-custom-row">
-        <span class="calc-custom-label">Custom:</span>
-        <input class="calc-custom-input" type="number" id="vialCustom" placeholder="mg" min="0.1" step="0.1" oninput="customInput('vial',this)">
+      <div class="custom-row">
+        <label>Custom:</label>
+        <input class="custom-input" id="rc-vial-custom" type="number" min="0.1" step="0.1" placeholder="mg">
       </div>
     </div>
 
-    <!-- STEP 2: Diluent -->
-    <div class="calc-card">
-      <div class="calc-card-label">
-        <div class="calc-step-num">2</div>
-        Diluent to Add (BAC Water / NaCl / Sterile Water)
+    <!-- STEP 2 -->
+    <div class="card">
+      <div class="card-title"><span class="step-num">2</span> Diluent to add (BAC water / NaCl / sterile water)</div>
+      <div class="btn-grid" id="rc-dil-btns">
+        <button class="opt-btn" data-val="0.5">0.5 mL</button>
+        <button class="opt-btn" data-val="1">1 mL</button>
+        <button class="opt-btn" data-val="1.5">1.5 mL</button>
+        <button class="opt-btn" data-val="2">2 mL</button>
+        <button class="opt-btn" data-val="2.5">2.5 mL</button>
+        <button class="opt-btn" data-val="3">3 mL</button>
       </div>
-      <div class="calc-pills" id="diluentPills">
-        <button class="calc-pill" onclick="selectPill('diluent',0.5,this)">0.5 mL</button>
-        <button class="calc-pill selected" onclick="selectPill('diluent',1,this)">1 mL</button>
-        <button class="calc-pill" onclick="selectPill('diluent',1.5,this)">1.5 mL</button>
-        <button class="calc-pill" onclick="selectPill('diluent',2,this)">2 mL</button>
-        <button class="calc-pill" onclick="selectPill('diluent',2.5,this)">2.5 mL</button>
-        <button class="calc-pill" onclick="selectPill('diluent',3,this)">3 mL</button>
-      </div>
-      <div class="calc-custom-row">
-        <span class="calc-custom-label">Custom:</span>
-        <input class="calc-custom-input" type="number" id="diluentCustom" placeholder="mL" min="0.1" step="0.1" oninput="customInput('diluent',this)">
+      <div class="custom-row">
+        <label>Custom:</label>
+        <input class="custom-input" id="rc-dil-custom" type="number" min="0.1" step="0.1" placeholder="mL">
       </div>
     </div>
 
-    <!-- STEP 3: Syringe Size -->
-    <div class="calc-card">
-      <div class="calc-card-label">
-        <div class="calc-step-num">3</div>
-        U-100 Insulin Syringe Size
-      </div>
-      <div class="syringe-grid">
-
-        <div class="syringe-card" onclick="selectSyringe(0.3,30,this)">
-          <div class="syringe-svg-wrap">
-            <svg width="70" height="16" viewBox="0 0 70 16" fill="none">
-              <rect x="0" y="6" width="55" height="4" rx="2" fill="#1a2a42" stroke="#2a3a5a" stroke-width="1"/>
-              <rect x="55" y="4" width="10" height="8" rx="1" fill="#1a2a42" stroke="#2a3a5a" stroke-width="1"/>
-              <line x1="65" y1="8" x2="70" y2="8" stroke="#3a5070" stroke-width="1.5"/>
-              <rect x="2" y="6" width="20" height="4" rx="1" fill="#c9922a" opacity="0.4"/>
-              <line x1="14" y1="5" x2="14" y2="11" stroke="#2a3a5a" stroke-width="0.8"/>
-              <line x1="28" y1="5" x2="28" y2="11" stroke="#2a3a5a" stroke-width="0.8"/>
-              <line x1="42" y1="5" x2="42" y2="11" stroke="#2a3a5a" stroke-width="0.8"/>
-            </svg>
-          </div>
-          <div class="syringe-vol">0.3 mL</div>
-          <div class="syringe-units">30 units</div>
+    <!-- STEP 3 -->
+    <div class="card">
+      <div class="card-title"><span class="step-num">3</span> U-100 insulin syringe size</div>
+      <div class="syringe-grid" id="rc-syr-btns">
+        <div class="syringe-opt" data-val="0.3" data-units="30">
+          <svg class="syringe-icon" viewBox="0 0 80 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g transform="scale(-1,1) translate(-80,0)">
+              <rect x="4" y="14" width="36" height="8" rx="2" fill="currentColor" opacity="0.15" stroke="currentColor" stroke-width="1"/>
+              <rect x="4" y="16" width="22" height="4" rx="1" fill="currentColor" opacity="0.5"/>
+              <rect x="40" y="15" width="14" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.3"/>
+              <line x1="54" y1="18" x2="64" y2="18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+              <rect x="2" y="12" width="4" height="12" rx="1" fill="currentColor" opacity="0.2"/>
+              <line x1="14" y1="12" x2="14" y2="14" stroke="currentColor" stroke-width="0.8" opacity="0.35"/>
+              <line x1="20" y1="12" x2="20" y2="14" stroke="currentColor" stroke-width="0.8" opacity="0.35"/>
+              <line x1="26" y1="12" x2="26" y2="14" stroke="currentColor" stroke-width="0.8" opacity="0.35"/>
+              <line x1="32" y1="12" x2="32" y2="14" stroke="currentColor" stroke-width="0.8" opacity="0.35"/>
+            </g>
+          </svg>
+          <span class="syr-size">0.3 mL</span>
+          <span class="syr-units">30 units</span>
         </div>
-
-        <div class="syringe-card" onclick="selectSyringe(0.5,50,this)">
-          <div class="syringe-svg-wrap">
-            <svg width="70" height="16" viewBox="0 0 70 16" fill="none">
-              <rect x="0" y="6" width="55" height="4" rx="2" fill="#1a2a42" stroke="#2a3a5a" stroke-width="1"/>
-              <rect x="55" y="4" width="10" height="8" rx="1" fill="#1a2a42" stroke="#2a3a5a" stroke-width="1"/>
-              <line x1="65" y1="8" x2="70" y2="8" stroke="#3a5070" stroke-width="1.5"/>
-              <rect x="2" y="6" width="32" height="4" rx="1" fill="#c9922a" opacity="0.4"/>
-              <line x1="14" y1="5" x2="14" y2="11" stroke="#2a3a5a" stroke-width="0.8"/>
-              <line x1="28" y1="5" x2="28" y2="11" stroke="#2a3a5a" stroke-width="0.8"/>
-              <line x1="42" y1="5" x2="42" y2="11" stroke="#2a3a5a" stroke-width="0.8"/>
-            </svg>
-          </div>
-          <div class="syringe-vol">0.5 mL</div>
-          <div class="syringe-units">50 units</div>
+        <div class="syringe-opt" data-val="0.5" data-units="50">
+          <svg class="syringe-icon" viewBox="0 0 80 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g transform="scale(-1,1) translate(-80,0)">
+              <rect x="4" y="14" width="52" height="8" rx="2" fill="currentColor" opacity="0.15" stroke="currentColor" stroke-width="1"/>
+              <rect x="4" y="16" width="34" height="4" rx="1" fill="currentColor" opacity="0.5"/>
+              <rect x="56" y="15" width="10" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.3"/>
+              <line x1="66" y1="18" x2="76" y2="18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+              <rect x="2" y="12" width="4" height="12" rx="1" fill="currentColor" opacity="0.2"/>
+              <line x1="14" y1="12" x2="14" y2="14" stroke="currentColor" stroke-width="0.8" opacity="0.35"/>
+              <line x1="22" y1="12" x2="22" y2="14" stroke="currentColor" stroke-width="0.8" opacity="0.35"/>
+              <line x1="30" y1="12" x2="30" y2="14" stroke="currentColor" stroke-width="0.8" opacity="0.35"/>
+              <line x1="38" y1="12" x2="38" y2="14" stroke="currentColor" stroke-width="0.8" opacity="0.35"/>
+              <line x1="46" y1="12" x2="46" y2="14" stroke="currentColor" stroke-width="0.8" opacity="0.35"/>
+            </g>
+          </svg>
+          <span class="syr-size">0.5 mL</span>
+          <span class="syr-units">50 units</span>
         </div>
-
-        <div class="syringe-card selected" onclick="selectSyringe(1,100,this)">
-          <div class="syringe-svg-wrap">
-            <svg width="70" height="16" viewBox="0 0 70 16" fill="none">
-              <rect x="0" y="6" width="55" height="4" rx="2" fill="#1a2a42" stroke="#c9922a" stroke-width="1"/>
-              <rect x="55" y="4" width="10" height="8" rx="1" fill="#1a2a42" stroke="#c9922a" stroke-width="1"/>
-              <line x1="65" y1="8" x2="70" y2="8" stroke="#c9922a" stroke-width="1.5"/>
-              <rect x="2" y="6" width="8" height="4" rx="1" fill="#c9922a" opacity="0.7"/>
-              <line x1="14" y1="5" x2="14" y2="11" stroke="#2a3a5a" stroke-width="0.8"/>
-              <line x1="28" y1="5" x2="28" y2="11" stroke="#2a3a5a" stroke-width="0.8"/>
-              <line x1="42" y1="5" x2="42" y2="11" stroke="#2a3a5a" stroke-width="0.8"/>
-            </svg>
-          </div>
-          <div class="syringe-vol">1 mL</div>
-          <div class="syringe-units">100 units</div>
+        <div class="syringe-opt" data-val="1" data-units="100">
+          <svg class="syringe-icon" viewBox="-6 0 86 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g transform="scale(-1,1) translate(-80,0)">
+              <rect x="2" y="14" width="64" height="8" rx="2" fill="currentColor" opacity="0.15" stroke="currentColor" stroke-width="1"/>
+              <rect x="2" y="16" width="42" height="4" rx="1" fill="currentColor" opacity="0.5"/>
+              <rect x="66" y="15" width="8" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.3"/>
+              <line x1="74" y1="18" x2="84" y2="18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+              <rect x="0" y="12" width="4" height="12" rx="1" fill="currentColor" opacity="0.2"/>
+              <line x1="10" y1="12" x2="10" y2="14" stroke="currentColor" stroke-width="0.8" opacity="0.35"/>
+              <line x1="19" y1="12" x2="19" y2="14" stroke="currentColor" stroke-width="0.8" opacity="0.35"/>
+              <line x1="28" y1="12" x2="28" y2="14" stroke="currentColor" stroke-width="0.8" opacity="0.35"/>
+              <line x1="37" y1="12" x2="37" y2="14" stroke="currentColor" stroke-width="0.8" opacity="0.35"/>
+              <line x1="46" y1="12" x2="46" y2="14" stroke="currentColor" stroke-width="0.8" opacity="0.35"/>
+              <line x1="55" y1="12" x2="55" y2="14" stroke="currentColor" stroke-width="0.8" opacity="0.35"/>
+            </g>
+          </svg>
+          <span class="syr-size">1 mL</span>
+          <span class="syr-units">100 units</span>
         </div>
-
       </div>
     </div>
 
-    <!-- STEP 4: Dose -->
-    <div class="calc-card">
-      <div class="calc-card-label">
-        <div class="calc-step-num">4</div>
-        Dose Required
+    <!-- STEP 4 -->
+    <div class="card">
+      <div class="card-title"><span class="step-num">4</span> Dose required</div>
+      <div class="btn-grid" id="rc-dose-btns">
+        <button class="opt-btn" data-val="0.25">0.25 mg</button>
+        <button class="opt-btn" data-val="0.5">0.5 mg</button>
+        <button class="opt-btn" data-val="1">1 mg</button>
+        <button class="opt-btn" data-val="1.7">1.7 mg</button>
+        <button class="opt-btn" data-val="2">2 mg</button>
+        <button class="opt-btn" data-val="2.4">2.4 mg</button>
+        <button class="opt-btn" data-val="2.5">2.5 mg</button>
+        <button class="opt-btn" data-val="4">4 mg</button>
+        <button class="opt-btn" data-val="5">5 mg</button>
+        <button class="opt-btn" data-val="7.5">7.5 mg</button>
+        <button class="opt-btn" data-val="10">10 mg</button>
+        <button class="opt-btn" data-val="12">12 mg</button>
+        <button class="opt-btn" data-val="12.5">12.5 mg</button>
+        <button class="opt-btn" data-val="15">15 mg</button>
+        <button class="opt-btn" data-val="17.5">17.5 mg</button>
+        <button class="opt-btn" data-val="20">20 mg</button>
+        <button class="opt-btn" data-val="25">25 mg</button>
+        <button class="opt-btn" data-val="30">30 mg</button>
       </div>
-      <div class="calc-pills" id="dosePills">
-        <button class="calc-pill" onclick="selectPill('dose',0.25,this)">0.25 mg</button>
-        <button class="calc-pill" onclick="selectPill('dose',0.5,this)">0.5 mg</button>
-        <button class="calc-pill selected" onclick="selectPill('dose',1,this)">1 mg</button>
-        <button class="calc-pill" onclick="selectPill('dose',1.7,this)">1.7 mg</button>
-        <button class="calc-pill" onclick="selectPill('dose',2,this)">2 mg</button>
-        <button class="calc-pill" onclick="selectPill('dose',2.4,this)">2.4 mg</button>
-        <button class="calc-pill" onclick="selectPill('dose',2.5,this)">2.5 mg</button>
-        <button class="calc-pill" onclick="selectPill('dose',4,this)">4 mg</button>
-        <button class="calc-pill" onclick="selectPill('dose',5,this)">5 mg</button>
-        <button class="calc-pill" onclick="selectPill('dose',7.5,this)">7.5 mg</button>
-        <button class="calc-pill" onclick="selectPill('dose',10,this)">10 mg</button>
-        <button class="calc-pill" onclick="selectPill('dose',12,this)">12 mg</button>
-        <button class="calc-pill" onclick="selectPill('dose',12.5,this)">12.5 mg</button>
-        <button class="calc-pill" onclick="selectPill('dose',15,this)">15 mg</button>
-        <button class="calc-pill" onclick="selectPill('dose',17.5,this)">17.5 mg</button>
-        <button class="calc-pill" onclick="selectPill('dose',20,this)">20 mg</button>
-        <button class="calc-pill" onclick="selectPill('dose',25,this)">25 mg</button>
-        <button class="calc-pill" onclick="selectPill('dose',30,this)">30 mg</button>
-      </div>
-      <div class="calc-custom-row">
-        <span class="calc-custom-label">Custom:</span>
-        <input class="calc-custom-input" type="number" id="doseCustom" placeholder="mg" min="0.01" step="0.01" oninput="customInput('dose',this)">
+      <div class="custom-row">
+        <label>Custom:</label>
+        <input class="custom-input" id="rc-dose-custom" type="number" min="0.01" step="0.01" placeholder="mg">
       </div>
     </div>
 
     <!-- RESULTS -->
-    <div class="calc-results">
-      <div class="calc-results-label">Results</div>
-      <div class="results-row">
-        <div class="result-box">
-          <div class="result-val" id="resUnits">10</div>
-          <div class="result-unit">units on syringe</div>
-        </div>
-        <div class="result-box">
-          <div class="result-val" id="resMl">0.1 mL</div>
-          <div class="result-unit">mL to draw</div>
-        </div>
+    <div class="result-card" id="rc-result-card">
+      <div class="result-placeholder" id="rc-result-placeholder">
+        — make your selections above to calculate —
       </div>
-
-      <div class="fill-label">Syringe Fill Level</div>
-      <div class="syringe-viz">
-        <div class="syringe-track">
-          <div class="syringe-fill" id="fillBar" style="width:10%"></div>
+      <div class="result-content" id="rc-result-content">
+        <div class="result-label">Results</div>
+        <div class="result-main">
+          <div class="result-stat">
+            <span class="stat-val" id="rc-res-units">—</span>
+            <div class="stat-unit">units on syringe</div>
+          </div>
+          <div class="result-stat">
+            <span class="stat-val" id="rc-res-ml">—</span>
+            <div class="stat-unit">mL to draw</div>
+          </div>
         </div>
-        <div class="syringe-ticks">
-          <span>0</span><span>10</span><span>20</span><span>30</span><span>40</span>
-          <span>50</span><span>60</span><span>70</span><span>80</span><span>90</span><span>100</span>
+        <div class="syringe-visual">
+          <div class="result-label">Syringe fill level</div>
+          <svg id="rc-result-syringe" viewBox="0 0 610 82" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
-      </div>
-
-      <div class="calc-summary" id="calcSummary">
-        Concentration: <strong id="sumConc">10 mg/mL</strong><br>
-        Vial: <span class="hl" id="sumVial">10 mg</span> / Diluent: <span class="hl" id="sumDil">1 mL</span><br>
-        Dose: <span class="hl" id="sumDose">1 mg</span> → Draw: <strong id="sumDraw">0.1 mL (10 units)</strong>
-      </div>
-
-      <div class="calc-warning" id="calcWarning">
-        ⚠️ Dose exceeds vial contents. Please check your inputs.
+        <div class="result-detail" id="rc-res-detail"></div>
+        <div class="warn-msg" id="rc-warn-msg"></div>
       </div>
     </div>
 
@@ -2956,66 +2869,177 @@
     });
   }
 
-  // ── CALCULATOR ──────────────────────────────
-  const calcState = { vial: 10, diluent: 1, syringe: 1, syringeUnits: 100, dose: 1 };
+  // ── CALCULATOR (ported from Lion Forge Peptides) ──
+  (function() {
+    const state = { vial: null, dil: null, syr: null, syrUnits: null, dose: null };
 
-  function selectPill(type, val, el) {
-    const groupMap = { vial: 'vialPills', diluent: 'diluentPills', dose: 'dosePills' };
-    document.querySelectorAll('#' + groupMap[type] + ' .calc-pill').forEach(p => p.classList.remove('selected'));
-    el.classList.add('selected');
-    // Clear custom input
-    const customMap = { vial: 'vialCustom', diluent: 'diluentCustom', dose: 'doseCustom' };
-    document.getElementById(customMap[type]).value = '';
-    calcState[type] = val;
-    calcUpdate();
-  }
-
-  function customInput(type, el) {
-    const v = parseFloat(el.value);
-    const groupMap = { vial: 'vialPills', diluent: 'diluentPills', dose: 'dosePills' };
-    document.querySelectorAll('#' + groupMap[type] + ' .calc-pill').forEach(p => p.classList.remove('selected'));
-    if (!isNaN(v) && v > 0) { calcState[type] = v; calcUpdate(); }
-  }
-
-  function selectSyringe(vol, units, el) {
-    document.querySelectorAll('.syringe-card').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    calcState.syringe = vol;
-    calcState.syringeUnits = units;
-    calcUpdate();
-  }
-
-  function calcUpdate() {
-    const { vial, diluent, dose, syringeUnits } = calcState;
-    const conc = vial / diluent; // mg/mL
-    const mlToDraw = dose / conc;
-    const unitsToDraw = mlToDraw * syringeUnits;
-    const pct = Math.min((unitsToDraw / syringeUnits) * 100, 100);
-    const overDose = dose > vial;
-    const overSyringe = unitsToDraw > syringeUnits;
-
-    document.getElementById('resUnits').textContent = overDose ? '—' : unitsToDraw % 1 === 0 ? unitsToDraw : unitsToDraw.toFixed(1);
-    document.getElementById('resMl').textContent = overDose ? '—' : mlToDraw.toFixed(3).replace(/0+$/, '').replace(/\.$/, '') + ' mL';
-    document.getElementById('fillBar').style.width = overDose ? '0%' : pct + '%';
-    document.getElementById('fillBar').style.background = overSyringe ? 'linear-gradient(90deg,#c04040,#e06060)' : 'linear-gradient(90deg,var(--gold-dim),var(--gold))';
-
-    document.getElementById('sumConc').textContent = conc % 1 === 0 ? conc + ' mg/mL' : conc.toFixed(2) + ' mg/mL';
-    document.getElementById('sumVial').textContent = vial + ' mg';
-    document.getElementById('sumDil').textContent = diluent + ' mL';
-    document.getElementById('sumDose').textContent = dose + ' mg';
-    const drawStr = overDose ? 'exceeds vial' : mlToDraw.toFixed(3).replace(/0+$/, '').replace(/\.$/, '') + ' mL (' + (overSyringe ? '>' + syringeUnits : unitsToDraw.toFixed(1).replace('.0','')) + ' units)';
-    document.getElementById('sumDraw').textContent = drawStr;
-
-    document.getElementById('calcWarning').classList.toggle('visible', overDose || overSyringe);
-    if (overSyringe && !overDose) {
-      document.getElementById('calcWarning').textContent = '⚠️ Dose requires more than ' + calcState.syringe + ' mL. Use a larger syringe or split into multiple injections.';
-    } else if (overDose) {
-      document.getElementById('calcWarning').textContent = '⚠️ Dose exceeds vial contents. Please check your inputs.';
+    function setupBtns(groupId, stateKey) {
+      const wrap = document.getElementById(groupId);
+      if (!wrap) return;
+      wrap.querySelectorAll('.opt-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          wrap.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state[stateKey] = parseFloat(btn.dataset.val);
+          if (stateKey === 'vial') { document.getElementById('rc-vial-custom').value = ''; }
+          if (stateKey === 'dil')  { document.getElementById('rc-dil-custom').value = ''; }
+          if (stateKey === 'dose') { document.getElementById('rc-dose-custom').value = ''; }
+          calculate();
+        });
+      });
     }
-  }
 
-  // Init calculator
-  calcUpdate();
+    function setupSyringe() {
+      const wrap = document.getElementById('rc-syr-btns');
+      if (!wrap) return;
+      wrap.querySelectorAll('.syringe-opt').forEach(opt => {
+        opt.addEventListener('click', () => {
+          wrap.querySelectorAll('.syringe-opt').forEach(o => o.classList.remove('active'));
+          opt.classList.add('active');
+          state.syr      = parseFloat(opt.dataset.val);
+          state.syrUnits = parseInt(opt.dataset.units);
+          calculate();
+        });
+      });
+    }
+
+    function setupCustom(inputId, stateKey, groupId) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      input.addEventListener('input', () => {
+        const v = parseFloat(input.value);
+        if (!isNaN(v) && v > 0) {
+          if (groupId) {
+            document.getElementById(groupId).querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+          }
+          state[stateKey] = v;
+          calculate();
+        } else {
+          state[stateKey] = null;
+          calculate();
+        }
+      });
+    }
+
+    function fmt(n, dec) {
+      if (n === null || isNaN(n)) return '—';
+      return parseFloat(n.toFixed(dec));
+    }
+
+    function calculate() {
+      const { vial, dil, syr, syrUnits, dose } = state;
+      const rc      = document.getElementById('rc-result-card');
+      const ph      = document.getElementById('rc-result-placeholder');
+      const content = document.getElementById('rc-result-content');
+      if (!rc || !ph || !content) return;
+
+      if (!vial || !dil || !syr || !dose) {
+        rc.classList.remove('has-result');
+        ph.classList.remove('hidden');
+        content.classList.remove('visible');
+        return;
+      }
+
+      const conc      = vial / dil;
+      const drawMl    = dose / conc;
+      const drawUnits = drawMl * 100;
+
+      ph.classList.add('hidden');
+      content.classList.add('visible');
+      rc.classList.add('has-result');
+
+      document.getElementById('rc-res-units').textContent = fmt(drawUnits, 1);
+      document.getElementById('rc-res-ml').textContent    = fmt(drawMl, 3) + ' mL';
+
+      const pct = Math.min((drawMl / syr) * 100, 100);
+      drawResultSyringe(pct / 100, syrUnits);
+
+      document.getElementById('rc-res-detail').innerHTML =
+        `Concentration &nbsp;<span>${fmt(conc, 2)} mg/mL</span><br>` +
+        `Vial &nbsp;<span>${vial} mg</span> &nbsp;/&nbsp; Diluent &nbsp;<span>${dil} mL</span><br>` +
+        `Dose &nbsp;<span>${dose} mg</span> &nbsp;→&nbsp; Draw &nbsp;<span>${fmt(drawMl, 3)} mL (${fmt(drawUnits, 1)} units)</span>`;
+
+      const warn = document.getElementById('rc-warn-msg');
+      if (drawMl > syr) {
+        warn.textContent = '⚠ Draw volume exceeds selected syringe capacity (' + syr + ' mL). Use a larger syringe or split the dose.';
+        warn.classList.add('show');
+      } else if (drawUnits < 1) {
+        warn.textContent = '⚠ Draw is less than 1 unit — verify your inputs for accuracy at this small volume.';
+        warn.classList.add('show');
+      } else {
+        warn.classList.remove('show');
+      }
+    }
+
+    function drawResultSyringe(fillFraction, syrUnits) {
+      const svg = document.getElementById('rc-result-syringe');
+      if (!svg) return;
+
+      const NTX  = 8;
+      const HUB_R = 72;
+      const BX   = HUB_R;
+      const BW   = 418;
+      const BY   = 22, BH = 38;
+      const CY   = BY + BH / 2;
+      const BRIGHT = BX + BW;
+      const ROD_X  = BRIGHT + 4;
+      const ROD_W  = 36;
+      const THUMB_X = ROD_X + ROD_W;
+
+      const f = Math.min(Math.max(fillFraction, 0), 1);
+      const fillW = Math.max(f * BW - 2, 0).toFixed(1);
+      const stopX = (BX + parseFloat(fillW)).toFixed(1);
+
+      const majorInt = syrUnits <= 30 ? 5 : 10;
+      const halfInt  = syrUnits > 30 ? 5 : null;
+      let ticks = '', labels = '';
+      for (let u = 0; u <= syrUnits; u++) {
+        const x    = (BX + (u / syrUnits) * BW).toFixed(1);
+        const maj  = u % majorInt === 0;
+        const half = halfInt && u % halfInt === 0 && !maj;
+        const h  = maj ? 14 : (half ? 8 : 4);
+        const sw = maj ? 1.5 : (half ? 0.9 : 0.45);
+        const op = maj ? 0.55 : (half ? 0.35 : 0.25);
+        ticks  += `<line x1="${x}" y1="${BY - h}" x2="${x}" y2="${BY}" stroke="currentColor" stroke-width="${sw}" opacity="${op}"/>`;
+        if (maj) labels += `<text x="${x}" y="${BY + BH + 16}" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.45" font-family="'DM Mono',monospace">${u}</text>`;
+      }
+
+      svg.innerHTML = `
+        ${ticks}
+        ${labels}
+
+        <line x1="${HUB_R - 14}" y1="${CY}" x2="${HUB_R - 38}" y2="${CY}"
+              stroke="currentColor" stroke-width="3.5" stroke-linecap="butt" opacity="0.4"/>
+
+        <rect x="${HUB_R - 14}" y="${BY + 4}" width="14" height="${BH - 8}" rx="2"
+              fill="none" stroke="currentColor" stroke-width="1" stroke-opacity="0.3"/>
+
+        <rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" rx="3"
+              fill="currentColor" opacity="0.07"
+              stroke="currentColor" stroke-width="1" stroke-opacity="0.35"/>
+
+        <rect x="${BX + 1}" y="${BY + 1}" width="${fillW}" height="${BH - 2}" rx="2"
+              fill="currentColor" opacity="0.32"/>
+
+        <line x1="${stopX}" y1="${BY - 2}" x2="${stopX}" y2="${BY + BH + 2}"
+              stroke="currentColor" stroke-width="2.5" opacity="0.65"/>
+
+        <line x1="${ROD_X}" y1="${CY}" x2="${ROD_X + ROD_W}" y2="${CY}"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.15"/>
+
+        <rect x="${THUMB_X}" y="${BY - 4}" width="12" height="${BH + 8}" rx="2"
+              fill="currentColor" opacity="0.18"/>
+      `;
+    }
+
+    setupBtns('rc-vial-btns', 'vial');
+    setupBtns('rc-dil-btns', 'dil');
+    setupBtns('rc-dose-btns', 'dose');
+    setupSyringe();
+    setupCustom('rc-vial-custom', 'vial', 'rc-vial-btns');
+    setupCustom('rc-dil-custom', 'dil', 'rc-dil-btns');
+    setupCustom('rc-dose-custom', 'dose', 'rc-dose-btns');
+  })();
 
   // ── GLOSSARY SEARCH ─────────────────────────
   document.getElementById('glossarySearch').addEventListener('input', function() {
