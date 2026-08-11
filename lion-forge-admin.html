@@ -881,14 +881,14 @@ function renderAnnouncements() {
     return;
   }
   container.innerHTML = announcements.map(a => {
-    const isLive = a.published !== false;
-    const dateStr = a.createdAt?.toDate
-      ? a.createdAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    const isLive = !!a.published;
+    const dateStr = a.created_at
+      ? new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
       : 'Recently';
     return `<div class="prod-row" id="ann-row-${a.id}" style="${isLive ? '' : 'opacity:0.55;'}">
       <div class="prod-row-top">
         <div>
-          <div class="prod-name" style="font-size:13px;font-weight:400;line-height:1.5;">${a.msg}</div>
+          <div class="prod-name" style="font-size:13px;font-weight:400;line-height:1.5;">${a.content || a.title || ''}</div>
           <div class="prod-sub" style="margin-top:6px;display:flex;align-items:center;gap:8px;">
             <span style="width:7px;height:7px;border-radius:50%;display:inline-block;background:${isLive ? 'var(--green)' : '#3a4a6a'};"></span>
             <span>${isLive ? 'Live' : 'Draft'} &mdash; ${dateStr}</span>

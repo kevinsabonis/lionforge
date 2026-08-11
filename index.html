@@ -374,12 +374,12 @@ async function loadAnnouncements() {
       const dateStr = a.created_at
         ? new Date(a.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
         : 'Posted recently';
-      return <div class="announcement-card"><div class="date"></div></div>;
+      return `<div class="announcement-card">${a.content || a.title || ''}<div class="date">${dateStr}</div></div>`;
     }).join('');
   } catch(e) {
-    container.innerHTML = 
-      <div class="announcement-card">We're LIVE! After months of preparation, Lion Forge Peptides is officially open. Browse the shop and discover what's waiting for you.<div class="date">Launch day</div></div>
-      <div class="announcement-card">Orders placed by 4pm CST ship same day, Monday–Friday. More products being added regularly.<div class="date">Posted recently</div></div>;
+    container.innerHTML =
+      '<div class="announcement-card">We\'re LIVE! After months of preparation, Lion Forge Peptides is officially open. Browse the shop and discover what\'s waiting for you.<div class="date">Launch day</div></div>' +
+      '<div class="announcement-card">Orders placed by 4pm CST ship same day, Monday–Friday. More products being added regularly.<div class="date">Posted recently</div></div>';
   }
 }
 loadAnnouncements();
