@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About Us — Lion Forge Peptides</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold:        #e8a820;
+    --gold-bright: #ffd060;
+    --gold-dim:    #9a6e12;
+    --navy:        #080e20;
+    --navy-mid:    #0d1535;
+    --royal-blue:  #1e3d8f;
+    --blue-accent: #2547c0;
+  }
+
+  body {
+    background-color: var(--navy);
+    color: #dde4f5;
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse 55% 35% at 50% 8%, rgba(232, 168, 32, 0.18) 0%, transparent 65%),
+      radial-gradient(ellipse 35% 25% at 75% 20%, rgba(30, 61, 143, 0.25) 0%, transparent 60%),
+      linear-gradient(180deg, #0d1535 0%, #080e20 55%, #050b18 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  nav {
+    position: relative;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 18px 40px;
+    border-bottom: 1px solid rgba(232, 168, 32, 0.18);
+    background: rgba(6, 10, 24, 0.88);
+    backdrop-filter: blur(8px);
+  }
+
+  .nav-logo {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+    text-decoration: none;
+  }
+
+  .nav-links { display: flex; gap: 32px; list-style: none; }
+
+  .nav-links a {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    color: #6a7a9e;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--gold-bright); }
+  .nav-links a.active { color: var(--gold); }
+  .nav-right { display:flex; align-items:center; gap:14px; justify-content:flex-end; }
+
+  .hero {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 90px 24px 50px;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold);
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  .hero-eyebrow::before, .hero-eyebrow::after {
+    content: ''; width: 30px; height: 1px; background: var(--gold-dim);
+  }
+
+  .hero-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(30px, 6vw, 56px);
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    text-shadow: 0 0 40px rgba(232, 168, 32, 0.3);
+    margin-bottom: 16px;
+    line-height: 1.15;
+  }
+
+  .hero-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    color: #8a9bbf;
+    max-width: 46ch;
+    line-height: 1.6;
+  }
+
+  .story {
+    position: relative;
+    z-index: 1;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 20px 32px 60px;
+  }
+
+  .story p {
+    font-size: 16px;
+    line-height: 1.85;
+    color: #c2cee4;
+    margin-bottom: 26px;
+  }
+
+  .story .beat {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--gold-bright);
+    letter-spacing: 0.01em;
+    margin: 44px 0;
+    text-align: center;
+  }
+
+  .story strong { color: #f0f4ff; font-weight: 600; }
+
+  .signature {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 32px 40px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .signature-line {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(232,168,32,0.4), transparent);
+    margin-bottom: 28px;
+  }
+
+  .signature-names {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    color: var(--gold);
+    text-align: center;
+  }
+
+  .signature-role {
+    font-size: 12px;
+    color: #4a5a7a;
+    text-align: center;
+    margin-top: 6px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .cta-wrap {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 20px 24px 80px;
+  }
+
+  .cta-row {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .enter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--royal-blue);
+    color: var(--gold-bright);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    text-decoration: none;
+    padding: 16px 40px;
+    border-radius: 10px;
+    border: 1px solid rgba(232, 168, 32, 0.35);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    box-shadow: 0 4px 30px rgba(30, 61, 143, 0.5);
+  }
+  .enter-btn:hover { background: var(--blue-accent); transform: translateY(-1px); }
+
+  .contact-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 15px 28px;
+    background: rgba(232,168,32,0.06);
+    border: 1px solid rgba(232,168,32,0.3);
+    border-radius: 10px;
+    color: var(--gold-bright);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background .2s ease, border-color .2s ease;
+  }
+  .contact-btn:hover { background: rgba(232,168,32,0.14); border-color: rgba(232,168,32,0.55); }
+
+  footer {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 24px;
+    border-top: 1px solid rgba(232, 168, 32, 0.1);
+    font-size: 12px;
+    color: #2e3a52;
+    letter-spacing: 0.05em;
+  }
+
+  @media (max-width: 640px) {
+    nav { padding: 14px 20px; grid-template-columns: 1fr auto; }
+    .nav-links { display: none; }
+    .story .beat { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">LION FORGE PEPTIDES</a>
+  <ul class="nav-links">
+    <li><a href="index.html">HOME</a></li>
+    <li><a href="#" class="active">ABOUT US</a></li>
+    <li><a href="lion-forge-calculator.html">CALCULATOR</a></li>
+  </ul>
+  <div class="nav-right"></div>
+</nav>
+
+<section class="hero">
+  <span class="hero-eyebrow">Texas-Based &middot; Husband &amp; Wife Owned</span>
+  <h1 class="hero-title">Our Story</h1>
+  <p class="hero-subtitle">Why two people in Texas started a peptide company — and what we wish someone had told us first.</p>
+</section>
+
+<section class="story">
+  <p>Lion Forge Peptides isn't a warehouse full of strangers. It's the two of us, working out of Texas, doing something we wish someone had already done for us.</p>
+
+  <p>Before this was a business, it was a problem we were trying to solve for ourselves. We went looking for legitimate research peptides and ran into exactly what a lot of people run into: suppliers who took the payment and disappeared, and suppliers who shipped <em>something</em> — just not what the label promised.</p>
+
+  <p class="beat">We got scammed more than once. We were sold substances we wouldn't trust today, because back then, we didn't know enough to ask the right questions.</p>
+
+  <p>We kept looking anyway. Eventually we found what we'd been chasing the whole time — the right compounds, sourced properly. What changed for us after that wasn't small.</p>
+
+  <p class="beat">Better recovery. More energy. A version of ourselves we hadn't felt in years.<br>It reawakened something — and that's not a word we use lightly.</p>
+
+  <p>That experience is the entire reason Lion Forge Peptides exists. We built the sourcing relationships we wish we'd had from the very start, so the next person doesn't have to get burned twice before finding something real. <strong>Every product we carry is something we'd hand to each other without a second thought — because we still do, every day.</strong></p>
+
+  <p>We're not a faceless supplier hiding behind a storefront. We're two people in Texas who made the mistakes so you don't have to, and built this because we didn't want anyone else to have to learn it the hard way.</p>
+</section>
+
+<div class="signature">
+  <div class="signature-line"></div>
+  <div class="signature-names">THE FOUNDERS, LION FORGE PEPTIDES</div>
+  <div class="signature-role">Texas, USA &mdash; Research Use Only</div>
+</div>
+
+<div class="cta-wrap">
+  <div class="cta-row">
+    <a href="index.html" class="enter-btn">ENTER SHOP <span style="font-size:16px;font-family:sans-serif;">&rarr;</span></a>
+    <a href="mailto:support@lionforgepeptides.com" class="contact-btn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="m4 6 8 7 8-7"/></svg>
+      Contact Support
+    </a>
+  </div>
+</div>
+
+<footer>
+  &copy; 2025 Lion Forge Peptides &mdash; Research Use Only
+</footer>
+
+</body>
+</html>
