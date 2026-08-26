@@ -79,6 +79,22 @@
   .nav-links a.active { color: var(--gold); }
   .nav-right { display:flex; align-items:center; gap:14px; justify-content:flex-end; }
 
+  .nav-hamburger { display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:6px; margin-left:auto; }
+  .nav-hamburger span { display:block; width:22px; height:2px; background:var(--gold); border-radius:2px; transition:transform .2s ease, opacity .2s ease; }
+  .nav-hamburger.open span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+  .nav-hamburger.open span:nth-child(2) { opacity:0; }
+  .nav-hamburger.open span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
+  .nav-drawer { position:fixed; top:0; right:0; bottom:0; width:min(260px,80vw); background:var(--navy-mid); border-left:1px solid rgba(232,168,32,0.2); z-index:999; display:flex; flex-direction:column; gap:0; padding:80px 24px 24px; transform:translateX(100%); transition:transform .25s ease; box-shadow:-10px 0 40px rgba(0,0,0,0.4); }
+  .nav-drawer.open { transform:translateX(0); }
+  .nav-drawer a { display:block; padding:14px 0; color:#6a7a9e; text-decoration:none; font-size:15px; letter-spacing:0.06em; border-bottom:1px solid rgba(255,255,255,0.06); font-family:'Inter', sans-serif; }
+  .nav-drawer a.active { color:var(--gold); }
+  .nav-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:998; }
+  .nav-overlay.open { display:block; }
+  @media (max-width:768px) {
+    .nav-links { display:none; }
+    .nav-hamburger { display:flex; }
+  }
+
   .hero {
     position: relative;
     z-index: 1;
@@ -334,7 +350,25 @@ function declineSite() {
     <li><a href="lion-forge-calculator.html">CALCULATOR</a></li>
     <li><a href="#" onclick="openModal('account');return false;">ACCOUNT</a></li>
   </ul>
+  <button class="nav-hamburger" id="navHamburger" onclick="toggleNavMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+<div class="nav-overlay" id="navOverlay" onclick="toggleNavMenu()"></div>
+<div class="nav-drawer" id="navDrawer">
+  <a href="#" class="active" onclick="toggleNavMenu()">HOME</a>
+  <a href="#" onclick="toggleNavMenu();openModal('shop');return false;">SHOP</a>
+  <a href="#" onclick="toggleNavMenu();openModal('cart');return false;">CART</a>
+  <a href="lion-forge-calculator.html">CALCULATOR</a>
+  <a href="#" onclick="toggleNavMenu();openModal('account');return false;">ACCOUNT</a>
+</div>
+<script>
+function toggleNavMenu() {
+  document.getElementById('navHamburger').classList.toggle('open');
+  document.getElementById('navDrawer').classList.toggle('open');
+  document.getElementById('navOverlay').classList.toggle('open');
+}
+</script>
 
 <section class="hero">
   <img src="/logo.webp" alt="Lion Forge Peptides Logo" class="hero-logo">
