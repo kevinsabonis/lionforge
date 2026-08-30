@@ -9,7 +9,8 @@ schema.sql
 worker.js
 LionForge_Inventory.csv
 LionForge_Inventory.xlsx
-mockups/
+mockups/*.html
+mockups/assets/*.png
 backups/
 assets/lfp/shop-vial-*.png
 assets/lfp/cognitive-neural-background-v2.png
