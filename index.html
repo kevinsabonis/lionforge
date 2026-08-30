@@ -1,613 +1,635 @@
-﻿<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lion Forge Peptides</title>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lion Forge Peptides — Hero Concept</title>
+  <style>
+    :root {
+      --navy: #050a16;
+      --navy-2: #0a132b;
+      --panel: rgba(13, 25, 54, .72);
+      --gold: #d7a336;
+      --gold-light: #f1c765;
+      --blue: #244fa8;
+      --text: #f2f5fb;
+      --muted: #9aa8c5;
+      --line: rgba(215, 163, 54, .24);
+    }
 
-  :root {
-    --gold:        #e8a820;
-    --gold-bright: #ffd060;
-    --gold-dim:    #9a6e12;
-    --navy:        #080e20;
-    --navy-mid:    #0d1535;
-    --royal-blue:  #1e3d8f;
-    --blue-accent: #2547c0;
-  }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--navy); color: var(--text); }
+    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    a:focus-visible, button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 4px; }
 
-  body {
-    background-color: var(--navy);
-    color: #dde4f5;
-    font-family: 'Inter', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+    .site-shell { min-height: 100vh; overflow: hidden; background: var(--navy); }
+    .nav {
+      height: 72px;
+      padding: 0 clamp(22px, 5vw, 76px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(215, 163, 54, .16);
+      background: rgba(5, 10, 22, .9);
+      backdrop-filter: blur(16px);
+      position: relative;
+      z-index: 3;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); }
+    .brand img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1px solid var(--line); }
+    .brand-copy { display: grid; gap: 2px; }
+    .brand-name { font-size: 12px; font-weight: 700; letter-spacing: .19em; }
+    .brand-note { color: var(--gold); font-size: 8px; text-transform: uppercase; letter-spacing: .25em; }
+    .links { display: flex; align-items: center; gap: 30px; }
+    .links a { color: var(--muted); text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: .16em; }
+    .links a:first-child { color: var(--gold-light); }
+    .cart { padding: 10px 15px; border: 1px solid var(--line); border-radius: 5px; color: var(--gold-light) !important; }
+    .menu-toggle { display: none; width: 42px; height: 42px; padding: 0; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 5px; color: var(--gold-light); background: rgba(9,19,42,.72); font: inherit; cursor: pointer; }
+    .menu-toggle span, .menu-toggle span::before, .menu-toggle span::after { display: block; width: 18px; height: 1px; background: currentColor; content: ''; transition: transform .2s ease, opacity .2s ease; }
+    .menu-toggle span { position: relative; }
+    .menu-toggle span::before { position: absolute; top: -6px; }
+    .menu-toggle span::after { position: absolute; top: 6px; }
+    .menu-toggle[aria-expanded="true"] span { background: transparent; }
+    .menu-toggle[aria-expanded="true"] span::before { top: 0; transform: rotate(45deg); }
+    .menu-toggle[aria-expanded="true"] span::after { top: 0; transform: rotate(-45deg); }
 
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background:
-      radial-gradient(ellipse 55% 35% at 50% 8%, rgba(232, 168, 32, 0.18) 0%, transparent 65%),
-      radial-gradient(ellipse 35% 25% at 75% 20%, rgba(30, 61, 143, 0.25) 0%, transparent 60%),
-      linear-gradient(180deg, #0d1535 0%, #080e20 55%, #050b18 100%);
-    pointer-events: none;
-    z-index: 0;
-  }
+    .hero {
+      min-height: calc(100vh - 72px);
+      position: relative;
+      display: flex;
+      align-items: center;
+      background:
+        linear-gradient(90deg, rgba(5,10,22,.98) 0%, rgba(5,10,22,.91) 39%, rgba(5,10,22,.48) 70%, rgba(5,10,22,.27) 100%),
+        linear-gradient(180deg, transparent 60%, var(--navy) 100%),
+        url('mockups/assets/lionforge-hero-lab-v1.webp') 68% center / cover no-repeat;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 76% 43%, rgba(36,79,168,.17), transparent 32%);
+    }
+    .hero-inner {
+      width: min(1320px, 100%);
+      margin: 0 auto;
+      padding: 82px clamp(24px, 7vw, 96px) 120px;
+      position: relative;
+      z-index: 1;
+    }
+    .eyebrow { display: flex; align-items: center; gap: 12px; color: var(--gold-light); font-size: 10px; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; }
+    .eyebrow::before { content: ''; width: 38px; height: 1px; background: var(--gold); }
+    h1 { max-width: 720px; margin: 25px 0 22px; font-size: clamp(52px, 6.1vw, 88px); line-height: .94; letter-spacing: -.04em; text-transform: uppercase; }
+    h1 span { color: var(--gold-light); }
+    .lead { max-width: 610px; margin: 0; color: #bdc8dc; font-size: clamp(16px, 1.5vw, 19px); line-height: 1.65; }
+    .actions { display: flex; flex-wrap: wrap; gap: 13px; margin-top: 36px; }
+    .btn { min-width: 210px; padding: 15px 22px; border-radius: 5px; text-align: center; text-decoration: none; text-transform: uppercase; letter-spacing: .14em; font-size: 10px; font-weight: 800; }
+    .btn-primary { color: #071020; background: linear-gradient(135deg, var(--gold-light), var(--gold)); box-shadow: 0 16px 40px rgba(215,163,54,.18); }
+    .btn-secondary { color: var(--text); border: 1px solid rgba(173,190,220,.3); background: rgba(9,19,42,.62); backdrop-filter: blur(10px); }
+    .trust {
+      margin-top: 54px;
+      width: fit-content;
+      max-width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+      border: 1px solid rgba(215,163,54,.18);
+      border-radius: 6px;
+      background: rgba(7,15,33,.72);
+      backdrop-filter: blur(12px);
+    }
+    .trust span { padding: 13px 18px; color: var(--muted); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
+    .trust span + span { border-left: 1px solid rgba(215,163,54,.16); }
+    .research-note { position: absolute; left: clamp(24px, 7vw, 96px); bottom: 34px; z-index: 1; color: #657492; font-size: 8px; letter-spacing: .18em; text-transform: uppercase; }
 
-  nav {
-    position: relative;
-    z-index: 10;
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    padding: 18px 40px;
-    border-bottom: 1px solid rgba(232, 168, 32, 0.18);
-    background: rgba(6, 10, 24, 0.88);
-    backdrop-filter: blur(8px);
-  }
+    .pathways {
+      position: relative;
+      padding: 104px clamp(24px, 5vw, 76px) 120px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(36,79,168,.16), transparent 32%),
+        linear-gradient(180deg, #050a16 0%, #071022 100%);
+    }
+    .pathways-inner { width: min(1420px, 100%); margin: 0 auto; }
+    .section-kicker { color: var(--gold-light); font-size: 10px; font-weight: 800; letter-spacing: .24em; text-transform: uppercase; }
+    .section-heading { max-width: 820px; margin: 16px 0 13px; font-size: clamp(34px, 4vw, 56px); line-height: 1; letter-spacing: -.035em; text-transform: uppercase; }
+    .section-intro { max-width: 680px; margin: 0; color: var(--muted); font-size: 15px; line-height: 1.7; }
+    .pathway-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 44px; }
+    .pathway-card {
+      position: relative;
+      isolation: isolate;
+      min-height: 390px;
+      overflow: hidden;
+      border: 1px solid rgba(215,163,54,.22);
+      border-radius: 12px;
+      color: var(--text);
+      text-decoration: none;
+      background: #071020;
+      box-shadow: 0 28px 70px rgba(0,0,0,.28);
+      transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+    }
+    .pathway-card:hover { transform: translateY(-5px); border-color: rgba(241,199,101,.58); box-shadow: 0 34px 86px rgba(0,0,0,.42); }
+    .pathway-card img { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+    .pathway-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: linear-gradient(90deg, rgba(4,9,20,.97) 0%, rgba(4,9,20,.82) 28%, rgba(4,9,20,.18) 61%, rgba(4,9,20,.03) 100%);
+    }
+    .pathway-copy { width: 47%; height: 100%; padding: 28px 12px 28px 26px; display: flex; flex-direction: column; align-items: flex-start; }
+    .pathway-number { color: var(--gold); font-size: 9px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; }
+    .pathway-title { margin: auto 0 10px; font-size: clamp(22px, 2vw, 31px); line-height: 1.02; letter-spacing: -.025em; text-transform: uppercase; }
+    .pathway-description { margin: 0 0 20px; color: #aebbd2; font-size: 12px; line-height: 1.55; }
+    .pathway-link { color: var(--gold-light); font-size: 9px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
 
-  .nav-logo {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 15px;
-    font-weight: 400;
-    color: var(--gold);
-    letter-spacing: 0.08em;
-    text-decoration: none;
-  }
+    .categories {
+      padding: 104px clamp(24px, 5vw, 76px) 128px;
+      background:
+        linear-gradient(180deg, rgba(7,16,34,.98), rgba(4,9,19,.98)),
+        radial-gradient(circle at 80% 25%, rgba(36,79,168,.14), transparent 30%);
+      border-top: 1px solid rgba(215,163,54,.12);
+    }
+    .categories-inner { width: min(1420px, 100%); margin: 0 auto; }
+    .category-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 18px; margin-top: 44px; }
+    .category-card {
+      position: relative;
+      isolation: isolate;
+      grid-column: span 2;
+      min-height: 310px;
+      overflow: hidden;
+      border: 1px solid rgba(215,163,54,.2);
+      border-radius: 12px;
+      color: var(--text);
+      text-decoration: none;
+      background-position: center;
+      background-size: cover;
+      box-shadow: 0 24px 60px rgba(0,0,0,.26);
+      transition: transform .25s ease, border-color .25s ease;
+    }
+    .category-card:nth-child(n+4) { grid-column: span 3; min-height: 340px; }
+    .category-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: linear-gradient(90deg, rgba(4,9,20,.98) 0%, rgba(4,9,20,.9) 35%, rgba(4,9,20,.38) 65%, rgba(4,9,20,.08) 100%);
+    }
+    .category-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      background: linear-gradient(180deg, transparent 55%, rgba(3,8,18,.56));
+    }
+    .category-card:hover { transform: translateY(-5px); border-color: rgba(241,199,101,.58); }
+    .category-weight { background-image: url('assets/lfp/weight-management-background-v2.webp'); background-position: center; }
+    .category-recovery { background-image: url('assets/lfp/recovery-shoulder-background-v2.webp'); background-position: center; }
+    .category-performance { background-image: url('assets/lfp/athletic-performance-lift-background-v2.webp'); background-position: center 52%; }
+    .category-cognitive { background-image: url('assets/lfp/cognitive-neural-background-v2.webp'); background-position: center; }
+    .category-metabolic { background-image: url('assets/lfp/metabolic-energy-body-background-v3.webp'); background-position: center; }
+    .category-copy { width: 56%; height: 100%; padding: 26px 12px 26px 25px; display: flex; flex-direction: column; align-items: flex-start; }
+    .category-index { color: var(--gold-light); font-size: 9px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; }
+    .category-title { margin: auto 0 10px; font-size: clamp(23px, 2.2vw, 34px); line-height: 1; letter-spacing: -.025em; text-transform: uppercase; }
+    .category-description { margin: 0 0 19px; color: #afbad0; font-size: 12px; line-height: 1.55; }
+    .category-cta { color: var(--gold-light); font-size: 9px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
 
-  .nav-links {
-    display: flex;
-    gap: 32px;
-    list-style: none;
-  }
+    .mission {
+      position: relative;
+      overflow: hidden;
+      padding: 118px clamp(24px, 7vw, 96px) 124px;
+      background:
+        radial-gradient(circle at 12% 20%, rgba(36,79,168,.18), transparent 31%),
+        radial-gradient(circle at 86% 82%, rgba(215,163,54,.1), transparent 27%),
+        #050a16;
+      border-top: 1px solid rgba(215,163,54,.14);
+    }
+    .mission::after {
+      content: '';
+      position: absolute;
+      right: -120px;
+      bottom: -170px;
+      width: 520px;
+      height: 520px;
+      border: 1px solid rgba(215,163,54,.1);
+      border-radius: 50%;
+      box-shadow: 0 0 0 72px rgba(36,79,168,.035), 0 0 0 144px rgba(215,163,54,.025);
+      pointer-events: none;
+    }
+    .mission-inner { position: relative; z-index: 1; width: min(1280px, 100%); margin: 0 auto; }
+    .mission-layout { display: grid; grid-template-columns: minmax(0, 1.18fr) minmax(320px, .82fr); gap: clamp(48px, 7vw, 100px); align-items: start; }
+    .mission-heading { max-width: 790px; margin: 18px 0 30px; font-size: clamp(42px, 5vw, 68px); line-height: .98; letter-spacing: -.04em; text-transform: uppercase; }
+    .mission-heading span { color: var(--gold-light); }
+    .mission-story { max-width: 790px; }
+    .mission-story p { margin: 0 0 19px; color: #b8c4da; font-size: 16px; line-height: 1.76; }
+    .mission-story p:first-child { color: #e5eaf4; font-size: 19px; }
+    .mission-note { margin-top: 27px !important; color: #657492 !important; font-size: 10px !important; line-height: 1.6 !important; letter-spacing: .08em; text-transform: uppercase; }
+    .mission-side { padding-top: 4px; }
+    .mission-side-label { margin-bottom: 14px; color: var(--gold-light); font-size: 9px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; }
+    .pillar-list { display: grid; gap: 12px; }
+    .pillar {
+      padding: 24px;
+      border: 1px solid rgba(215,163,54,.2);
+      border-radius: 9px;
+      background: linear-gradient(135deg, rgba(13,25,54,.88), rgba(7,15,33,.72));
+      box-shadow: 0 18px 48px rgba(0,0,0,.22);
+    }
+    .pillar-num { color: var(--gold); font-size: 9px; font-weight: 800; letter-spacing: .18em; }
+    .pillar h3 { margin: 12px 0 7px; font-size: 18px; letter-spacing: -.01em; text-transform: uppercase; }
+    .pillar p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .mission-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 27px; }
+    .mission-actions .btn { min-width: 0; flex: 1 1 190px; }
 
-  .nav-links a {
-    font-family: 'Inter', sans-serif;
-    font-size: 13px;
-    font-weight: 400;
-    letter-spacing: 0.06em;
-    color: #6a7a9e;
-    text-decoration: none;
-    transition: color 0.2s;
-  }
+    .closing-cta {
+      padding: 0 clamp(24px, 5vw, 76px) 96px;
+      background: #050a16;
+    }
+    .closing-panel {
+      width: min(1420px, 100%);
+      margin: 0 auto;
+      padding: clamp(44px, 6vw, 76px);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 42px;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(215,163,54,.3);
+      border-radius: 14px;
+      background:
+        linear-gradient(105deg, rgba(8,17,38,.98) 0%, rgba(11,26,58,.92) 62%, rgba(19,44,88,.82) 100%);
+      box-shadow: 0 32px 90px rgba(0,0,0,.35);
+    }
+    .closing-panel::after {
+      content: '';
+      position: absolute;
+      right: -80px;
+      top: 50%;
+      width: 390px;
+      height: 390px;
+      transform: translateY(-50%);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(215,163,54,.2), rgba(36,79,168,.12) 38%, transparent 70%);
+      pointer-events: none;
+    }
+    .closing-copy { position: relative; z-index: 1; }
+    .closing-copy h2 { max-width: 850px; margin: 12px 0 14px; font-size: clamp(34px, 4vw, 56px); line-height: 1; letter-spacing: -.035em; text-transform: uppercase; }
+    .closing-copy p { max-width: 700px; margin: 0; color: #adb9cf; font-size: 15px; line-height: 1.65; }
+    .closing-actions { position: relative; z-index: 1; display: grid; gap: 11px; min-width: 230px; }
+    .closing-actions .btn { min-width: 230px; }
 
-  .nav-links a:hover { color: var(--gold-bright); }
-  .nav-links a.active { color: var(--gold); }
-  .nav-right { display:flex; align-items:center; gap:14px; justify-content:flex-end; }
+    .footer {
+      padding: 70px clamp(24px, 5vw, 76px) 30px;
+      border-top: 1px solid rgba(215,163,54,.16);
+      background: #030711;
+    }
+    .footer-inner { width: min(1420px, 100%); margin: 0 auto; }
+    .footer-grid { display: grid; grid-template-columns: minmax(280px, 1.35fr) repeat(3, minmax(140px, .65fr)); gap: 48px; }
+    .footer-brand { display: flex; align-items: center; gap: 13px; color: var(--text); text-decoration: none; }
+    .footer-brand img { width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--line); object-fit: cover; }
+    .footer-brand strong { display: block; font-size: 13px; letter-spacing: .17em; }
+    .footer-brand span { display: block; margin-top: 4px; color: var(--gold); font-size: 8px; letter-spacing: .22em; text-transform: uppercase; }
+    .footer-about { max-width: 420px; margin: 20px 0 0; color: #8290aa; font-size: 12px; line-height: 1.65; }
+    .footer-column h3 { margin: 0 0 18px; color: var(--gold-light); font-size: 9px; letter-spacing: .2em; text-transform: uppercase; }
+    .footer-links { display: grid; gap: 12px; }
+    .footer-links a { width: fit-content; color: #9caac3; font-size: 12px; text-decoration: none; transition: color .2s ease; }
+    .footer-links a:hover { color: var(--gold-light); }
+    .footer-disclaimer {
+      margin-top: 56px;
+      padding: 24px;
+      border: 1px solid rgba(215,163,54,.14);
+      border-radius: 8px;
+      color: #6f7d98;
+      background: rgba(8,16,34,.52);
+      font-size: 10px;
+      line-height: 1.7;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .footer-bottom { margin-top: 28px; padding-top: 24px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px; border-top: 1px solid rgba(255,255,255,.07); color: #596781; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
 
-  .nav-hamburger { display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:6px; margin-left:auto; }
-  .nav-hamburger span { display:block; width:22px; height:2px; background:var(--gold); border-radius:2px; transition:transform .2s ease, opacity .2s ease; }
-  .nav-hamburger.open span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
-  .nav-hamburger.open span:nth-child(2) { opacity:0; }
-  .nav-hamburger.open span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
-  .nav-drawer { position:fixed; top:0; right:0; bottom:0; width:min(260px,80vw); background:var(--navy-mid); border-left:1px solid rgba(232,168,32,0.2); z-index:999; display:flex; flex-direction:column; gap:0; padding:80px 24px 24px; transform:translateX(100%); transition:transform .25s ease; box-shadow:-10px 0 40px rgba(0,0,0,0.4); }
-  .nav-drawer.open { transform:translateX(0); }
-  .nav-drawer a { display:block; padding:14px 0; color:#6a7a9e; text-decoration:none; font-size:15px; letter-spacing:0.06em; border-bottom:1px solid rgba(255,255,255,0.06); font-family:'Inter', sans-serif; }
-  .nav-drawer a.active { color:var(--gold); }
-  .nav-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:998; }
-  .nav-overlay.open { display:block; }
-  @media (max-width:768px) {
-    .nav-links { display:none; }
-    .nav-hamburger { display:flex; }
-  }
+    @media (max-width: 760px) {
+      .nav { height: 64px; }
+      .menu-toggle { display: flex; }
+      .links { display: none; position: absolute; top: 64px; left: 16px; right: 16px; flex-direction: column; align-items: stretch; gap: 0; padding: 10px; border: 1px solid rgba(215,163,54,.24); border-radius: 8px; background: rgba(5,10,22,.98); box-shadow: 0 24px 60px rgba(0,0,0,.45); }
+      .links.open { display: flex; }
+      .links a { display: block; padding: 14px 12px; }
+      .links .cart { margin-top: 4px; text-align: center; }
+      .brand-note { display: none; }
+      .hero { min-height: calc(100vh - 64px); background-position: 61% center; }
+      .hero-inner { padding-top: 70px; padding-bottom: 120px; }
+      .eyebrow { font-size: 9px; }
+      h1 { font-size: clamp(44px, 14vw, 64px); }
+      .lead { max-width: 92%; font-size: 15px; }
+      .actions { display: grid; grid-template-columns: 1fr; max-width: 360px; }
+      .btn { min-width: 0; }
+      .trust { display: grid; grid-template-columns: 1fr 1fr; }
+      .trust span { padding: 11px 12px; font-size: 8px; }
+      .trust span + span { border-left: none; }
+      .trust span:nth-child(even) { border-left: 1px solid rgba(215,163,54,.16); }
+      .trust span:nth-child(n+3) { border-top: 1px solid rgba(215,163,54,.16); }
+      .pathways { padding-top: 74px; padding-bottom: 84px; }
+      .pathway-grid { grid-template-columns: 1fr; }
+      .pathway-card { min-height: 340px; }
+      .pathway-copy { width: 48%; padding: 23px 8px 23px 20px; }
+      .pathway-description { font-size: 11px; }
+      .categories { padding-top: 74px; padding-bottom: 88px; }
+      .category-grid { grid-template-columns: 1fr; }
+      .category-card,
+      .category-card:nth-child(n+4) { grid-column: auto; min-height: 320px; }
+      .category-copy { width: 54%; padding: 23px 8px 23px 20px; }
+      .category-description { font-size: 11px; }
+      .mission { padding-top: 82px; padding-bottom: 90px; }
+      .mission-layout { grid-template-columns: 1fr; gap: 54px; }
+      .mission-story p { font-size: 15px; }
+      .mission-story p:first-child { font-size: 17px; }
+      .closing-cta { padding-bottom: 72px; }
+      .closing-panel { grid-template-columns: 1fr; padding: 38px 26px; }
+      .closing-actions { width: 100%; min-width: 0; }
+      .closing-actions .btn { min-width: 0; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 42px 28px; }
+      .footer-main { grid-column: 1 / -1; }
+      .footer-disclaimer { margin-top: 44px; }
+    }
 
-  .hero {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 100px 24px 60px;
-  }
+    @media (max-width: 480px) {
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-main { grid-column: auto; }
+    }
 
-  .hero-logo {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-bottom: 32px;
-    box-shadow: 0 0 40px rgba(232, 168, 32, 0.25);
-  }
-
-  .hero-title {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: clamp(28px, 6vw, 64px);
-    font-weight: 400;
-    letter-spacing: 0.18em;
-    color: var(--gold);
-    text-shadow: 0 0 40px rgba(232, 168, 32, 0.35);
-    margin-bottom: 18px;
-    line-height: 1.15;
-  }
-
-  .hero-subtitle {
-    font-family: 'Inter', sans-serif;
-    font-size: 11px;
-    font-weight: 400;
-    letter-spacing: 0.35em;
-    color: #4a5a7a;
-    text-transform: uppercase;
-    margin-bottom: 22px;
-  }
-
-  .hero-divider {
-    width: 80px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
-    margin-bottom: 60px;
-  }
-
-  .welcome-box {
-    background: rgba(30, 61, 143, 0.12);
-    border: 1px solid rgba(232, 168, 32, 0.2);
-    border-radius: 14px;
-    padding: 28px 48px;
-    max-width: 660px;
-    width: 100%;
-    margin-bottom: 40px;
-    font-size: 15px;
-    font-weight: 400;
-    line-height: 1.7;
-    color: #b8c4dd;
-  }
-
-  .enter-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--royal-blue);
-    color: var(--gold-bright);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 13px;
-    letter-spacing: 0.25em;
-    text-decoration: none;
-    padding: 18px 56px;
-    border-radius: 10px;
-    border: 1px solid rgba(232, 168, 32, 0.35);
-    cursor: pointer;
-    transition: background 0.2s, transform 0.15s;
-    box-shadow: 0 4px 30px rgba(30, 61, 143, 0.5);
-  }
-
-  .enter-btn:hover {
-    background: var(--blue-accent);
-    transform: translateY(-1px);
-  }
-
-  .enter-btn .arrow {
-    font-size: 16px;
-    font-family: sans-serif;
-  }
-
-  .bulletin {
-    position: relative;
-    z-index: 1;
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 60px 40px 80px;
-  }
-
-  .bulletin-label {
-    font-family: 'Inter', sans-serif;
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.35em;
-    color: var(--gold-dim);
-    text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-
-  .bulletin-heading {
-    font-family: 'Inter', sans-serif;
-    font-size: 28px;
-    font-weight: 400;
-    color: #dde4f5;
-    margin-bottom: 32px;
-  }
-
-  .announcement-card {
-    background: rgba(30, 61, 143, 0.1);
-    border: 1px solid rgba(232, 168, 32, 0.15);
-    border-radius: 10px;
-    padding: 20px 24px;
-    margin-bottom: 14px;
-    color: #8a9bbf;
-    font-size: 14px;
-    line-height: 1.6;
-  }
-
-  .announcement-card .date {
-    font-size: 11px;
-    color: #3a4a6a;
-    margin-top: 8px;
-    letter-spacing: 0.04em;
-  }
-
-  footer {
-    position: relative;
-    z-index: 1;
-    text-align: center;
-    padding: 24px;
-    border-top: 1px solid rgba(232, 168, 32, 0.1);
-    font-size: 12px;
-    color: #2e3a52;
-    letter-spacing: 0.05em;
-  }
-
-  /* ── DISCLAIMER GATE ─────────────────────────────────────────── */
-  #disclaimer-gate{position:fixed;inset:0;z-index:99999;background:#050b18;display:flex;align-items:center;justify-content:center;padding:20px;}
-  .disc-card{background:linear-gradient(145deg,#0d1535,#080e20);border:1px solid rgba(232,168,32,0.3);border-radius:18px;max-width:560px;width:100%;padding:40px 44px;box-shadow:0 0 80px rgba(0,0,0,0.7);}
-  .disc-logo{text-align:center;margin-bottom:28px;}
-  .disc-logo-name{font-family:'Share Tech Mono',monospace;font-size:26px;font-weight:700;color:#fff;letter-spacing:0.08em;}
-  .disc-logo-name span{color:#e8a820;}
-  .disc-logo-sub{font-size:11px;letter-spacing:0.3em;color:#4a5a7a;margin-top:4px;text-transform:uppercase;}
-  .disc-notice{display:flex;align-items:flex-start;gap:10px;background:rgba(232,168,32,0.07);border:1px solid rgba(232,168,32,0.25);border-radius:8px;padding:12px 14px;margin-bottom:20px;}
-  .disc-notice-icon{color:#e8a820;font-size:16px;flex-shrink:0;margin-top:1px;}
-  .disc-notice-label{font-size:11px;font-weight:700;color:#e8a820;letter-spacing:0.15em;margin-bottom:4px;text-transform:uppercase;}
-  .disc-body{font-size:14px;color:#b8c8e8;line-height:1.75;margin-bottom:18px;}
-  .disc-body strong{color:#edf1ff;}
-  .disc-note{background:rgba(255,255,255,0.03);border-left:3px solid rgba(232,168,32,0.4);border-radius:0 8px 8px 0;padding:12px 14px;margin-bottom:24px;font-size:12px;color:#6a7a9e;line-height:1.7;}
-  .disc-note strong{color:#9aafcc;}
-  .disc-check-row{display:flex;align-items:flex-start;gap:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px 16px;margin-bottom:24px;cursor:pointer;transition:border-color .2s;}
-  .disc-check-row:hover{border-color:rgba(232,168,32,0.3);}
-  .disc-check-row input[type="checkbox"]{width:18px;height:18px;margin-top:1px;accent-color:#e8a820;cursor:pointer;flex-shrink:0;}
-  .disc-check-label{font-size:13px;color:#b8c8e8;line-height:1.55;cursor:pointer;}
-  .disc-btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-  .disc-enter{padding:14px;background:#1e3d8f;border:1px solid rgba(232,168,32,0.35);border-radius:10px;color:#ffd060;font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:0.15em;cursor:pointer;transition:background .2s;opacity:0.4;pointer-events:none;}
-  .disc-enter.active{opacity:1;pointer-events:all;}
-  .disc-enter.active:hover{background:#2547c0;}
-  .disc-decline{padding:14px;background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#4a5a7a;font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:0.15em;cursor:pointer;transition:all .2s;}
-  .disc-decline:hover{border-color:rgba(239,68,68,0.4);color:#ef4444;}
-  .disc-footer{text-align:center;margin-top:20px;font-size:10px;letter-spacing:0.2em;color:#2a3a52;text-transform:uppercase;}
-  @media(max-width:520px){.disc-card{padding:28px 22px;}.disc-btns{grid-template-columns:1fr;}.disc-logo-name{font-size:22px;}}</style>
-<script>window._lfAuth = {}; window._lfFns = {};</script>
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
+  </style>
 </head>
 <body>
-
-<!-- ── LEGAL DISCLAIMER GATE ─────────────────────────────────── -->
-<div id="disclaimer-gate">
-  <div class="disc-card">
-
-    <div class="disc-logo">
-      <div class="disc-logo-name">Lion<span>Forge</span> Peptides</div>
-      <div class="disc-logo-sub">Research Supply &bull; For Science Only</div>
-    </div>
-
-    <div class="disc-notice">
-      <div class="disc-notice-icon">&#9888;</div>
-      <div>
-        <div class="disc-notice-label">Important Legal Notice &mdash; Please Read</div>
-        <div style="font-size:12px;color:#9aafcc;line-height:1.5;">You must read and accept the terms below before entering this site.</div>
+  <main class="site-shell">
+    <nav class="nav" aria-label="Primary navigation">
+      <a class="brand" href="index.html">
+        <img src="logo.webp" alt="Lion Forge Peptides logo">
+        <span class="brand-copy">
+          <span class="brand-name">LION FORGE PEPTIDES</span>
+          <span class="brand-note">Research Supply</span>
+        </span>
+      </a>
+      <div class="links" id="primary-links">
+        <a href="index.html">Home</a>
+        <a href="lion-forge-shop.html">Shop</a>
+        <a href="lion-forge-calculator.html">Calculator</a>
+        <a href="lion-forge-account.html">Account</a>
+        <a class="cart" href="lion-forge-cart.html">Cart · 0</a>
       </div>
-    </div>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-links" aria-label="Open navigation menu"><span aria-hidden="true"></span></button>
+    </nav>
 
-    <div class="disc-body">
-      The products on this website are intended <strong>exclusively for legitimate laboratory and research purposes.</strong>
-      They are not intended to prevent, treat, or cure any illness or disease, and are
-      <strong>not approved for human or veterinary consumption.</strong>
-      <br><br>
-      By accessing this site, you acknowledge that you are <strong>at least 21 years of age,</strong>
-      understand these terms, and have a legitimate research basis for purchasing these products.
-    </div>
-
-    <div class="disc-note">
-      <strong>NOTE:</strong> All compounds are sold in lyophilized powder form and require reconstitution
-      with bacteriostatic water prior to research use. Lion Forge Peptides assumes no liability
-      for misuse of any product.
-    </div>
-
-    <label class="disc-check-row" for="disc-checkbox">
-      <input type="checkbox" id="disc-checkbox" onchange="toggleEnter(this.checked)">
-      <span class="disc-check-label">
-        I confirm that I am at least 21 years of age, understand these products are
-        for research purposes only, and agree to the terms stated above.
-      </span>
-    </label>
-
-    <div class="disc-btns">
-      <button class="disc-enter" id="disc-enter-btn" onclick="enterSite()">&#10003; ENTER SITE</button>
-      <button class="disc-decline" onclick="declineSite()">DECLINE</button>
-    </div>
-
-    <div class="disc-footer">Lion Forge Peptides &mdash; For Research Use Only &mdash; Not For Human Consumption</div>
-  </div>
-</div>
-
-<script>
-(function() {
-  // Show gate on every new session; sessionStorage clears when browser is closed
-  if (sessionStorage.getItem('lfp_disclaimer') === 'accepted') {
-    document.getElementById('disclaimer-gate').style.display = 'none';
-  }
-})();
-function toggleEnter(checked) {
-  var btn = document.getElementById('disc-enter-btn');
-  btn.classList.toggle('active', checked);
-}
-function enterSite() {
-  sessionStorage.setItem('lfp_disclaimer', 'accepted');
-  var gate = document.getElementById('disclaimer-gate');
-  gate.style.transition = 'opacity .4s ease';
-  gate.style.opacity = '0';
-  setTimeout(function() { gate.style.display = 'none'; }, 400);
-}
-function declineSite() {
-  window.location.replace('https://www.google.com');
-}
-</script>
-
-<nav>
-  <a href="#" class="nav-logo">LION FORGE PEPTIDES</a>
-  <ul class="nav-links">
-    <li><a href="#" class="active">HOME</a></li>
-    <li><a href="#" onclick="openModal('shop');return false;">SHOP</a></li>
-    <li><a href="#" onclick="openModal('cart');return false;">CART</a></li>
-    <li><a href="lion-forge-calculator.html">CALCULATOR</a></li>
-    <li><a href="#" onclick="openModal('account');return false;">ACCOUNT</a></li>
-  </ul>
-  <button class="nav-hamburger" id="navHamburger" onclick="toggleNavMenu()" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
-</nav>
-<div class="nav-overlay" id="navOverlay" onclick="toggleNavMenu()"></div>
-<div class="nav-drawer" id="navDrawer">
-  <a href="#" class="active" onclick="toggleNavMenu()">HOME</a>
-  <a href="#" onclick="toggleNavMenu();openModal('shop');return false;">SHOP</a>
-  <a href="#" onclick="toggleNavMenu();openModal('cart');return false;">CART</a>
-  <a href="lion-forge-calculator.html">CALCULATOR</a>
-  <a href="#" onclick="toggleNavMenu();openModal('account');return false;">ACCOUNT</a>
-</div>
-<script>
-function toggleNavMenu() {
-  document.getElementById('navHamburger').classList.toggle('open');
-  document.getElementById('navDrawer').classList.toggle('open');
-  document.getElementById('navOverlay').classList.toggle('open');
-}
-</script>
-
-<section class="hero">
-  <img src="/logo.webp" alt="Lion Forge Peptides Logo" class="hero-logo">
-  <h1 class="hero-title">LION FORGE PEPTIDES</h1>
-  <p class="hero-subtitle">Research Use Only</p>
-  <div class="hero-divider"></div>
-
-  <div class="welcome-box">
-    Welcome to Lion Forge Peptides. All orders are processed within 24–48 hours. All paid
-    orders by 4pm CST will ship out same day Monday–Friday.
-  </div>
-
-  <a href="#" class="enter-btn" onclick="openModal('shop');return false;">
-    ENTER SHOP <span class="arrow">→</span>
-  </a>
-</section>
-
-<section class="bulletin">
-  <p class="bulletin-label">Bulletin Board</p>
-  <h2 class="bulletin-heading">Announcements</h2>
-  <div id="announcements-container">
-    <div class="announcement-card" style="color:#4a5a7a;font-size:13px;">Loading announcements...</div>
-  </div>
-</section>
-
-<script>
-async function loadAnnouncements() {
-  const container = document.getElementById('announcements-container');
-  try {
-    const r = await fetch('/api/announcements');
-    const announcements = await r.json();
-    if (!announcements.length) {
-      container.innerHTML = '<div class="announcement-card" style="color:#4a5a7a;font-size:13px;">No announcements yet. Check back soon!</div>';
-      return;
-    }
-    container.innerHTML = announcements.map(a => {
-      const dateStr = a.created_at
-        ? new Date(a.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-        : 'Posted recently';
-      return `<div class="announcement-card">${a.content || a.title || ''}<div class="date">${dateStr}</div></div>`;
-    }).join('');
-  } catch(e) {
-    container.innerHTML =
-      '<div class="announcement-card">We\'re LIVE! After months of preparation, Lion Forge Peptides is officially open. Browse the shop and discover what\'s waiting for you.<div class="date">Launch day</div></div>' +
-      '<div class="announcement-card">Orders placed by 4pm CST ship same day, Monday–Friday. More products being added regularly.<div class="date">Posted recently</div></div>';
-  }
-}
-loadAnnouncements();
-</script>
-
-<footer>
-  &copy; 2025 Lion Forge Peptides &mdash; Research Use Only
-  <div style="margin-top:14px;">
-    <a href="mailto:support@lionforgepeptides.com" style="display:inline-flex;align-items:center;gap:7px;padding:9px 18px;background:rgba(232,168,32,0.06);border:1px solid rgba(232,168,32,0.3);border-radius:24px;color:var(--gold-bright);font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;text-decoration:none;transition:background .2s ease,border-color .2s ease;" onmouseover="this.style.background='rgba(232,168,32,0.14)';this.style.borderColor='rgba(232,168,32,0.55)';" onmouseout="this.style.background='rgba(232,168,32,0.06)';this.style.borderColor='rgba(232,168,32,0.3)';">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M4 4h16v16H4z"/><path d="m4 6 8 7 8-7"/></svg>
-      Contact Support
-    </a>
-  </div>
-</footer>
-
-
-<!-- Login Modal -->
-<div id="auth-overlay" style="display:none; position:fixed; inset:0; z-index:1000; background:rgba(4,8,22,0.88); backdrop-filter:blur(6px); align-items:center; justify-content:center;">
-  <div id="auth-modal" style="background:#0d1535; border:1px solid rgba(232,168,32,0.25); border-radius:18px; padding:40px 44px; width:100%; max-width:420px; position:relative; box-shadow:0 8px 60px rgba(0,0,0,0.6);">
-
-    <button onclick="closeModal()" style="position:absolute;top:16px;right:20px;background:none;border:none;color:#4a5a7a;font-size:22px;cursor:pointer;line-height:1;">&#x2715;</button>
-
-    <div style="text-align:center;margin-bottom:28px;">
-      <div style="font-family:'Share Tech Mono',monospace;color:#e8a820;font-size:14px;letter-spacing:0.15em;">LION FORGE PEPTIDES</div>
-      <div style="font-size:11px;letter-spacing:0.3em;color:#4a5a7a;margin-top:4px;text-transform:uppercase;">Sign in to continue</div>
-    </div>
-
-    <!-- Step 1: Email -->
-    <div id="step-email">
-      <label style="display:block;font-size:11px;color:#6a7a9e;letter-spacing:0.15em;margin-bottom:8px;">EMAIL ADDRESS</label>
-      <input id="inp-email" type="email" placeholder="you@example.com" autocomplete="email"
-        style="width:100%;padding:13px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(232,168,32,0.2);border-radius:8px;color:#dde4f5;font-size:15px;font-family:'Inter',sans-serif;margin-bottom:16px;outline:none;box-sizing:border-box;">
-      <button id="send-btn" onclick="requestCode()"
-        style="width:100%;padding:14px;background:#1e3d8f;border:1px solid rgba(232,168,32,0.35);border-radius:10px;color:#ffd060;font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:0.15em;cursor:pointer;">
-        SEND CODE &nbsp;&#x2192;
-      </button>
-      <div id="send-status" style="min-height:18px;margin-top:10px;text-align:center;font-size:13px;color:#ef4444;"></div>
-    </div>
-
-    <!-- Step 2: Code -->
-    <div id="step-code" style="display:none;">
-      <div style="font-size:13px;color:#6a7a9e;margin-bottom:20px;text-align:center;">
-        Code sent to <strong style="color:#dde4f5;" id="code-sent-to"></strong>
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="eyebrow">Research supply · Built for precision</div>
+        <h1>A life-changing mission.<br><span>Practical guidance.</span><br>Helpful tools. Fair pricing.</h1>
+        <p class="lead">A straightforward source for research compounds, practical reference tools, and responsive support—designed to make every step easier to navigate.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="lion-forge-shop.html">Browse Research Products</a>
+          <a class="btn btn-secondary" href="lion-forge-calculator.html">Use the Calculator</a>
+        </div>
+        <div class="trust" aria-label="Service highlights">
+          <span>Research use only</span>
+          <span>24–48 hour processing</span>
+          <span>Texas-based support</span>
+          <span>Practical research tools</span>
+        </div>
       </div>
-      <label style="display:block;font-size:11px;color:#6a7a9e;letter-spacing:0.15em;margin-bottom:8px;">6-DIGIT CODE</label>
-      <input id="inp-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code"
-        style="width:100%;padding:13px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(232,168,32,0.2);border-radius:8px;color:#dde4f5;font-size:24px;font-family:'Share Tech Mono',monospace;letter-spacing:0.35em;text-align:center;margin-bottom:16px;outline:none;box-sizing:border-box;">
-      <button id="verify-btn" onclick="verifyCode()"
-        style="width:100%;padding:14px;background:#1e3d8f;border:1px solid rgba(232,168,32,0.35);border-radius:10px;color:#ffd060;font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:0.15em;cursor:pointer;margin-bottom:10px;">
-        SIGN IN &nbsp;&#x2192;
-      </button>
-      <button onclick="showStep('email')"
-        style="width:100%;padding:10px;background:none;border:none;color:#4a5a7a;font-size:13px;cursor:pointer;">
-        &#8592; Use a different email
-      </button>
-      <div id="verify-status" style="min-height:18px;margin-top:8px;text-align:center;font-size:13px;color:#ef4444;"></div>
-    </div>
+      <div class="research-note">For laboratory and research purposes only · Not for human or veterinary consumption</div>
+    </section>
 
-    <!-- Success -->
-    <div id="step-success" style="display:none;text-align:center;padding:16px 0;">
-      <div style="font-size:40px;margin-bottom:14px;color:#22c55e;">&#10003;</div>
-      <div style="color:#e8a820;font-size:16px;font-weight:500;margin-bottom:8px;">Signed In!</div>
-      <div id="success-sub" style="color:#6a7a9e;font-size:13px;"></div>
-    </div>
+    <section class="pathways" aria-labelledby="pathways-heading">
+      <div class="pathways-inner">
+        <div class="section-kicker">Choose your next step</div>
+        <h2 class="section-heading" id="pathways-heading">Products, guidance, and practical tools.</h2>
+        <p class="section-intro">Start with the path that fits what you need today. Each experience is designed to make research information easier to explore and understand.</p>
 
-  </div>
-</div>
+        <div class="pathway-grid">
+          <a class="pathway-card" href="lion-forge-shop.html">
+            <img src="mockups/assets/browse-products-vials-v2.webp" alt="Lion Forge research products browser with branded peptide vials" loading="lazy" decoding="async">
+            <span class="pathway-copy">
+              <span class="pathway-number">Path 01</span>
+              <strong class="pathway-title">Browse Research Products</strong>
+              <span class="pathway-description">Explore the collection by goal or alphabetically.</span>
+              <span class="pathway-link">Browse products →</span>
+            </span>
+          </a>
 
-<script>
+          <a class="pathway-card" href="lion-forge-guide.html">
+            <img src="mockups/assets/research-guide-pathway-v2.webp" alt="Lion Forge research guide organized by five research goals" loading="lazy" decoding="async">
+            <span class="pathway-copy">
+              <span class="pathway-number">Path 02</span>
+              <strong class="pathway-title">Explore the Research Guide</strong>
+              <span class="pathway-description">Navigate practical information through five clear research goals.</span>
+              <span class="pathway-link">Open the guide →</span>
+            </span>
+          </a>
 
-// Mobile auth helper — adds Bearer token to API calls when cookie may not be sent
-function apiFetch(url, opts) {
-  opts = opts || {};
-  opts.credentials = 'include';
-  try {
-    var token = sessionStorage.getItem('lfp_token');
-    if (token) {
-      opts.headers = opts.headers || {};
-      opts.headers['Authorization'] = 'Bearer ' + token;
+          <a class="pathway-card" href="lion-forge-calculator.html">
+            <img src="mockups/assets/calculator-pathway-v5.webp" alt="Lion Forge peptide dose calculator showing a syringe filled continuously to 20 units on a U-100 scale" loading="lazy" decoding="async">
+            <span class="pathway-copy">
+              <span class="pathway-number">Path 03</span>
+              <strong class="pathway-title">Use the Peptide Calculator</strong>
+              <span class="pathway-description">Convert vial and diluent details into a clear draw amount.</span>
+              <span class="pathway-link">Open calculator →</span>
+            </span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="categories" aria-labelledby="categories-heading">
+      <div class="categories-inner">
+        <div class="section-kicker">Explore by research goal</div>
+        <h2 class="section-heading" id="categories-heading">Find the path that fits your focus.</h2>
+        <p class="section-intro">Browse practical reference information organized around five common areas of research interest.</p>
+
+        <div class="category-grid">
+          <a class="category-card category-weight" href="lion-forge-guide.html">
+            <span class="category-copy">
+              <span class="category-index">01 · Research goal</span>
+              <strong class="category-title">Weight Management</strong>
+              <span class="category-description">Explore compounds commonly researched for appetite, body composition, and weight-related pathways.</span>
+              <span class="category-cta">Explore category →</span>
+            </span>
+          </a>
+
+          <a class="category-card category-recovery" href="lion-forge-guide.html">
+            <span class="category-copy">
+              <span class="category-index">02 · Research goal</span>
+              <strong class="category-title">Recovery</strong>
+              <span class="category-description">Review research areas connected to repair, resilience, and recovery support.</span>
+              <span class="category-cta">Explore category →</span>
+            </span>
+          </a>
+
+          <a class="category-card category-performance" href="lion-forge-guide.html">
+            <span class="category-copy">
+              <span class="category-index">03 · Research goal</span>
+              <strong class="category-title">Performance &amp; Growth</strong>
+              <span class="category-description">Navigate research related to performance, growth pathways, and physical development.</span>
+              <span class="category-cta">Explore category →</span>
+            </span>
+          </a>
+
+          <a class="category-card category-cognitive" href="lion-forge-guide.html">
+            <span class="category-copy">
+              <span class="category-index">04 · Research goal</span>
+              <strong class="category-title">Cognitive</strong>
+              <span class="category-description">Explore research connected to focus, clarity, mood, and neurological pathways.</span>
+              <span class="category-cta">Explore category →</span>
+            </span>
+          </a>
+
+          <a class="category-card category-metabolic" href="lion-forge-guide.html">
+            <span class="category-copy">
+              <span class="category-index">05 · Research goal</span>
+              <strong class="category-title">Metabolic</strong>
+              <span class="category-description">Review research around cellular energy, metabolic function, and related pathways.</span>
+              <span class="category-cta">Explore category →</span>
+            </span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="mission" aria-labelledby="mission-heading">
+      <div class="mission-inner">
+        <div class="mission-layout">
+          <div>
+            <div class="section-kicker">Why we built Lion Forge</div>
+            <h2 class="mission-heading" id="mission-heading">Built from experience.<br><span>Shared with purpose.</span></h2>
+            <div class="mission-story">
+              <p>More than two years ago, my wife and I began our own peptide journey. The changes we experienced in our health, lifestyle, and overall well-being were life-changing—but finding a trustworthy path wasn’t easy.</p>
+              <p>We made mistakes. We encountered unreliable sellers, paid unreasonable prices, and learned difficult lessons about whom we could trust. Eventually, we found a dependable supplier, and after working with them for more than a year, we decided to create Lion Forge Peptides.</p>
+              <p>We built Lion Forge to offer the experience we wish we had from the beginning: dependable sourcing, reasonable pricing, practical tools, and helpful guidance that makes research easier to navigate.</p>
+              <p>When friends ask why we look healthier or comment on my wife’s glowing skin, we naturally share our experience. Lion Forge is an extension of that same desire—to share what changed our lives and help others explore the possibilities with greater confidence and support.</p>
+              <p class="mission-note">Our founders’ story reflects their personal experience. Individual experiences vary and are not a guarantee of outcomes or a substitute for medical advice.</p>
+            </div>
+          </div>
+
+          <aside class="mission-side" aria-label="Our commitments">
+            <div class="mission-side-label">What guides us</div>
+            <div class="pillar-list">
+              <article class="pillar">
+                <span class="pillar-num">01</span>
+                <h3>Dependable sourcing</h3>
+                <p>Built on more than two years of firsthand experience navigating peptide sourcing, including over a year working with the supplier we trust today.</p>
+              </article>
+              <article class="pillar">
+                <span class="pillar-num">02</span>
+                <h3>Helpful guidance and tools</h3>
+                <p>Practical resources designed to make complex research information easier to navigate.</p>
+              </article>
+              <article class="pillar">
+                <span class="pillar-num">03</span>
+                <h3>Fair, reasonable pricing</h3>
+                <p>A straightforward approach shaped by our own experience paying more than we should have.</p>
+              </article>
+            </div>
+            <div class="mission-actions">
+              <a class="btn btn-primary" href="lion-forge-shop.html">Browse products</a>
+              <a class="btn btn-secondary" href="lion-forge-guide.html">Explore the guide</a>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="closing-cta" aria-labelledby="closing-heading">
+      <div class="closing-panel">
+        <div class="closing-copy">
+          <div class="section-kicker">A clearer place to begin</div>
+          <h2 id="closing-heading">Explore with better tools and practical guidance.</h2>
+          <p>Browse the research collection, learn through the guide, or start with the calculator—whichever path helps answer your next question.</p>
+        </div>
+        <div class="closing-actions">
+          <a class="btn btn-primary" href="lion-forge-shop.html">Browse products</a>
+          <a class="btn btn-secondary" href="lion-forge-calculator.html">Use the calculator</a>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-grid">
+          <div class="footer-main">
+            <a class="footer-brand" href="index.html">
+              <img src="logo.webp" alt="Lion Forge Peptides logo">
+              <span>
+                <strong>LION FORGE PEPTIDES</strong>
+                <span>Texas-based · Husband &amp; wife owned</span>
+              </span>
+            </a>
+            <p class="footer-about">Dependable research supply, practical reference tools, and responsive support—built from firsthand experience and shared with purpose.</p>
+          </div>
+
+          <div class="footer-column">
+            <h3>Explore</h3>
+            <nav class="footer-links" aria-label="Explore">
+              <a href="lion-forge-shop.html">Research products</a>
+              <a href="lion-forge-guide.html">Research guide</a>
+              <a href="lion-forge-calculator.html">Peptide calculator</a>
+            </nav>
+          </div>
+
+          <div class="footer-column">
+            <h3>Your account</h3>
+            <nav class="footer-links" aria-label="Account">
+              <a href="lion-forge-account.html">Account</a>
+              <a href="lion-forge-cart.html">Cart</a>
+              <a href="lion-forge-about.html">Our story</a>
+            </nav>
+          </div>
+
+          <div class="footer-column">
+            <h3>Support</h3>
+            <nav class="footer-links" aria-label="Support">
+              <a href="mailto:support@lionforgepeptides.com">Contact support</a>
+              <a href="mailto:support@lionforgepeptides.com?subject=Shipping%20Question">Shipping questions</a>
+              <a href="mailto:support@lionforgepeptides.com?subject=Order%20Support">Order support</a>
+            </nav>
+          </div>
+        </div>
+
+        <div class="footer-disclaimer"><strong>For research use only.</strong> Products and information are intended solely for lawful laboratory and scientific research. Not for human or veterinary consumption. Website content is educational in nature and is not medical advice. Purchasers are responsible for complying with all applicable laws and regulations.</div>
+
+        <div class="footer-bottom">
+          <span>&copy; 2026 Lion Forge Peptides. All rights reserved.</span>
+          <span>Texas, USA · Research use only</span>
+        </div>
+      </div>
+    </footer>
+  </main>
+  <script>
+    const menuToggle = document.querySelector('.menu-toggle');
+    const primaryLinks = document.querySelector('.links');
+
+    if (menuToggle && primaryLinks) {
+      const closeMenu = () => {
+        primaryLinks.classList.remove('open');
+        menuToggle.setAttribute('aria-expanded', 'false');
+        menuToggle.setAttribute('aria-label', 'Open navigation menu');
+      };
+
+      menuToggle.addEventListener('click', () => {
+        const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+        primaryLinks.classList.toggle('open', !isOpen);
+        menuToggle.setAttribute('aria-expanded', String(!isOpen));
+        menuToggle.setAttribute('aria-label', isOpen ? 'Open navigation menu' : 'Close navigation menu');
+      });
+
+      primaryLinks.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+          closeMenu();
+          menuToggle.focus();
+        }
+      });
     }
-  } catch(e) {}
-  return fetch(url, opts);
-}
-window.apiFetch = apiFetch;
-function openModal(dest) {
-  if (window._lfCurrentUser) {
-    if (dest === 'account') window.location.href = 'lion-forge-account.html';
-    else if (dest === 'cart') window.location.href = 'lion-forge-cart.html';
-    else window.location.href = 'lion-forge-shop.html';
-    return;
-  }
-  window._authDest = dest || 'shop';
-  document.getElementById('auth-overlay').style.display = 'flex';
-  showStep('email');
-  setTimeout(() => document.getElementById('inp-email').focus(), 50);
-}
-function closeModal() {
-  document.getElementById('auth-overlay').style.display = 'none';
-}
-function showStep(name) {
-  ['email','code','success'].forEach(s => {
-    const el = document.getElementById('step-' + s);
-    if (el) el.style.display = 'none';
-  });
-  document.getElementById('step-' + name).style.display = 'block';
-}
-
-async function requestCode() {
-  const email = document.getElementById('inp-email').value.trim();
-  const statusEl = document.getElementById('send-status');
-  statusEl.textContent = '';
-  if (!email || !email.includes('@')) {
-    statusEl.textContent = 'Please enter a valid email address.';
-    return;
-  }
-  const btn = document.getElementById('send-btn');
-  btn.disabled = true; btn.textContent = 'Sending...';
-  try {
-    const r = await fetch('/api/auth/request-code', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ email })
-    });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error || 'Failed to send code');
-    document.getElementById('code-sent-to').textContent = email;
-    showStep('code');
-    document.getElementById('inp-code').value = '';
-    document.getElementById('inp-code').focus();
-  } catch(e) {
-    btn.disabled = false; btn.textContent = 'SEND CODE  →';
-    statusEl.textContent = e.message || 'Something went wrong. Try again.';
-  }
-}
-
-async function verifyCode() {
-  const email = document.getElementById('inp-email').value.trim();
-  const code  = document.getElementById('inp-code').value.trim();
-  const statusEl = document.getElementById('verify-status');
-  statusEl.textContent = '';
-  if (code.length !== 6) { statusEl.textContent = 'Please enter the 6-digit code.'; return; }
-  const btn = document.getElementById('verify-btn');
-  btn.disabled = true; btn.textContent = 'Verifying...';
-  try {
-    const r = await fetch('/api/auth/verify-code', {
-      method: 'POST', credentials: 'include', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ email, code })
-    });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error || 'Invalid code');
-    window._lfCurrentUser = d;
-    try { sessionStorage.setItem('lfp_user', JSON.stringify(d)); if(d._token) sessionStorage.setItem('lfp_token', d._token); } catch(e) {}
-    showStep('success');
-    document.getElementById('success-sub').textContent = 'Welcome, ' + (d.displayName || email) + '! Redirecting...';
-    const dest = window._authDest || 'shop';
-    const url  = dest === 'account' ? 'lion-forge-account.html'
-               : dest === 'cart'    ? 'lion-forge-cart.html'
-               : 'lion-forge-shop.html';
-    setTimeout(() => { window.location.href = url; }, 1500);
-  } catch(e) {
-    btn.disabled = false; btn.textContent = 'SIGN IN  →';
-    statusEl.textContent = e.message;
-  }
-}
-
-// Allow Enter key in both inputs
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('auth-overlay').addEventListener('click', e => {
-    if (e.target === document.getElementById('auth-overlay')) closeModal();
-  });
-  document.getElementById('inp-email').addEventListener('keydown', e => { if (e.key === 'Enter') requestCode(); });
-  document.getElementById('inp-code').addEventListener('keydown',  e => { if (e.key === 'Enter') verifyCode(); });
-});
-document.addEventListener('DOMContentLoaded', () => {
-  const overlay = document.getElementById('auth-overlay');
-  if (overlay) overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
-
-  // Check if already logged in, and handle ?dest redirect
-  const destParam = new URLSearchParams(window.location.search).get('dest');
-  fetch('/api/auth/me', { credentials: 'include' })
-    .then(r => r.ok ? r.json() : null)
-    .then(user => {
-      if (user) {
-        window._lfCurrentUser = user;
-        if (destParam === 'account') { window.location.href = 'lion-forge-account.html'; return; }
-        if (destParam === 'cart')    { window.location.href = 'lion-forge-cart.html';    return; }
-        if (destParam === 'shop')    { window.location.href = 'lion-forge-shop.html';    return; }
-        const acctLink = document.querySelector('.nav-links a[onclick*="account"]');
-        if (acctLink) { acctLink.style.color = 'var(--gold)'; acctLink.title = 'Signed in as ' + (user.displayName || user.email); }
-      } else if (destParam) {
-        openModal(destParam);
-      }
-    })
-    .catch(() => { if (destParam) openModal(destParam); });
-});
-</script>
+  </script>
 </body>
 </html>

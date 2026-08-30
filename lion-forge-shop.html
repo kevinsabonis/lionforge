@@ -248,6 +248,26 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
   opacity:0;transition:opacity .3s;z-index:9999;pointer-events:none;}
 .toast.show{opacity:1;}
 
+/* PURCHASE VERIFICATION */
+.purchase-gate{display:none;position:fixed;inset:0;z-index:10000;align-items:center;justify-content:center;padding:20px;background:rgba(3,7,17,.9);backdrop-filter:blur(10px);}
+.purchase-gate.show{display:flex;}
+.purchase-card{position:relative;width:min(590px,100%);padding:34px;border:1px solid rgba(232,168,32,.34);border-radius:16px;background:linear-gradient(145deg,#101a38,#090f24);box-shadow:0 32px 90px rgba(0,0,0,.58);}
+.purchase-close{position:absolute;top:14px;right:16px;width:34px;height:34px;border:0;background:transparent;color:#6a7a9e;font-size:22px;cursor:pointer;}
+.purchase-eyebrow{color:var(--gold);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;}
+.purchase-title{margin:13px 0 14px;color:#f2f5fb;font-size:27px;line-height:1.12;font-weight:600;}
+.purchase-copy{color:#9aafcc;font-size:13px;line-height:1.65;}
+.purchase-copy strong{color:#dce5f5;}
+.purchase-check{display:flex;align-items:flex-start;gap:12px;margin:22px 0;padding:16px;border:1px solid rgba(232,168,32,.18);border-radius:10px;background:rgba(232,168,32,.045);cursor:pointer;}
+.purchase-check input{width:18px;height:18px;margin-top:2px;accent-color:var(--gold);flex:0 0 auto;}
+.purchase-check span{color:#b8c5db;font-size:12px;line-height:1.55;}
+.purchase-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.purchase-confirm,.purchase-cancel{padding:13px 16px;border-radius:8px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:.12em;cursor:pointer;}
+.purchase-confirm{border:1px solid rgba(232,168,32,.38);background:var(--royal);color:var(--gold-bright);}
+.purchase-confirm:disabled{opacity:.35;cursor:not-allowed;}
+.purchase-cancel{border:1px solid rgba(255,255,255,.1);background:transparent;color:#7d8ba7;}
+.purchase-note{margin-top:15px;color:#4f5f7d;font-size:9px;line-height:1.5;letter-spacing:.1em;text-align:center;text-transform:uppercase;}
+@media(max-width:520px){.purchase-card{padding:28px 22px}.purchase-actions{grid-template-columns:1fr}.purchase-title{font-size:23px}}
+
 .no-results{text-align:center;padding:60px;color:var(--muted);font-size:14px;grid-column:1/-1;}
 </style>
 <!-- COMING SOON MODAL -->
@@ -276,7 +296,7 @@ function apiFetch(url,opts){opts=opts||{};opts.credentials='include';try{var t=s
     try { const cached = sessionStorage.getItem('lfp_user'); if (cached) user = JSON.parse(cached); } catch(e) {}
     // Try cookie auth with retries
     let cookieOk = false;
-    for (let attempt = 0; attempt < 4; attempt++) {
+    for (let attempt = 0; attempt < 1; attempt++) {
       if (attempt > 0) await new Promise(res => setTimeout(res, attempt * 500));
       try {
         const r = await apiFetch('/api/auth/me', { cache: 'no-store' });
@@ -287,12 +307,12 @@ function apiFetch(url,opts){opts=opts||{};opts.credentials='include';try{var t=s
         }
       } catch(e) {}
     }
-    // Only redirect if no session data at all
-    if (!user) { sessionStorage.removeItem('lfp_user'); window.location.href = 'index.html?dest=shop'; return; }
-    window._lfCurrentUser = user;
-  } catch(e) { window.location.href = 'index.html?dest=shop'; return; }
+    // Browsing is public. Authentication is only needed for account-specific actions.
+    if (!user) sessionStorage.removeItem('lfp_user');
+    else window._lfCurrentUser = user;
+  } catch(e) { user = null; }
 
-  if (user.role === 'admin') {
+  if (user && user.role === 'admin') {
     const btn = document.getElementById('admin-nav-btn');
     if (btn) btn.style.display = 'block';
   }
@@ -314,6 +334,24 @@ function apiFetch(url,opts){opts=opts||{};opts.credentials='include';try{var t=s
 </script>
 </head>
 <body>
+
+<div class="purchase-gate" id="purchase-gate" role="dialog" aria-modal="true" aria-labelledby="purchase-gate-title" onclick="if(event.target===this)closePurchaseGate()">
+  <div class="purchase-card">
+    <button class="purchase-close" type="button" onclick="closePurchaseGate()" aria-label="Close verification">&#x2715;</button>
+    <div class="purchase-eyebrow">Required before adding to cart</div>
+    <h2 class="purchase-title" id="purchase-gate-title">Age &amp; research-use acknowledgment</h2>
+    <p class="purchase-copy">Before ordering, please confirm that you are <strong>at least 21 years of age</strong> and understand that Lion Forge products are offered <strong>exclusively for lawful laboratory and scientific research</strong>. They are not intended for human or veterinary consumption.</p>
+    <label class="purchase-check" for="purchase-check">
+      <input type="checkbox" id="purchase-check" onchange="togglePurchaseConfirmation(this.checked)">
+      <span>I confirm that I am at least 21 years old, understand the research-use restrictions, and accept responsibility for complying with all applicable laws and regulations.</span>
+    </label>
+    <div class="purchase-actions">
+      <button class="purchase-cancel" type="button" onclick="closePurchaseGate()">Cancel</button>
+      <button class="purchase-confirm" id="purchase-confirm" type="button" onclick="confirmPurchaseVerification()" disabled>Confirm &amp; add to cart</button>
+    </div>
+    <div class="purchase-note">Verification is remembered for this browser session. Checkout requires a final acknowledgment.</div>
+  </div>
+</div>
 
 <!-- NAV -->
 <nav>
@@ -576,7 +614,61 @@ window.closeComingSoon = function(e) {
   }
 };
 
+let pendingPurchasePid = null;
+
+function purchaseIsVerified() {
+  try { return sessionStorage.getItem('lfp_purchase_verified') === 'accepted'; }
+  catch(e) { return false; }
+}
+
+function togglePurchaseConfirmation(checked) {
+  const btn = document.getElementById('purchase-confirm');
+  if (btn) btn.disabled = !checked;
+}
+
+function openPurchaseGate(pid) {
+  pendingPurchasePid = pid;
+  const gate = document.getElementById('purchase-gate');
+  const checkbox = document.getElementById('purchase-check');
+  const confirm = document.getElementById('purchase-confirm');
+  if (checkbox) checkbox.checked = false;
+  if (confirm) confirm.disabled = true;
+  if (gate) gate.classList.add('show');
+  setTimeout(() => checkbox && checkbox.focus(), 0);
+}
+
+function closePurchaseGate() {
+  const gate = document.getElementById('purchase-gate');
+  if (gate) gate.classList.remove('show');
+  pendingPurchasePid = null;
+}
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && document.getElementById('purchase-gate')?.classList.contains('show')) {
+    closePurchaseGate();
+  }
+});
+
+function confirmPurchaseVerification() {
+  const checkbox = document.getElementById('purchase-check');
+  if (!checkbox || !checkbox.checked || pendingPurchasePid === null) return;
+  try { sessionStorage.setItem('lfp_purchase_verified', 'accepted'); } catch(e) {}
+  const pid = pendingPurchasePid;
+  const gate = document.getElementById('purchase-gate');
+  if (gate) gate.classList.remove('show');
+  pendingPurchasePid = null;
+  completeAddToCart(pid);
+}
+
 function addToCart(pid) {
+  if (!purchaseIsVerified()) {
+    openPurchaseGate(pid);
+    return;
+  }
+  completeAddToCart(pid);
+}
+
+function completeAddToCart(pid) {
   const p = products.find(x => x.id === pid);
   if (!p) return;
   const variantIndex = Math.min(selectedVariants[pid] ?? 0, p.variants.length - 1);

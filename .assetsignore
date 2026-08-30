@@ -7,3 +7,5 @@ wrangler.toml
 .assetsignore
 schema.sql
 worker.js
+LionForge_Inventory.csv
+LionForge_Inventory.xlsx
