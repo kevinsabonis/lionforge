@@ -3150,12 +3150,33 @@
   // ── STACKS FILTER ───────────────────────────
   function filterStacks(key, el) {
     document.querySelectorAll('.stacks-filters .filter-pill').forEach(p => p.classList.remove('active'));
-    el.classList.add('active');
+    if (el) el.classList.add('active');
     document.querySelectorAll('.stack-card').forEach(card => {
       const tags = card.dataset.tags || '';
       card.style.display = (key === 'all' || tags.includes(key)) ? '' : 'none';
     });
   }
+
+  // Open a specific stack category from homepage goal cards.
+  function routeStackHash() {
+    const match = window.location.hash.match(/^#stacks-(fat|healing|performance|cognitive|longevity|aesthetics|advanced)$/);
+    if (!match) return;
+
+    const key = match[1];
+    const filterButton = Array.from(document.querySelectorAll('.stacks-filters .filter-pill')).find(button => {
+      const onclick = button.getAttribute('onclick') || '';
+      return onclick.includes("'" + key + "'");
+    });
+
+    showPage('stacks');
+    filterStacks(key, filterButton);
+    requestAnimationFrame(() => {
+      document.querySelector('.stacks-filters')?.scrollIntoView({ behavior: 'auto', block: 'start' });
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', routeStackHash);
+  window.addEventListener('hashchange', routeStackHash);
   let selectedGoal = null, selectedExp = null;
 
   function selectGoal(el, key) {
