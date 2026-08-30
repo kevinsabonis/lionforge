@@ -611,7 +611,9 @@
     max-width: 1180px; margin: 0 auto;
     padding: 0 24px 80px;
   }
+  .stacks-grid.is-filtered { grid-template-columns: 1fr; }
   @media (max-width: 900px) { .stacks-grid { grid-template-columns: repeat(2,1fr); } }
+  @media (max-width: 900px) { .stacks-grid.is-filtered { grid-template-columns: 1fr; } }
   @media (max-width: 560px) { .stacks-grid { grid-template-columns: 1fr; } }
 
   /* Stack card */
@@ -3191,6 +3193,7 @@
   function filterStacks(key, el) {
     document.querySelectorAll('.stacks-filters .filter-pill').forEach(p => p.classList.remove('active'));
     if (el) el.classList.add('active');
+    document.querySelector('.stacks-grid')?.classList.toggle('is-filtered', key !== 'all');
     document.querySelectorAll('.stack-card').forEach(card => {
       const tags = card.dataset.tags || '';
       card.style.display = (key === 'all' || tags.includes(key)) ? '' : 'none';
@@ -3199,7 +3202,7 @@
 
   // Open a specific stack category from homepage goal cards.
   function routeStackHash() {
-    const match = window.location.hash.match(/^#stacks-(fat|healing|performance|cognitive|longevity|aesthetics|libido)$/);
+    const match = window.location.hash.match(/^#stacks-(all|fat|healing|performance|cognitive|longevity|aesthetics|libido)$/);
     if (!match) return;
 
     const key = match[1];
