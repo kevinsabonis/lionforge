@@ -843,8 +843,9 @@
   /* Two-col layout: diagram left, cards right */
   .inj-layout {
     display: grid;
-    grid-template-columns: 260px 1fr;
-    gap: 20px;
+    grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+    align-items: start;
+    gap: 24px;
     margin-bottom: 20px;
   }
   @media (max-width: 720px) { .inj-layout { grid-template-columns: 1fr; } }
@@ -857,6 +858,7 @@
     padding: 20px 16px;
     display: flex; flex-direction: column; align-items: center;
   }
+  @media (min-width: 721px) { .inj-diagram-panel { position: sticky; top: 92px; } }
   .inj-diagram-label {
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 9px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase;
@@ -864,10 +866,15 @@
   }
 
   /* SVG body figure */
-  .body-svg { width: 180px; height: auto; }
+  .body-svg { display: none; }
+  .injection-sites-visual { display:block; width:100%; height:auto; margin:8px 0 2px; border-radius:8px; }
 
   /* Injection site cards column */
   .inj-sites { display: flex; flex-direction: column; gap: 10px; }
+  .inj-sites .inj-info-grid {
+    grid-template-columns: 1fr;
+    margin: 0;
+  }
 
   .inj-site-card {
     background: var(--navy-card);
@@ -1231,7 +1238,7 @@
     .inj-main { padding: 0 16px 60px; }
     .inj-layout { grid-template-columns: 1fr; }
     .inj-diagram-panel { padding: 16px; }
-    .body-svg { width: 140px; }
+    .injection-sites-visual { width:100%; max-width:360px; margin-left:auto; margin-right:auto; }
     .inj-info-grid { grid-template-columns: 1fr; gap: 10px; }
 
     /* Glossary */
@@ -2380,6 +2387,7 @@
       <!-- Body diagram -->
       <div class="inj-diagram-panel">
         <div class="inj-diagram-label">Sub-Q Injection Sites</div>
+        <img class="injection-sites-visual" src="assets/lfp/injection-sites-anatomy-v2.png" alt="Front and back anatomical silhouettes highlighting general subcutaneous regions at the lower abdomen, outer thighs, and posterior upper arms">
         <!-- SVG human silhouette with highlighted zones -->
         <svg class="body-svg" viewBox="0 0 180 400" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -2619,33 +2627,33 @@
           </div>
         </div>
 
-      </div>
-    </div>
+        <!-- Technique / Rotation / Injury-Specific cards -->
+        <div class="inj-info-grid">
 
-    <!-- Technique / Rotation / Injury-Specific cards -->
-    <div class="inj-info-grid">
+          <div class="inj-info-card">
+            <div class="inj-info-title"><span>🎯</span> Technique</div>
+            <div class="inj-info-body">
+              Swab site with alcohol. Let dry <strong>30 seconds</strong>. Pinch skin. Insert at <strong>45 degrees</strong>. Push plunger slowly. Hold 5 seconds. Remove and apply gentle pressure. <strong>Do not rub.</strong>
+            </div>
+          </div>
 
-      <div class="inj-info-card">
-        <div class="inj-info-title"><span>🎯</span> Technique</div>
-        <div class="inj-info-body">
-          Swab site with alcohol. Let dry <strong>30 seconds</strong>. Pinch skin. Insert at <strong>45 degrees</strong>. Push plunger slowly. Hold 5 seconds. Remove and apply gentle pressure. <strong>Do not rub.</strong>
+          <div class="inj-info-card">
+            <div class="inj-info-title"><span>🔄</span> Rotation</div>
+            <div class="inj-info-body">
+              Never inject the same spot twice in a row. Rotate systematically — left abdomen, right abdomen, left flank, right flank, left thigh, right thigh. <strong>Prevents lipodystrophy</strong> from repeated injections in one spot.
+            </div>
+          </div>
+
+          <div class="inj-info-card">
+            <div class="inj-info-title"><span>🩹</span> Injury-Specific (BPC-157)</div>
+            <div class="inj-info-body">
+              Many users inject BPC-157 sub-Q <strong>near the injury site</strong> for localized effect. Still sub-Q — just closer to the target area. TB-500 is typically injected abdominally for systemic effect.
+            </div>
+          </div>
+
         </div>
-      </div>
 
-      <div class="inj-info-card">
-        <div class="inj-info-title"><span>🔄</span> Rotation</div>
-        <div class="inj-info-body">
-          Never inject the same spot twice in a row. Rotate systematically — left abdomen, right abdomen, left flank, right flank, left thigh, right thigh. <strong>Prevents lipodystrophy</strong> from repeated injections in one spot.
-        </div>
       </div>
-
-      <div class="inj-info-card">
-        <div class="inj-info-title"><span>🩹</span> Injury-Specific (BPC-157)</div>
-        <div class="inj-info-body">
-          Many users inject BPC-157 sub-Q <strong>near the injury site</strong> for localized effect. Still sub-Q — just closer to the target area. TB-500 is typically injected abdominally for systemic effect.
-        </div>
-      </div>
-
     </div>
 
     <!-- Important notice -->
