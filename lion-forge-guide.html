@@ -299,6 +299,15 @@
     color: #f0f5ff;
     display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   }
+  .peptide-shop-link {
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-left: 2px; padding: 3px 7px; border: 1px solid rgba(212,164,55,.38);
+    border-radius: 4px; color: var(--gold); background: rgba(212,164,55,.06);
+    font-family: 'Barlow Condensed', sans-serif; font-size: 9px; font-weight: 600;
+    line-height: 1; letter-spacing: .08em; text-decoration: none; text-transform: uppercase;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .peptide-shop-link:hover { background: rgba(212,164,55,.14); border-color: var(--gold); color: #ffe098; }
   .cycle-badge {
     display: inline-block;
     background: rgba(26,52,110,0.5);
@@ -3214,6 +3223,34 @@
     res.classList.add('visible');
     setTimeout(() => res.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
   }
+
+  // Link only compounds currently represented in the Shop catalog.
+  document.addEventListener('DOMContentLoaded', () => {
+    const shopTerms = {
+      'BPC-157 + TB-500 BLEND': 'BPC-157/TB500',
+      'GHK-CU': 'GHK-CU',
+      'KPV': 'KPV',
+      'TESAMORELIN': 'TESAMORELIN',
+      'SEMAX': 'SEMAX',
+      'RETATRUTIDE': 'RETATRUTIDE',
+      '5-AMINO-1MQ': '5-AMINO 1MQ',
+      'MOTS-C': 'MOTS-C',
+      'SS-31': 'SS-31',
+      'HGH': 'HGH',
+      'HCG': 'HCG'
+    };
+    document.querySelectorAll('.peptide-name').forEach(nameEl => {
+      const peptideName = nameEl.textContent.trim().toUpperCase();
+      const shopTerm = shopTerms[peptideName];
+      if (!shopTerm) return;
+      const link = document.createElement('a');
+      link.className = 'peptide-shop-link';
+      link.href = `lion-forge-shop.html?search=${encodeURIComponent(shopTerm)}`;
+      link.textContent = 'View in Shop';
+      link.setAttribute('aria-label', `View ${nameEl.textContent.trim()} in the Shop`);
+      nameEl.appendChild(link);
+    });
+  });
 </script>
 </body>
 </html>

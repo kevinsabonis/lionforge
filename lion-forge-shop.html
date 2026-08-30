@@ -562,6 +562,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const saved = localStorage.getItem('lfp_cart');
     if (saved) { const parsed = JSON.parse(saved); if (Array.isArray(parsed)) parsed.forEach(i => cart.push(i)); }
   } catch(e) {}
+  const requestedProduct = new URLSearchParams(window.location.search).get('search');
+  const searchInput = document.getElementById('search-input');
+  if (requestedProduct && searchInput) searchInput.value = requestedProduct;
   // init selected variants
   products.forEach(p => { selectedVariants[p.id] = 0; quantities[p.id] = 1; });
   renderProducts();
