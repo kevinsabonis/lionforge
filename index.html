@@ -43,6 +43,7 @@
     .links { display: flex; align-items: center; gap: 30px; }
     .links a { color: var(--muted); text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: .16em; }
     .links a:first-child { color: var(--gold-light); }
+    .external-mark { margin-left: 2px; color: var(--gold); font-size: .85em; }
     .cart { padding: 10px 15px; border: 1px solid var(--line); border-radius: 5px; color: var(--gold-light) !important; }
     .menu-toggle { display: none; width: 42px; height: 42px; padding: 0; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 5px; color: var(--gold-light); background: rgba(9,19,42,.72); font: inherit; cursor: pointer; }
     .menu-toggle span, .menu-toggle span::before, .menu-toggle span::after { display: block; width: 18px; height: 1px; background: currentColor; content: ''; transition: transform .2s ease, opacity .2s ease; }
@@ -374,6 +375,7 @@
       </a>
       <div class="links" id="primary-links">
         <a href="index.html">Home</a>
+        <a href="https://lionforgeperformance.kevinsabonis.workers.dev" target="_blank" rel="noopener noreferrer">LF Performance <span class="external-mark" aria-hidden="true">↗</span></a>
         <a href="lion-forge-shop.html">Shop</a>
         <a href="lion-forge-calculator.html">Calculator</a>
         <a href="lion-forge-account.html">Account</a>
