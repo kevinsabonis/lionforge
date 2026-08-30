@@ -9,3 +9,10 @@ schema.sql
 worker.js
 LionForge_Inventory.csv
 LionForge_Inventory.xlsx
+mockups/
+backups/
+assets/lfp/shop-vial-*.png
+assets/lfp/cognitive-neural-background-v2.png
+assets/lfp/metabolic-energy-body-background-v3.png
+assets/lfp/recovery-shoulder-background-v2.png
+assets/lfp/weight-management-background.png
