@@ -689,6 +689,13 @@
     border: 1px solid var(--text-muted); border-radius: 2px; padding: 1px 5px;
   }
   .compound-dose { color: var(--text-dim); font-size: 11px; line-height: 1.4; }
+  .compound-note {
+    color: var(--gold-light);
+    font-size: 10px;
+    line-height: 1.45;
+    margin-top: 5px;
+    font-style: italic;
+  }
 
   .stack-meta {
     display: flex; gap: 16px; flex-wrap: wrap;
@@ -1718,8 +1725,8 @@
     <div class="goal-grid" id="goalGrid">
       <div class="goal-card" onclick="selectGoal(this,'fatloss')">
         <span class="goal-icon">🔥</span>
-        <div class="goal-title">Fat Loss</div>
-        <div class="goal-desc">Lose body fat, suppress appetite, body composition</div>
+        <div class="goal-title">Body Recomposition &amp; Fat Loss</div>
+        <div class="goal-desc">Explore body-fat reduction, appetite, and lean-body-composition goals</div>
       </div>
       <div class="goal-card" onclick="selectGoal(this,'healing')">
         <span class="goal-icon">💪</span>
@@ -1804,13 +1811,13 @@
   <!-- Filter pills -->
   <div class="stacks-filters">
     <button class="filter-pill active" onclick="filterStacks('all',this)">All Stacks</button>
-    <button class="filter-pill" onclick="filterStacks('fat',this)">Fat Loss</button>
-    <button class="filter-pill" onclick="filterStacks('healing',this)">Healing</button>
+    <button class="filter-pill" onclick="filterStacks('fat',this)">Body Recomposition &amp; Fat Loss</button>
+    <button class="filter-pill" onclick="filterStacks('healing',this)">Recovery &amp; Healing</button>
     <button class="filter-pill" onclick="filterStacks('performance',this)">GH & Performance</button>
     <button class="filter-pill" onclick="filterStacks('cognitive',this)">Cognitive</button>
     <button class="filter-pill" onclick="filterStacks('longevity',this)">Longevity</button>
     <button class="filter-pill" onclick="filterStacks('aesthetics',this)">Aesthetics</button>
-    <button class="filter-pill" onclick="filterStacks('advanced',this)">Advanced</button>
+    <button class="filter-pill" onclick="filterStacks('libido',this)">Libido</button>
   </div>
 
   <div class="stacks-grid">
@@ -1820,28 +1827,23 @@
       <div class="stack-card-header">
         <div class="stack-icon">🔥</div>
         <div class="stack-head-text">
-          <div class="stack-title">Fat Loss Stack</div>
-          <div class="stack-goal">Goal: Aggressive Fat Loss + Appetite Control</div>
+          <div class="stack-title">Body Recomposition &amp; Fat Loss</div>
+          <div class="stack-goal">Goal: Fat Loss + Appetite Control</div>
         </div>
       </div>
-      <p class="stack-desc">Combines a GLP-1 for appetite suppression with a fat-targeting peptide and a metabolic booster. Start with sema alone; add others once you have assessed tolerance.</p>
+      <p class="stack-desc">Pairs Retatrutide's appetite and body-composition research pathways with MOTS-c's focus on mitochondrial signaling and metabolic function. Combination-specific evidence remains limited, so each compound should be evaluated independently.</p>
       <div class="stack-compounds-label">Compounds</div>
       <div class="compound-row">
         <div class="compound-info">
-          <div class="compound-name">Semaglutide</div>
-          <div class="compound-dose">0.25 mg/week; titrate to 1–2.4 mg/week sub-Q</div>
-        </div>
-      </div>
-      <div class="compound-row">
-        <div class="compound-info">
-          <div class="compound-name">AOD-9604</div>
-          <div class="compound-dose">200–300 mcg/day sub-Q fasted</div>
+          <div class="compound-name">Retatrutide</div>
+          <div class="compound-dose">Commonly discussed research protocol: 1 mg/week; titrated gradually over 8–12 weeks</div>
         </div>
       </div>
       <div class="compound-row">
         <div class="compound-info">
           <div class="compound-name">MOTS-c</div>
-          <div class="compound-dose">5–10 mg/week sub-Q split 2–3 doses</div>
+          <div class="compound-dose">Commonly discussed research protocol: 5–10 mg/week, divided across 2–3 research sessions</div>
+          <div class="compound-note">* Some researchers use SS-31 as a precursor phase before MOTS-c; this sequencing is a research convention, not an established requirement.</div>
         </div>
       </div>
       <div class="stack-meta">
@@ -1863,20 +1865,16 @@
       <div class="stack-compounds-label">Compounds</div>
       <div class="compound-row">
         <div class="compound-info">
-          <div class="compound-name">BPC-157</div>
-          <div class="compound-dose">250–500 mcg/day split 2x sub-Q near injury</div>
+          <div class="compound-name">BPC-157 + TB-500</div>
+          <div class="compound-dose">BPC-157: 250–500 mcg/day · TB-500: 2–5 mg/week</div>
+          <div class="compound-note">* These compounds are commonly researched together as a mixed blend known as “Wolverine.” Verify the amount of each component in the specific blend.</div>
         </div>
       </div>
       <div class="compound-row">
         <div class="compound-info">
-          <div class="compound-name">TB-500</div>
-          <div class="compound-dose">2–5 mg/week split 2x sub-Q</div>
-        </div>
-      </div>
-      <div class="compound-row">
-        <div class="compound-info">
-          <div class="compound-name">GHK-Cu</div>
-          <div class="compound-dose">1–2 mg/day sub-Q or topical 1–5% 1–2x daily</div>
+          <div class="compound-name">KPV</div>
+          <div class="compound-dose">250 mcg–1 mg/day sub-Q or oral research format</div>
+          <div class="compound-note">* KPV is discussed as a complementary component for inflammation-focused research, broadening the Wolverine blend’s tissue-recovery focus. Combination-specific evidence remains limited.</div>
         </div>
       </div>
       <div class="stack-meta">
@@ -1885,7 +1883,41 @@
       </div>
     </div>
 
-    <!-- 3. GH OPTIMIZATION STACK -->
+    <!-- 3. GLOW & KLOW RECOVERY BLENDS -->
+    <div class="stack-card accent-pink" data-tags="healing aesthetics">
+      <div class="stack-card-header">
+        <div class="stack-icon">✨</div>
+        <div class="stack-head-text">
+          <div class="stack-title">GLOW &amp; KLOW Recovery Blends</div>
+          <div class="stack-goal">Goal: Tissue Recovery + Inflammation + Skin Support</div>
+        </div>
+      </div>
+      <p class="stack-desc">Two closely related recovery blends. GLOW combines the Wolverine components with GHK-Cu, while KLOW uses the same foundation and adds KPV for an additional inflammation-focused research component.</p>
+      <div class="stack-compounds-label">Blend Notes</div>
+      <div class="compound-row">
+        <div class="compound-info">
+          <div class="compound-name">GLOW Blend</div>
+          <div class="compound-dose">70 mg blend · BPC-157 + TB-500 + GHK-Cu</div>
+          <div class="compound-dose">Commonly discussed research protocol: 1–2 mg daily · generally 5 days on / 2 days off</div>
+          <div class="compound-note">* GLOW combines the Wolverine recovery pairing with GHK-Cu for added collagen, skin, and tissue-support research.</div>
+        </div>
+      </div>
+      <div class="compound-row">
+        <div class="compound-info">
+          <div class="compound-name">KLOW Blend</div>
+          <div class="compound-dose">80 mg blend · BPC-157 + KPV + TB-500 + GHK-Cu</div>
+          <div class="compound-dose">Commonly discussed research protocol: 1–2 mg daily · generally 5 days on / 2 days off</div>
+          <div class="compound-note">* KLOW is the GLOW blend with KPV added, expanding the same recovery and GHK-Cu foundation with an inflammation-focused research component.</div>
+          <div class="compound-note">* Some researchers use either blend daily during a more intensive recovery phase.</div>
+        </div>
+      </div>
+      <div class="stack-meta">
+        <div class="meta-item"><div class="meta-label">General Cycle</div><div class="meta-val">5 days on / 2 days off</div></div>
+        <div class="meta-item"><div class="meta-label">Level</div><div class="meta-val"><strong>Intermediate</strong></div></div>
+      </div>
+    </div>
+
+    <!-- 4. GH OPTIMIZATION STACK -->
     <div class="stack-card accent-blue" data-tags="performance">
       <div class="stack-card-header">
         <div class="stack-icon">🧬</div>
@@ -2055,15 +2087,15 @@
     </div>
 
     <!-- 8. ADVANCED FAT LOSS STACK -->
-    <div class="stack-card accent-red" data-tags="fat advanced">
+    <div class="stack-card accent-red" data-tags="fat">
       <div class="stack-card-header">
         <div class="stack-icon">🚀</div>
         <div class="stack-head-text">
-          <div class="stack-title">Advanced Fat Loss Stack</div>
+          <div class="stack-title">Advanced Body Recomposition</div>
           <div class="stack-goal">Goal: Maximum Fat Loss — GLP-1 + GH + Visceral Targeting</div>
         </div>
       </div>
-      <p class="stack-desc">The most aggressive fat loss protocol on this list. Retatrutide is the strongest triple agonist available. Tesamorelin specifically targets visceral fat. Titrate slowly and run compounds solo before stacking.</p>
+      <p class="stack-desc">Combines appetite and body-composition research with visceral-fat, mitochondrial-signaling, and NNMT-pathway research. This four-compound combination is advanced, and combination-specific evidence remains limited.</p>
       <div class="stack-compounds-label">Compounds</div>
       <div class="compound-row">
         <div class="compound-info">
@@ -2074,13 +2106,21 @@
       <div class="compound-row">
         <div class="compound-info">
           <div class="compound-name">Tesamorelin</div>
-          <div class="compound-dose">1–2 mg/day sub-Q</div>
+          <div class="compound-dose">1–2 mg/day sub-Q · PM fasted</div>
+          <div class="compound-note">* Many researchers discuss evening use under fasted conditions, with an optional fasted morning session; this timing approach is a research convention, not an established requirement.</div>
         </div>
       </div>
       <div class="compound-row">
         <div class="compound-info">
-          <div class="compound-name">HGH Frag 176–191 <span class="optional-tag">optional</span></div>
-          <div class="compound-dose">250 mcg sub-Q fasted AM + pre-bed</div>
+          <div class="compound-name">MOTS-c</div>
+          <div class="compound-dose">Commonly discussed research protocol: 5–10 mg/week, divided across 2–3 research sessions</div>
+          <div class="compound-note">* Some researchers use SS-31 as a precursor phase before MOTS-c; this sequencing is a research convention, not an established requirement.</div>
+        </div>
+      </div>
+      <div class="compound-row">
+        <div class="compound-info">
+          <div class="compound-name">5-Amino-1MQ</div>
+          <div class="compound-dose">Commonly discussed research protocol: 2–5 mg daily or every other day</div>
         </div>
       </div>
       <div class="stack-meta">
@@ -2090,11 +2130,11 @@
     </div>
 
     <!-- 9. HORMONE & LIBIDO STACK -->
-    <div class="stack-card accent-lime" data-tags="advanced aesthetics">
+    <div class="stack-card accent-lime" data-tags="libido">
       <div class="stack-card-header">
         <div class="stack-icon">💛</div>
         <div class="stack-head-text">
-          <div class="stack-title">Hormone &amp; Libido Stack</div>
+          <div class="stack-title">Libido</div>
           <div class="stack-goal">Goal: Hormonal Support, Sexual Function, Drive</div>
         </div>
       </div>
@@ -2125,7 +2165,7 @@
     </div>
 
     <!-- 10. MUSCLE GROWTH STACK -->
-    <div class="stack-card accent-blue" data-tags="performance advanced">
+    <div class="stack-card accent-blue" data-tags="performance">
       <div class="stack-card-header">
         <div class="stack-icon">🏆</div>
         <div class="stack-head-text">
@@ -3159,7 +3199,7 @@
 
   // Open a specific stack category from homepage goal cards.
   function routeStackHash() {
-    const match = window.location.hash.match(/^#stacks-(fat|healing|performance|cognitive|longevity|aesthetics|advanced)$/);
+    const match = window.location.hash.match(/^#stacks-(fat|healing|performance|cognitive|longevity|aesthetics|libido)$/);
     if (!match) return;
 
     const key = match[1];
@@ -3206,9 +3246,9 @@
   // ── PROTOCOL DATA ───────────────────────────
   const protocols = {
     fatloss: {
-      beginner:     { title:'Your <span>Fat Loss</span> Starter Protocol', body:'For a beginner, we recommend keeping it simple. Start with a <strong>single GLP-1 peptide</strong> to control appetite and begin recomping your body. Master your injection technique and titration schedule before adding anything else.', steps:[{n:'1',t:'Semaglutide','d':'0.25 mg/week sub-Q for weeks 1–4, then titrate up every 4 weeks as tolerated. Max effective dose is typically 1–2.4 mg/week.'},{ n:'2',t:'AOD-9604 (optional add-on)','d':'200–300 mcg sub-Q fasted AM once comfortable with injections. Complements GLP-1 by directly stimulating lipolysis.'},{ n:'3',t:'Reconstitution & Storage','d':'Read the Reconstitution and Storage tabs before you start. Proper technique matters more than the compound itself.'}] },
-      intermediate: { title:'Your <span>Fat Loss</span> Intermediate Stack', body:'You\'re ready to layer compounds. Combine a <strong>GLP-1 for appetite control</strong> with <strong>AOD-9604</strong> for direct lipolysis and optionally a GH secretagogue to preserve lean mass while cutting.', steps:[{n:'1',t:'Semaglutide or Tirzepatide','d':'Titrate to your comfortable maintenance dose. Tirzepatide offers slightly superior fat loss outcomes in trials.'},{ n:'2',t:'AOD-9604','d':'200–300 mcg fasted AM, 5 days on / 2 days off. Run alongside GLP-1 for synergistic fat metabolism.'},{ n:'3',t:'Ipamorelin / CJC-1295 Blend (optional)','d':'100–200 mcg before bed. Preserves lean mass and improves sleep quality during a cut.'}] },
-      advanced:     { title:'Your <span>Fat Loss</span> Advanced Protocol', body:'Advanced users should consider a full metabolic stack. Layer GLP-1, peptide lipolysis, and GH optimization while monitoring bloodwork at 8-week intervals.', steps:[{n:'1',t:'Tirzepatide','d':'Maintain at your effective dose (typically 5–10 mg/week). Dual GIP/GLP-1 action is superior for advanced recomp.'},{ n:'2',t:'AOD-9604 + 5-Amino-1MQ','d':'AOD 200–300 mcg fasted AM. 5-Amino-1MQ caps as directed by vendor. NNMT inhibition for metabolic upregulation.'},{ n:'3',t:'Ipamorelin / CJC-1295','d':'100–300 mcg 2x daily (pre-workout + pre-bed). GH optimization supports body recomp and recovery.'},{ n:'4',t:'Bloodwork','d':'Lipids, insulin, IGF-1 at baseline and every 8 weeks. Adjust protocol based on results.'}] },
+      beginner:     { title:'Your <span>Body Recomposition &amp; Fat Loss</span> Starter Protocol', body:'For a beginner, we recommend keeping it simple. Start with a <strong>single GLP-1 peptide</strong> to control appetite and begin recomping your body. Master your injection technique and titration schedule before adding anything else.', steps:[{n:'1',t:'Semaglutide','d':'0.25 mg/week sub-Q for weeks 1–4, then titrate up every 4 weeks as tolerated. Max effective dose is typically 1–2.4 mg/week.'},{ n:'2',t:'AOD-9604 (optional add-on)','d':'200–300 mcg sub-Q fasted AM once comfortable with injections. Complements GLP-1 by directly stimulating lipolysis.'},{ n:'3',t:'Reconstitution & Storage','d':'Read the Reconstitution and Storage tabs before you start. Proper technique matters more than the compound itself.'}] },
+      intermediate: { title:'Your <span>Body Recomposition &amp; Fat Loss</span> Intermediate Stack', body:'You\'re ready to layer compounds. Combine a <strong>GLP-1 for appetite control</strong> with <strong>AOD-9604</strong> for direct lipolysis and optionally a GH secretagogue to preserve lean mass while cutting.', steps:[{n:'1',t:'Semaglutide or Tirzepatide','d':'Titrate to your comfortable maintenance dose. Tirzepatide offers slightly superior fat loss outcomes in trials.'},{ n:'2',t:'AOD-9604','d':'200–300 mcg fasted AM, 5 days on / 2 days off. Run alongside GLP-1 for synergistic fat metabolism.'},{ n:'3',t:'Ipamorelin / CJC-1295 Blend (optional)','d':'100–200 mcg before bed. Preserves lean mass and improves sleep quality during a cut.'}] },
+      advanced:     { title:'Your <span>Body Recomposition &amp; Fat Loss</span> Advanced Protocol', body:'Advanced users should consider a full metabolic stack. Layer GLP-1, peptide lipolysis, and GH optimization while monitoring bloodwork at 8-week intervals.', steps:[{n:'1',t:'Tirzepatide','d':'Maintain at your effective dose (typically 5–10 mg/week). Dual GIP/GLP-1 action is superior for advanced recomp.'},{ n:'2',t:'AOD-9604 + 5-Amino-1MQ','d':'AOD 200–300 mcg fasted AM. 5-Amino-1MQ caps as directed by vendor. NNMT inhibition for metabolic upregulation.'},{ n:'3',t:'Ipamorelin / CJC-1295','d':'100–300 mcg 2x daily (pre-workout + pre-bed). GH optimization supports body recomp and recovery.'},{ n:'4',t:'Bloodwork','d':'Lipids, insulin, IGF-1 at baseline and every 8 weeks. Adjust protocol based on results.'}] },
     },
     healing: {
       beginner:     { title:'Your <span>Healing & Recovery</span> Starter Protocol', body:'BPC-157 is the gold-standard entry point for healing. It\'s well-studied, forgiving on dosing, and can be administered sub-Q near the injury site or topically for surface wounds.', steps:[{n:'1',t:'BPC-157','d':'250–500 mcg/day split into 2 sub-Q injections near the area of injury. Run 4–8 weeks, 2–4 weeks off.'},{ n:'2',t:'Topical BPC-157 (surface wounds/skin)','d':'500 mcg–1 mg per application 1–2x daily if injury is external. Combine with GHK-Cu cream for skin healing.'},{ n:'3',t:'Start Here Tip','d':'Inject as close to the injury as reasonably possible — this targets the peptide\'s healing effect locally.'}] },
