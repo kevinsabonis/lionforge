@@ -20,11 +20,12 @@
     }
 
     * { box-sizing: border-box; }
+    html { scroll-padding-top: 72px; }
     html, body { margin: 0; min-height: 100%; background: var(--navy); color: var(--text); }
     body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
     a:focus-visible, button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 4px; }
 
-    .site-shell { min-height: 100vh; overflow: hidden; background: var(--navy); }
+    .site-shell { min-height: 100vh; overflow-x: clip; background: var(--navy); }
     .nav {
       height: 72px;
       padding: 0 clamp(22px, 5vw, 76px);
@@ -34,8 +35,9 @@
       border-bottom: 1px solid rgba(215, 163, 54, .16);
       background: rgba(5, 10, 22, .9);
       backdrop-filter: blur(16px);
-      position: relative;
-      z-index: 3;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
     }
     .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); }
     .brand img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1px solid var(--line); }
@@ -311,6 +313,7 @@
     .footer-bottom { margin-top: 28px; padding-top: 24px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px; border-top: 1px solid rgba(255,255,255,.07); color: #596781; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
 
     @media (max-width: 760px) {
+      html { scroll-padding-top: 64px; }
       .nav { height: 64px; }
       .menu-toggle { display: flex; }
       .links { display: none; position: absolute; top: 64px; left: 16px; right: 16px; flex-direction: column; align-items: stretch; gap: 0; padding: 10px; border: 1px solid rgba(215,163,54,.24); border-radius: 8px; background: rgba(5,10,22,.98); box-shadow: 0 24px 60px rgba(0,0,0,.45); }
@@ -607,6 +610,180 @@
       </div>
     </footer>
   </main>
+
+  <div id="auth-overlay" style="display:none; position:fixed; inset:0; z-index:1000; background:rgba(4,8,22,0.88); backdrop-filter:blur(6px); align-items:center; justify-content:center;">
+    <div id="auth-modal" style="background:#0d1535; border:1px solid rgba(232,168,32,0.25); border-radius:18px; padding:40px 44px; width:100%; max-width:420px; position:relative; box-shadow:0 8px 60px rgba(0,0,0,0.6);">
+
+      <button onclick="closeModal()" style="position:absolute;top:16px;right:20px;background:none;border:none;color:#4a5a7a;font-size:22px;cursor:pointer;line-height:1;">&#x2715;</button>
+
+      <div style="text-align:center;margin-bottom:28px;">
+        <div style="font-family:'Share Tech Mono',monospace;color:#e8a820;font-size:14px;letter-spacing:0.15em;">LION FORGE PEPTIDES</div>
+        <div style="font-size:11px;letter-spacing:0.3em;color:#4a5a7a;margin-top:4px;text-transform:uppercase;">Sign in to continue</div>
+      </div>
+
+      <!-- Step 1: Email -->
+      <div id="step-email">
+        <label style="display:block;font-size:11px;color:#6a7a9e;letter-spacing:0.15em;margin-bottom:8px;">EMAIL ADDRESS</label>
+        <input id="inp-email" type="email" placeholder="you@example.com" autocomplete="email"
+          style="width:100%;padding:13px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(232,168,32,0.2);border-radius:8px;color:#dde4f5;font-size:15px;font-family:'Inter',sans-serif;margin-bottom:16px;outline:none;box-sizing:border-box;">
+        <button id="send-btn" onclick="requestCode()"
+          style="width:100%;padding:14px;background:#1e3d8f;border:1px solid rgba(232,168,32,0.35);border-radius:10px;color:#ffd060;font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:0.15em;cursor:pointer;">
+          SEND CODE &nbsp;&#x2192;
+        </button>
+        <div id="send-status" style="min-height:18px;margin-top:10px;text-align:center;font-size:13px;color:#ef4444;"></div>
+      </div>
+
+      <!-- Step 2: Code -->
+      <div id="step-code" style="display:none;">
+        <div style="font-size:13px;color:#6a7a9e;margin-bottom:20px;text-align:center;">
+          Code sent to <strong style="color:#dde4f5;" id="code-sent-to"></strong>
+        </div>
+        <label style="display:block;font-size:11px;color:#6a7a9e;letter-spacing:0.15em;margin-bottom:8px;">6-DIGIT CODE</label>
+        <input id="inp-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code"
+          style="width:100%;padding:13px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(232,168,32,0.2);border-radius:8px;color:#dde4f5;font-size:24px;font-family:'Share Tech Mono',monospace;letter-spacing:0.35em;text-align:center;margin-bottom:16px;outline:none;box-sizing:border-box;">
+        <button id="verify-btn" onclick="verifyCode()"
+          style="width:100%;padding:14px;background:#1e3d8f;border:1px solid rgba(232,168,32,0.35);border-radius:10px;color:#ffd060;font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:0.15em;cursor:pointer;margin-bottom:10px;">
+          SIGN IN &nbsp;&#x2192;
+        </button>
+        <button onclick="showStep('email')"
+          style="width:100%;padding:10px;background:none;border:none;color:#4a5a7a;font-size:13px;cursor:pointer;">
+          &#8592; Use a different email
+        </button>
+        <div id="verify-status" style="min-height:18px;margin-top:8px;text-align:center;font-size:13px;color:#ef4444;"></div>
+      </div>
+
+      <!-- Success -->
+      <div id="step-success" style="display:none;text-align:center;padding:16px 0;">
+        <div style="font-size:40px;margin-bottom:14px;color:#22c55e;">&#10003;</div>
+        <div style="color:#e8a820;font-size:16px;font-weight:500;margin-bottom:8px;">Signed In!</div>
+        <div id="success-sub" style="color:#6a7a9e;font-size:13px;"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+  function apiFetch(url, opts) {
+    opts = opts || {};
+    opts.credentials = 'include';
+    try {
+      var token = sessionStorage.getItem('lfp_token');
+      if (token) {
+        opts.headers = opts.headers || {};
+        opts.headers['Authorization'] = 'Bearer ' + token;
+      }
+    } catch(e) {}
+    return fetch(url, opts);
+  }
+  window.apiFetch = apiFetch;
+  function openModal(dest) {
+    if (window._lfCurrentUser) {
+      if (dest === 'account') window.location.href = 'lion-forge-account.html';
+      else if (dest === 'cart') window.location.href = 'lion-forge-cart.html';
+      else window.location.href = 'lion-forge-shop.html';
+      return;
+    }
+    window._authDest = dest || 'shop';
+    document.getElementById('auth-overlay').style.display = 'flex';
+    showStep('email');
+    setTimeout(() => document.getElementById('inp-email').focus(), 50);
+  }
+  window.openModal = openModal;
+  function closeModal() {
+    document.getElementById('auth-overlay').style.display = 'none';
+  }
+  window.closeModal = closeModal;
+  function showStep(name) {
+    ['email','code','success'].forEach(s => {
+      const el = document.getElementById('step-' + s);
+      if (el) el.style.display = 'none';
+    });
+    document.getElementById('step-' + name).style.display = 'block';
+  }
+
+  async function requestCode() {
+    const email = document.getElementById('inp-email').value.trim();
+    const statusEl = document.getElementById('send-status');
+    statusEl.textContent = '';
+    if (!email || !email.includes('@')) {
+      statusEl.textContent = 'Please enter a valid email address.';
+      return;
+    }
+    const btn = document.getElementById('send-btn');
+    btn.disabled = true; btn.textContent = 'Sending...';
+    try {
+      const r = await fetch('/api/auth/request-code', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ email })
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Failed to send code');
+      document.getElementById('code-sent-to').textContent = email;
+      showStep('code');
+      document.getElementById('inp-code').value = '';
+      document.getElementById('inp-code').focus();
+    } catch(e) {
+      statusEl.textContent = e.message || 'Something went wrong. Try again.';
+    } finally {
+      btn.disabled = false; btn.textContent = 'SEND CODE  →';
+    }
+  }
+
+  async function verifyCode() {
+    const email = document.getElementById('inp-email').value.trim();
+    const code  = document.getElementById('inp-code').value.trim();
+    const statusEl = document.getElementById('verify-status');
+    statusEl.textContent = '';
+    if (code.length !== 6) { statusEl.textContent = 'Please enter the 6-digit code.'; return; }
+    const btn = document.getElementById('verify-btn');
+    btn.disabled = true; btn.textContent = 'Verifying...';
+    try {
+      const r = await fetch('/api/auth/verify-code', {
+        method: 'POST', credentials: 'include', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ email, code })
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Invalid code');
+      window._lfCurrentUser = d;
+      try { sessionStorage.setItem('lfp_user', JSON.stringify(d)); if(d._token) sessionStorage.setItem('lfp_token', d._token); } catch(e) {}
+      showStep('success');
+      document.getElementById('success-sub').textContent = 'Welcome, ' + (d.displayName || email) + '! Redirecting...';
+      const dest = window._authDest || 'shop';
+      const url  = dest === 'account' ? 'lion-forge-account.html'
+                 : dest === 'cart'    ? 'lion-forge-cart.html'
+                 : 'lion-forge-shop.html';
+      setTimeout(() => { window.location.href = url; }, 1500);
+    } catch(e) {
+      btn.disabled = false; btn.textContent = 'SIGN IN  →';
+      statusEl.textContent = e.message;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const overlay = document.getElementById('auth-overlay');
+    if (overlay) overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+    document.getElementById('inp-email').addEventListener('keydown', e => { if (e.key === 'Enter') requestCode(); });
+    document.getElementById('inp-code').addEventListener('keydown',  e => { if (e.key === 'Enter') verifyCode(); });
+
+    // Check if already logged in, and handle ?dest redirect
+    const destParam = new URLSearchParams(window.location.search).get('dest');
+    apiFetch('/api/auth/me')
+      .then(r => r.ok ? r.json() : null)
+      .then(user => {
+        if (user) {
+          window._lfCurrentUser = user;
+          try { sessionStorage.setItem('lfp_user', JSON.stringify(user)); } catch(e) {}
+          if (destParam === 'account') { window.location.href = 'lion-forge-account.html'; return; }
+          if (destParam === 'cart')    { window.location.href = 'lion-forge-cart.html';    return; }
+          if (destParam === 'shop')    { window.location.href = 'lion-forge-shop.html';    return; }
+        } else if (destParam) {
+          openModal(destParam);
+        }
+      })
+      .catch(() => { if (destParam) openModal(destParam); });
+  });
+  </script>
+
   <script>
     const menuToggle = document.querySelector('.menu-toggle');
     const primaryLinks = document.querySelector('.links');

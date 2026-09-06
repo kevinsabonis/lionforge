@@ -345,6 +345,8 @@ function apiFetch(url,opts){opts=opts||{};opts.credentials='include';try{var t=s
 <div class="purchase-gate" id="purchase-gate" role="dialog" aria-modal="true" aria-labelledby="purchase-gate-title" onclick="if(event.target===this)closePurchaseGate()">
   <div class="purchase-card">
     <button class="purchase-close" type="button" onclick="closePurchaseGate()" aria-label="Close verification">&#x2715;</button>
+
+    <div id="pg-step-ack">
     <div class="purchase-eyebrow">Required before adding to cart</div>
     <h2 class="purchase-title" id="purchase-gate-title">Age &amp; Research-Use Acknowledgment</h2>
     <div class="purchase-copy">
@@ -379,6 +381,37 @@ function apiFetch(url,opts){opts=opts||{};opts.credentials='include';try{var t=s
       <button class="purchase-confirm" id="purchase-confirm" type="button" onclick="confirmPurchaseVerification()" disabled>Confirm &amp; add to cart</button>
     </div>
     <div class="purchase-note">Verification is remembered for this browser session. Checkout requires a final acknowledgment.</div>
+    </div>
+
+    <div id="pg-step-otp" style="display:none;">
+      <div class="purchase-eyebrow">One more step</div>
+      <h2 class="purchase-title">Sign in to complete your order</h2>
+      <div class="purchase-copy">Enter your email and we'll send a 6-digit sign-in code — no password needed.</div>
+
+      <div id="pg-otp-email-step" style="margin-top:20px;">
+        <label style="display:block;font-size:11px;color:#6a7a9e;letter-spacing:0.15em;margin-bottom:8px;">EMAIL ADDRESS</label>
+        <input id="pg-inp-email" type="email" placeholder="you@example.com" autocomplete="email"
+          style="width:100%;padding:13px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(232,168,32,0.2);border-radius:8px;color:#dde4f5;font-size:15px;font-family:'Inter',sans-serif;margin-bottom:16px;outline:none;box-sizing:border-box;">
+        <div class="purchase-actions">
+          <button class="purchase-cancel" type="button" onclick="closePurchaseGate()">Cancel</button>
+          <button class="purchase-confirm" id="pg-send-btn" type="button" onclick="requestShopCode()">Send code</button>
+        </div>
+        <div id="pg-send-status" style="min-height:18px;margin-top:10px;text-align:center;font-size:13px;color:#ef4444;"></div>
+      </div>
+
+      <div id="pg-otp-code-step" style="display:none;margin-top:20px;">
+        <div style="font-size:13px;color:#6a7a9e;margin-bottom:16px;text-align:center;">Code sent to <strong style="color:#dde4f5;" id="pg-code-sent-to"></strong></div>
+        <label style="display:block;font-size:11px;color:#6a7a9e;letter-spacing:0.15em;margin-bottom:8px;">6-DIGIT CODE</label>
+        <input id="pg-inp-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code"
+          style="width:100%;padding:13px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(232,168,32,0.2);border-radius:8px;color:#dde4f5;font-size:24px;font-family:'Share Tech Mono',monospace;letter-spacing:0.35em;text-align:center;margin-bottom:16px;outline:none;box-sizing:border-box;">
+        <div class="purchase-actions">
+          <button class="purchase-cancel" type="button" onclick="showOtpStep('email')">&#8592; Back</button>
+          <button class="purchase-confirm" id="pg-verify-btn" type="button" onclick="verifyShopCode()">Sign in</button>
+        </div>
+        <div id="pg-verify-status" style="min-height:18px;margin-top:8px;text-align:center;font-size:13px;color:#ef4444;"></div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -701,8 +734,76 @@ function openPurchaseGate(pid) {
   const confirm = document.getElementById('purchase-confirm');
   checkboxes.forEach(checkbox => { checkbox.checked = false; });
   if (confirm) confirm.disabled = true;
+  document.getElementById('pg-step-ack').style.display = 'block';
+  document.getElementById('pg-step-otp').style.display = 'none';
   if (gate) gate.classList.add('show');
   setTimeout(() => checkboxes[0] && checkboxes[0].focus(), 0);
+}
+
+function isSignedIn() {
+  return !!window._lfCurrentUser;
+}
+
+function showOtpStep(step) {
+  document.getElementById('pg-otp-email-step').style.display = step === 'email' ? 'block' : 'none';
+  document.getElementById('pg-otp-code-step').style.display = step === 'code' ? 'block' : 'none';
+}
+
+async function requestShopCode() {
+  const email = document.getElementById('pg-inp-email').value.trim();
+  const statusEl = document.getElementById('pg-send-status');
+  statusEl.textContent = '';
+  if (!email || !email.includes('@')) { statusEl.textContent = 'Please enter a valid email address.'; return; }
+  const btn = document.getElementById('pg-send-btn');
+  btn.disabled = true; btn.textContent = 'Sending...';
+  try {
+    const r = await fetch('/api/auth/request-code', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed to send code');
+    document.getElementById('pg-code-sent-to').textContent = email;
+    showOtpStep('code');
+    document.getElementById('pg-inp-code').value = '';
+    document.getElementById('pg-inp-code').focus();
+  } catch(e) {
+    statusEl.textContent = e.message || 'Something went wrong. Try again.';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send code';
+  }
+}
+
+async function verifyShopCode() {
+  const email = document.getElementById('pg-inp-email').value.trim();
+  const code = document.getElementById('pg-inp-code').value.trim();
+  const statusEl = document.getElementById('pg-verify-status');
+  statusEl.textContent = '';
+  if (code.length !== 6) { statusEl.textContent = 'Please enter the 6-digit code.'; return; }
+  const btn = document.getElementById('pg-verify-btn');
+  btn.disabled = true; btn.textContent = 'Verifying...';
+  try {
+    const r = await apiFetch('/api/auth/verify-code', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email, code })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Invalid code');
+    window._lfCurrentUser = d;
+    try { sessionStorage.setItem('lfp_user', JSON.stringify(d)); if (d._token) sessionStorage.setItem('lfp_token', d._token); } catch(e) {}
+    if (d.role === 'admin') {
+      const adminBtn = document.getElementById('admin-nav-btn');
+      if (adminBtn) adminBtn.style.display = 'block';
+    }
+    const gate = document.getElementById('purchase-gate');
+    if (gate) gate.classList.remove('show');
+    const pid = pendingPurchasePid;
+    pendingPurchasePid = null;
+    completeAddToCart(pid);
+  } catch(e) {
+    btn.disabled = false; btn.textContent = 'Sign in';
+    statusEl.textContent = e.message;
+  }
 }
 
 function closePurchaseGate() {
@@ -716,11 +817,27 @@ document.addEventListener('keydown', event => {
     closePurchaseGate();
   }
 });
+document.addEventListener('DOMContentLoaded', () => {
+  const pgEmail = document.getElementById('pg-inp-email');
+  const pgCode = document.getElementById('pg-inp-code');
+  if (pgEmail) pgEmail.addEventListener('keydown', e => { if (e.key === 'Enter') requestShopCode(); });
+  if (pgCode) pgCode.addEventListener('keydown', e => { if (e.key === 'Enter') verifyShopCode(); });
+});
 
 function confirmPurchaseVerification() {
   const checkboxes = [...document.querySelectorAll('.purchase-ack')];
   if (checkboxes.length !== 3 || !checkboxes.every(checkbox => checkbox.checked) || pendingPurchasePid === null) return;
   try { sessionStorage.setItem('lfp_purchase_verified', 'accepted'); } catch(e) {}
+
+  if (!isSignedIn()) {
+    document.getElementById('pg-step-ack').style.display = 'none';
+    document.getElementById('pg-step-otp').style.display = 'block';
+    document.getElementById('pg-inp-email').value = window._lfCurrentUser?.email || '';
+    showOtpStep('email');
+    setTimeout(() => document.getElementById('pg-inp-email').focus(), 0);
+    return;
+  }
+
   const pid = pendingPurchasePid;
   const gate = document.getElementById('purchase-gate');
   if (gate) gate.classList.remove('show');
