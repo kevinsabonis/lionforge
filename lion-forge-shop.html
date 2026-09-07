@@ -90,6 +90,13 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
   padding:22px;transition:border-color .2s,transform .15s;position:relative;}
 .product-card:hover{border-color:rgba(232,168,32,0.28);transform:translateY(-2px);}
 .product-card.out-of-stock{opacity:0.65;}
+.product-card.featured{border-color:rgba(232,168,32,0.4);background:linear-gradient(160deg,rgba(232,168,32,0.06),var(--navy-card) 55%);}
+.product-card.featured:hover{border-color:var(--gold);}
+.featured-badge{position:absolute;top:-10px;right:16px;background:var(--gold);color:#0d1226;font-size:10px;font-weight:700;letter-spacing:0.08em;padding:3px 10px;border-radius:5px;text-transform:uppercase;}
+.grid-section-label{grid-column:1/-1;display:flex;align-items:center;gap:12px;margin:4px 0 -2px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);}
+.grid-section-label::after{content:'';flex:1;height:1px;background:rgba(232,168,32,0.18);}
+.grid-section-label.secondary{color:#6a7a9e;margin-top:22px;}
+.grid-section-label.secondary::after{background:rgba(255,255,255,0.08);}
 .card-name{font-size:15px;font-weight:600;color:#edf1ff;letter-spacing:0.04em;margin-bottom:4px;}
 .card-subtitle{font-size:11px;color:var(--muted);letter-spacing:0.06em;margin-bottom:12px;}
 .card-divider{height:1px;background:rgba(232,168,32,0.1);margin-bottom:14px;}
@@ -604,6 +611,10 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCartBadge();
 });
 
+// Best-selling compounds, promoted to their own section at the top of the shop.
+// Order here is the display order of the featured section (not affected by the sort dropdown).
+const FEATURED_IDS = [1, 4, 10, 13]; // RETATRUTIDE, TESAMORELIN, NAD+, BPC-157/TB500 (Wolverine)
+
 // ─── RENDER PRODUCTS ─────────────────────────────────────────────
 function renderProducts() {
   const search = document.getElementById('search-input').value.toLowerCase();
@@ -622,20 +633,32 @@ function renderProducts() {
   if (filter === 'instock')    list = list.filter(p => p.variants.some(v => v.stock > 0));
   if (filter === 'outofstock') list = list.filter(p => p.variants.every(v => v.stock === 0));
 
-  // sort
-  if (sort === 'name-asc')    list.sort((a,b) => a.name.localeCompare(b.name));
-  if (sort === 'name-desc')   list.sort((a,b) => b.name.localeCompare(a.name));
-  if (sort === 'price-asc')   list.sort((a,b) => Math.min(...a.variants.map(v=>v.price)) - Math.min(...b.variants.map(v=>v.price)));
-  if (sort === 'price-desc')  list.sort((a,b) => Math.min(...b.variants.map(v=>v.price)) - Math.min(...a.variants.map(v=>v.price)));
+  // split into the featured section (fixed priority order) and everything else
+  const featured = FEATURED_IDS.map(id => list.find(p => p.id === id)).filter(Boolean);
+  let rest = list.filter(p => !FEATURED_IDS.includes(p.id));
 
-
+  // sort only applies to the non-featured section; featured keeps its fixed order
+  if (sort === 'name-asc')    rest.sort((a,b) => a.name.localeCompare(b.name));
+  if (sort === 'name-desc')   rest.sort((a,b) => b.name.localeCompare(a.name));
+  if (sort === 'price-asc')   rest.sort((a,b) => Math.min(...a.variants.map(v=>v.price)) - Math.min(...b.variants.map(v=>v.price)));
+  if (sort === 'price-desc')  rest.sort((a,b) => Math.min(...b.variants.map(v=>v.price)) - Math.min(...a.variants.map(v=>v.price)));
 
   const grid = document.getElementById('product-grid');
-  if (list.length === 0) { grid.innerHTML = '<div class="no-results">No compounds found.</div>'; return; }
-  grid.innerHTML = list.map(p => renderCard(p)).join('');
+  if (featured.length === 0 && rest.length === 0) { grid.innerHTML = '<div class="no-results">No compounds found.</div>'; return; }
+
+  let html = '';
+  if (featured.length) {
+    html += `<div class="grid-section-label">&#9733; Best Sellers</div>`;
+    html += featured.map(p => renderCard(p, true)).join('');
+  }
+  if (rest.length) {
+    if (featured.length) html += `<div class="grid-section-label secondary">All Compounds</div>`;
+    html += rest.map(p => renderCard(p)).join('');
+  }
+  grid.innerHTML = html;
 }
 
-function renderCard(p) {
+function renderCard(p, isFeatured) {
   const selIdx = selectedVariants[p.id] ?? 0;
   const validIdx = Math.min(selIdx, p.variants.length - 1);
   const v = p.variants[validIdx];
@@ -667,7 +690,8 @@ function renderCard(p) {
   const isWolverine = p.name.toUpperCase() === 'BPC-157/TB500';
   const displayName = isWolverine ? 'WOLVERINE' : p.name;
   const displaySubtitle = isWolverine ? 'BPC-157 / TB500 blend' : p.subtitle;
-  return `<div class="product-card ${allOut?'out-of-stock':''}" id="card-${p.id}">
+  return `<div class="product-card ${allOut?'out-of-stock':''} ${isFeatured?'featured':''}" id="card-${p.id}">
+    ${isFeatured ? '<div class="featured-badge">Best Seller</div>' : ''}
     <div class="added-flash" id="flash-${p.id}">Added!</div>
     <div class="card-name">${displayName}</div>
     ${displaySubtitle ? `<div class="card-subtitle">${displaySubtitle}</div>` : ''}
