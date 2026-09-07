@@ -320,7 +320,7 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
 
 <script>
 function apiFetch(url,opts){opts=opts||{};opts.credentials='include';try{var t=sessionStorage.getItem('lfp_token');if(t){opts.headers=opts.headers||{};opts.headers['Authorization']='Bearer '+t;}}catch(e){}return fetch(url,opts);}
-(async function() {
+async function restoreShopSession() {
   let user;
   try {
     // Load from sessionStorage as immediate fallback
@@ -348,24 +348,39 @@ function apiFetch(url,opts){opts=opts||{};opts.credentials='include';try{var t=s
     if (btn) btn.style.display = 'block';
   }
 
+}
+
+async function loadShopProducts() {
+  if (catalogRequestPending) return;
+  catalogRequestPending = true;
+  catalogLoadState = 'loading';
+  renderProducts();
   try {
-    const r = await apiFetch('/api/products');
-    const data = await r.json();
-    if (data.list && data.list.length > 0) {
-      products.length = 0;
-      data.list.forEach(p => products.push(p));
-      nextId = Math.max(...products.map(p => p.id)) + 1;
-      renderProducts();
+    if (location.protocol === 'file:') { loadLocalPreviewProducts(); return; }
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      try {
+        // Public inventory must not wait for authentication or use a stale cache.
+        const response = await fetch('/api/products', {cache:'no-store', credentials:'omit', signal:controller.signal});
+        if (!response.ok) throw new Error(`Product request failed (${response.status})`);
+        const data = await response.json();
+        if (!Array.isArray(data.list)) throw new Error('Invalid product response');
+        products.splice(0, products.length, ...data.list);
+        nextId = products.length ? Math.max(...products.map(p => p.id)) + 1 : 1;
+        catalogLoadState = 'ready';
+        renderProducts();
+        return;
+      } catch (error) {
+        if (attempt === 1) throw error;
+      } finally { clearTimeout(timeout); }
     }
-  } catch(e) {
-    console.warn('Product sync failed:', e.message);
-    if (location.protocol === 'file:') {
-      loadLocalPreviewProducts();
-    } else {
-      document.getElementById('product-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:#6a7a9e;">Unable to load products. Please refresh the page.</div>';
-    }
-  }
-})();
+  } catch (error) {
+    console.warn('Product sync failed:', error.message);
+    catalogLoadState = 'error';
+    renderProducts();
+  } finally { catalogRequestPending = false; }
+}
 </script>
 </head>
 <body>
@@ -568,7 +583,9 @@ function toggleNavMenu() {
 
 <script>
 // ─── DATA ────────────────────────────────────────────────────────
-let products = []
+let products = [];
+let catalogLoadState = 'loading';
+let catalogRequestPending = false;
 let nextId = 48;
 
 // Local file previews cannot call the deployed /api/products route. This catalog
@@ -598,6 +615,7 @@ const LOCAL_PREVIEW_PRODUCTS = [
 ];
 
 function loadLocalPreviewProducts() {
+  catalogLoadState = 'ready';
   products.splice(0, products.length, ...LOCAL_PREVIEW_PRODUCTS);
   nextId = Math.max(...products.map(p => p.id)) + 1;
   products.forEach(p => { selectedVariants[p.id] = 0; quantities[p.id] = 1; });
@@ -630,6 +648,8 @@ document.addEventListener('DOMContentLoaded', () => {
   products.forEach(p => { selectedVariants[p.id] = 0; quantities[p.id] = 1; });
   renderProducts();
   updateCartBadge();
+  void loadShopProducts();
+  void restoreShopSession();
 });
 
 // Best-selling compounds, promoted to their own section at the top of the shop.
@@ -652,7 +672,16 @@ function featuredVialImage(pid, label) {
 
 // ─── RENDER PRODUCTS ─────────────────────────────────────────────
 function renderProducts() {
-  const search = document.getElementById('search-input').value.toLowerCase();
+  const grid = document.getElementById('product-grid');
+  if (catalogLoadState === 'loading') {
+    grid.innerHTML = '<div class="no-results" role="status">Loading products…</div>';
+    return;
+  }
+  if (catalogLoadState === 'error') {
+    grid.innerHTML = '<div class="no-results" role="alert">We couldn’t load the shop. Please check your connection.<br><button type="button" class="pill" onclick="loadShopProducts()">Try again</button></div>';
+    return;
+  }
+  const search = document.getElementById('search-input').value.trim().toLowerCase();
   const filter = document.getElementById('filter-select').value;
   const sort   = document.getElementById('sort-select').value;
 
@@ -662,7 +691,7 @@ function renderProducts() {
   list = list.filter(p => p.hidden !== true);
 
   // search
-  if (search) list = list.filter(p => p.name.toLowerCase().includes(search) || p.subtitle.toLowerCase().includes(search));
+  if (search) list = list.filter(p => `${p.name || ''} ${p.subtitle || ''} ${p.id === 13 ? 'Wolverine' : ''}`.toLowerCase().includes(search));
 
   // filter
   if (filter === 'instock')    list = list.filter(p => p.variants.some(v => v.stock > 0));
@@ -678,8 +707,12 @@ function renderProducts() {
   if (sort === 'price-asc')   rest.sort((a,b) => Math.min(...a.variants.map(v=>v.price)) - Math.min(...b.variants.map(v=>v.price)));
   if (sort === 'price-desc')  rest.sort((a,b) => Math.min(...b.variants.map(v=>v.price)) - Math.min(...a.variants.map(v=>v.price)));
 
-  const grid = document.getElementById('product-grid');
-  if (featured.length === 0 && rest.length === 0) { grid.innerHTML = '<div class="no-results">No compounds found.</div>'; return; }
+  if (featured.length === 0 && rest.length === 0) {
+    grid.innerHTML = search || filter !== 'all'
+      ? '<div class="no-results">No products match your search or filter.<br><button type="button" class="pill" onclick="clearShopFilters()">Show all products</button></div>'
+      : '<div class="no-results">The catalog is temporarily unavailable.<br><button type="button" class="pill" onclick="loadShopProducts()">Reload products</button></div>';
+    return;
+  }
 
   let html = '';
   if (featured.length) {
@@ -754,6 +787,15 @@ function renderCard(p, isFeatured) {
     </div>
     </div>
   </div>`;
+}
+
+function clearShopFilters() {
+  document.getElementById('search-input').value = '';
+  document.getElementById('filter-select').value = 'all';
+  const url = new URL(window.location.href);
+  url.searchParams.delete('search');
+  history.replaceState(null, '', url);
+  renderProducts();
 }
 
 function selectVariant(pid, idx) {
