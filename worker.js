@@ -213,7 +213,7 @@ async function handleRequestCode(request, env) {
 
   // Send OTP email via Resend
   try {
-    await fetch('https://api.resend.com/emails', {
+    const resendResp = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${env.RESEND_API_KEY}`,
@@ -232,6 +232,10 @@ async function handleRequestCode(request, env) {
         </div>`
       })
     });
+    if (!resendResp.ok) {
+      const body = await resendResp.text();
+      console.error('Resend OTP send failed:', resendResp.status, body);
+    }
   } catch(e) {
     console.error('Resend OTP error:', e.message);
   }
