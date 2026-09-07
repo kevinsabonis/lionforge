@@ -90,8 +90,28 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
   padding:22px;transition:border-color .2s,transform .15s;position:relative;}
 .product-card:hover{border-color:rgba(232,168,32,0.28);transform:translateY(-2px);}
 .product-card.out-of-stock{opacity:0.65;}
-.product-card.featured{border-color:rgba(232,168,32,0.4);background:linear-gradient(160deg,rgba(232,168,32,0.06),var(--navy-card) 55%);}
+.product-card.featured{padding:0;display:flex;flex-direction:column;border-color:rgba(232,168,32,0.4);background:linear-gradient(160deg,rgba(232,168,32,0.06),var(--navy-card) 55%);}
 .product-card.featured:hover{border-color:var(--gold);}
+.product-card.featured .card-details{padding:22px;display:flex;flex-direction:column;flex:1;}
+.product-card.featured .card-actions{margin-top:auto;}
+.product-card.featured .card-name{min-height:22px;}
+.product-card.featured .card-subtitle{min-height:26px;margin-bottom:12px;}
+.vial-image-wrap{aspect-ratio:1;overflow:hidden;border-radius:13px 13px 0 0;background:#060d1d;border-bottom:1px solid rgba(232,168,32,0.18);}
+.vial-image{display:block;width:100%;height:100%;object-fit:contain;}
+.vial-image-placeholder{height:100%;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;color:var(--muted);font-size:13px;}
+.vial-image-wrap [hidden]{display:none;}
+.product-card.featured .featured-badge{top:12px;right:12px;z-index:2;}
+.product-grid{grid-template-columns:repeat(4,minmax(0,1fr));}
+@media(max-width:1199px){.product-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:600px){
+  .shop-header{padding-right:18px;padding-left:18px;}
+  .shop-title{font-size:20px;letter-spacing:0.08em;white-space:nowrap;}
+  .product-grid{grid-template-columns:minmax(0,1fr);padding-right:18px;padding-left:18px;}
+  .controls{flex-wrap:wrap;padding-right:18px;padding-left:18px;}
+  .search-wrap{flex-basis:100%;}
+  .select-wrap{flex:1;min-width:0;}
+  .filter-select{width:100%;}
+}
 .featured-badge{position:absolute;top:-10px;right:16px;background:var(--gold);color:#0d1226;font-size:10px;font-weight:700;letter-spacing:0.08em;padding:3px 10px;border-radius:5px;text-transform:uppercase;}
 .grid-section-label{grid-column:1/-1;display:flex;align-items:center;gap:12px;margin:4px 0 -2px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);}
 .grid-section-label::after{content:'';flex:1;height:1px;background:rgba(232,168,32,0.18);}
@@ -107,6 +127,7 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
   background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#8a9bbf;
   transition:all .15s;white-space:nowrap;}
 .pill:hover{border-color:rgba(232,168,32,0.4);color:var(--gold);}
+.pill:focus-visible{outline:2px solid var(--gold-bright);outline-offset:3px;}
 .pill.active{background:rgba(30,61,143,0.5);border-color:var(--gold);color:var(--gold-bright);}
 .pill.unavailable{opacity:0.35;cursor:not-allowed;text-decoration:line-through;}
 
@@ -553,7 +574,7 @@ let nextId = 48;
 // Local file previews cannot call the deployed /api/products route. This catalog
 // snapshot is preview-only; deployed pages continue to use live D1 inventory.
 const LOCAL_PREVIEW_PRODUCTS = [
-  {id:1,name:'RETATRUTIDE',subtitle:'',hidden:false,variants:[{label:'10MG',price:30,stock:26},{label:'20MG',price:40,stock:7}]},
+  {id:1,name:'RETATRUTIDE',subtitle:'',hidden:false,variants:[{label:'10MG',price:30,stock:26},{label:'20MG',price:40,stock:2}]},
   {id:4,name:'TESAMORELIN',subtitle:'',hidden:false,variants:[{label:'10MG',price:35,stock:6},{label:'20MG',price:65,stock:10}]},
   {id:9,name:'KLOW',subtitle:'BPC-157, KPV, TB500, GHK-Cu',hidden:false,variants:[{label:'80MG',price:45,stock:7}]},
   {id:10,name:'NAD+',subtitle:'',hidden:false,variants:[{label:'500MG',price:40,stock:17}]},
@@ -615,6 +636,20 @@ document.addEventListener('DOMContentLoaded', () => {
 // Order here is the display order of the featured section (not affected by the sort dropdown).
 const FEATURED_IDS = [1, 4, 10, 13]; // RETATRUTIDE, TESAMORELIN, NAD+, BPC-157/TB500 (Wolverine)
 
+// Match images by strength label, not variant position: inventory can be reordered.
+const FEATURED_VIAL_IMAGES = {
+  1: { '10MG':'retatrutide-10mg', '20MG':'retatrutide-20mg' },
+  4: { '10MG':'tesamorelin-10mg', '20MG':'tesamorelin-20mg' },
+  10: { '500MG':'nad-plus-500mg' },
+  13: { '10MG':'wolverine-10mg', '20MG':'wolverine-20mg' }
+};
+
+function featuredVialImage(pid, label) {
+  const strength = String(label || '').replace(/\s+/g, '').toUpperCase();
+  const filename = FEATURED_VIAL_IMAGES[pid]?.[strength];
+  return filename ? `assets/lfp/best-sellers/${filename}-v1.webp` : null;
+}
+
 // ─── RENDER PRODUCTS ─────────────────────────────────────────────
 function renderProducts() {
   const search = document.getElementById('search-input').value.toLowerCase();
@@ -668,8 +703,8 @@ function renderCard(p, isFeatured) {
   const pillsHtml = p.variants.map((vv, i) => {
     const isActive = i === validIdx;
     const isUnavail = vv.stock === 0;
-    return `<div class="pill ${isActive?'active':''} ${isUnavail?'unavailable':''}"
-      onclick="selectVariant(${p.id},${i})">${vv.label}</div>`;
+    return `<button type="button" class="pill ${isActive?'active':''} ${isUnavail?'unavailable':''}"
+      aria-pressed="${isActive}" onclick="selectVariant(${p.id},${i})">${vv.label}</button>`;
   }).join('');
 
   let stockHtml = '';
@@ -690,11 +725,17 @@ function renderCard(p, isFeatured) {
   const isWolverine = p.name.toUpperCase() === 'BPC-157/TB500';
   const displayName = isWolverine ? 'WOLVERINE' : p.name;
   const displaySubtitle = isWolverine ? 'BPC-157 / TB500 blend' : p.subtitle;
+  const vialSrc = isFeatured ? featuredVialImage(p.id, v?.label) : null;
+  const vialHtml = isFeatured ? `<div class="vial-image-wrap">${vialSrc
+    ? `<img class="vial-image" src="${vialSrc}" alt="${displayName} ${v.label} — Lion Forge Peptides vial" width="800" height="800" decoding="async" onerror="this.hidden=true;this.nextElementSibling.hidden=false;"><div class="vial-image-placeholder" hidden>Image unavailable for this strength</div>`
+    : '<div class="vial-image-placeholder">Image coming soon for this strength</div>'}</div>` : '';
   return `<div class="product-card ${allOut?'out-of-stock':''} ${isFeatured?'featured':''}" id="card-${p.id}">
     ${isFeatured ? '<div class="featured-badge">Best Seller</div>' : ''}
     <div class="added-flash" id="flash-${p.id}">Added!</div>
+    ${vialHtml}
+    <div class="card-details">
     <div class="card-name">${displayName}</div>
-    ${displaySubtitle ? `<div class="card-subtitle">${displaySubtitle}</div>` : ''}
+    ${displaySubtitle || isFeatured ? `<div class="card-subtitle">${displaySubtitle || ''}</div>` : ''}
     <div class="card-divider"></div>
     <div class="variant-pills">${pillsHtml}</div>
     <div class="card-price">${price}</div>
@@ -710,6 +751,7 @@ function renderCard(p, isFeatured) {
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
         ADD
       </button>
+    </div>
     </div>
   </div>`;
 }

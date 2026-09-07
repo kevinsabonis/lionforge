@@ -12,6 +12,12 @@ LionForge_Inventory.xlsx
 mockups/*.html
 mockups/assets/*.png
 backups/
+.tmp_start_here_excel/
+outputs/
+output/
+tmp/
+tools/
+Application
 assets/lfp/shop-vial-*.png
 assets/lfp/cognitive-neural-background-v2.png
 assets/lfp/metabolic-energy-body-background-v3.png
