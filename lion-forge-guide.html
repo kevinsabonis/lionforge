@@ -1353,6 +1353,7 @@
     <button class="filter-pill" onclick="filterSection('cognitive', this)">Cognitive</button>
     <button class="filter-pill" onclick="filterSection('weight', this)">Weight Management</button>
     <button class="filter-pill" onclick="filterSection('metabolic', this)">Metabolic</button>
+    <button class="filter-pill" id="longevity-filter" onclick="filterSection('longevity', this)">Longevity &amp; Mitochondrial Research</button>
   </div>
 
   <!-- SECTION 1: HEALING & REGENERATION -->
@@ -1381,8 +1382,8 @@
             <td><div class="cycle-badge">4–8 wks</div></td>
             <td><div class="cycle-badge">2–4 wks</div></td>
             <td>
-              <span class="benefit-tag">Gut support</span>
-              <span class="benefit-tag">Tendon/ligament</span>
+              <span class="benefit-tag">Gut (GI) Support</span>
+              <span class="benefit-tag">Tendon &amp; Ligament Support</span>
               <span class="benefit-tag">Tissue repair</span>
             </td>
             <td><span class="note-text">Topical for surface wounds; injectable near injury preferred</span></td>
@@ -1428,7 +1429,7 @@
             <td><div class="cycle-badge">4–8 wks</div></td>
             <td><div class="cycle-badge">2–4 wks</div></td>
             <td>
-              <span class="benefit-tag">GI support</span>
+              <span class="benefit-tag">Gut (GI) Support</span>
               <span class="benefit-tag">Inflammation control</span>
               <span class="benefit-tag">Skin calming</span>
             </td>
@@ -1490,7 +1491,7 @@
             <td><div class="cycle-badge">4–8 wks</div></td>
             <td>
               <span class="benefit-tag">Synergistic GH</span>
-              <span class="benefit-tag">Body recomp</span>
+              <span class="benefit-tag">Body Recomp</span>
             </td>
             <td><span class="note-text">Most popular GH stack; confirm mg per ingredient from vendor</span></td>
           </tr>
@@ -1511,7 +1512,7 @@
             <td><div class="cycle-badge">12–24 wks</div></td>
             <td><div class="cycle-badge">8 wks</div></td>
             <td>
-              <span class="benefit-tag">Visceral fat reduction</span>
+              <span class="benefit-tag">Visceral Fat Reduction</span>
               <span class="benefit-tag">IGF-1 elevation</span>
             </td>
             <td><span class="note-text">FDA-approved for HIV lipodystrophy; strong clinical evidence for fat loss</span></td>
@@ -1571,7 +1572,7 @@
             <td><div class="cycle-badge">2–4 wks</div></td>
             <td><div class="cycle-badge">2–4 wks</div></td>
             <td>
-              <span class="benefit-tag">Anxiolytic</span>
+              <span class="benefit-tag">Calm</span>
               <span class="benefit-tag">Mood stability</span>
               <span class="benefit-tag">Memory</span>
             </td>
@@ -1670,7 +1671,7 @@
             <td><div class="cycle-badge">4–8 wks</div></td>
             <td>
               <span class="benefit-tag">Fat metabolism</span>
-              <span class="benefit-tag">Lipolysis</span>
+              <span class="benefit-tag">Fat Breakdown</span>
             </td>
             <td><span class="note-text">GH fragment; no blood sugar impact; best fasted</span></td>
           </tr>
@@ -1687,22 +1688,78 @@
             <td><span class="note-text">Sub-Q offers better bioavailability than oral capsules; stack with GLP-1 for enhanced metabolic effect</span></td>
           </tr>
           <tr>
-            <td><div class="peptide-name">MOTS-C</div></td>
-            <td><span class="dose-val">2–5 mg</span><br><span class="dose-sub">2–3x/week, sub-Q</span></td>
-            <td><div class="cycle-badge">8–12 wks</div></td>
-            <td><div class="cycle-badge">4 wks</div></td>
-            <td>
-              <span class="benefit-tag">Insulin sensitivity</span>
-              <span class="benefit-tag">Exercise capacity</span>
-              <span class="benefit-tag">Mitochondrial support</span>
-            </td>
-            <td><span class="note-text">Mitochondrial-derived peptide; often dosed pre-workout for exercise capacity</span></td>
+            <td colspan="6" data-shared-profile="mots-c-profile"><strong>MOTS-C</strong> · Metabolic and mitochondrial research.<br><a class="peptide-shop-link" href="#mots-c-profile" onclick="filterSection('longevity',document.getElementById('longevity-filter'))">Read the full MOTS-C profile ↗</a></td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
 
+  <section class="table-section" data-section="longevity" aria-labelledby="longevity-heading">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <h2 class="section-title" id="longevity-heading">Longevity &amp; Mitochondrial Research</h2>
+      <div class="section-line"></div>
+    </div>
+    <p class="note-text" style="display:block;line-height:1.8;margin:0 0 20px;">Explore cellular energy, mitochondrial signaling, and aging biology. These are research areas, not established anti-aging benefits. NAD+ is a coenzyme rather than a peptide. Evidence and approval status below apply to the specific intervention studied, not automatically to products sold by vendors.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Peptide</th><th>Injectable Dose</th><th>Cycle</th><th>Time Off</th><th>Benefits</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr id="nad-plus-profile">
+              <td><div class="peptide-name">NAD+</div><span class="dose-sub">Cellular energy · Coenzyme</span></td>
+              <td><span class="dose-val">25–100 mg</span><br><span class="dose-sub">SQ · 3×/week to daily</span><br><span class="dose-sub">Proposed reference regimen</span></td>
+              <td><div class="cycle-badge">4–12 weeks</div></td>
+              <td><div class="cycle-badge">2–4 weeks</div></td>
+            <td>
+              <span class="benefit-tag">Energy</span>
+              <span class="benefit-tag">Mental Clarity</span>
+              <span class="benefit-tag">Recovery</span>
+              <span class="benefit-tag">Mitochondrial Support</span>
+              <span class="benefit-tag">Feeling Better Overall</span>
+            </td>
+              <td><span class="note-text">Helps cells turn food into energy; taking extra NAD+ has not been shown to slow aging.</span></td>
+          </tr>
+          <tr id="ss-31-profile">
+              <td><div class="peptide-name">SS-31 / Elamipretide</div><span class="dose-sub">Mitochondrial research</span></td>
+              <td><span class="dose-val">1–10 mg</span><br><span class="dose-sub">SQ · Daily</span><br><span class="dose-sub">Proposed reference regimen; not established anti-aging or prescription dosing</span></td>
+              <td><div class="cycle-badge">4–8 weeks</div></td>
+              <td><div class="cycle-badge">2–4 weeks</div></td>
+            <td>
+              <span class="benefit-tag">Mitochondrial protection</span>
+              <span class="benefit-tag">Anti-aging</span>
+              <span class="benefit-tag">Mitochondrial inner membrane</span>
+            </td>
+            <td><span class="note-text">Studied for helping protect the parts of cells that produce energy; its use for general healthy aging is still being explored.</span></td>
+          </tr>
+          <tr id="mots-c-profile">
+              <td><div class="peptide-name">MOTS-C</div><span class="dose-sub">Metabolic · Longevity &amp; mitochondrial research</span></td>
+              <td><span class="dose-val">2–5 mg</span><br><span class="dose-sub">3×/week up to daily</span><br><span class="dose-sub">Proposed reference regimen</span></td>
+              <td><div class="cycle-badge">4–8 weeks</div></td>
+              <td><div class="cycle-badge">2–4 weeks</div></td>
+            <td>
+              <span class="benefit-tag">Metabolic support</span>
+              <span class="benefit-tag">Mitochondrial support</span>
+            </td>
+            <td><span class="note-text">A natural signal involved in how the body responds to exercise; added benefits from injections are still being studied.</span></td>
+          </tr>
+          <tr id="epithalon-profile">
+            <td><div class="peptide-name">Epithalon</div><span class="dose-sub">Also spelled Epitalon</span></td>
+            <td><span class="dose-val">Not established</span><br><span class="dose-sub">for longevity / healthy aging</span></td>
+            <td><div class="cycle-badge">Not established</div></td>
+            <td><div class="cycle-badge">Not established</div></td>
+            <td>
+              <span class="benefit-tag">Telomere support</span>
+              <span class="benefit-tag">Longevity</span>
+              <span class="benefit-tag">Anti-aging</span>
+            </td>
+            <td><span class="note-text">Studied for its effects on the protective ends of DNA; whether it helps people live longer is still unknown.</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note-text" style="display:block;line-height:1.8;margin-top:18px;">Related topics: Glutathione and Thymosin Alpha-1 overlap with immune and oxidative-stress research; neither is presented here as an established anti-aging intervention. Evidence reviewed September 8, 2026.</p>
+  </section>
 </main>
 </div><!-- /page-guide -->
 
@@ -3377,8 +3434,19 @@
     setTimeout(() => res.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
   }
 
-  // Link only compounds currently represented in the Shop catalog.
-  document.addEventListener('DOMContentLoaded', () => {
+  // Render shared profiles from one source so every category gets identical details.
+  // Run before inventory links are added, avoiding duplicate links and element IDs.
+  document.querySelectorAll('[data-shared-profile]').forEach(placeholder => {
+    const source = document.getElementById(placeholder.dataset.sharedProfile);
+    if (!source) return;
+    const row = source.cloneNode(true);
+    row.id = `${source.id}-${placeholder.closest('.table-section').dataset.section}`;
+    placeholder.closest('tr').replaceWith(row);
+  });
+
+  // Only offer shop links when a visible product has at least one stocked variant.
+  function findStockedGuideProduct(name, products) {
+    const normalize = value => String(value || '').toUpperCase().replace(/[^A-Z0-9+]/g, '');
     const shopTerms = {
       'BPC-157 + TB-500 BLEND': 'BPC-157/TB500',
       'GHK-CU': 'GHK-CU',
@@ -3389,20 +3457,48 @@
       '5-AMINO-1MQ': '5-AMINO 1MQ',
       'MOTS-C': 'MOTS-C',
       'SS-31': 'SS-31',
+      'SS-31 / ELAMIPRETIDE': 'SS-31',
+      'NAD+': 'NAD+',
       'HGH': 'HGH',
       'HCG': 'HCG'
     };
+    const term = shopTerms[name.trim().toUpperCase()] || name;
+    return products.find(p => normalize(p.name) === normalize(term) && p.hidden !== true &&
+      Array.isArray(p.variants) && p.variants.some(v => Number(v.stock) > 0));
+  }
+
+  async function refreshGuideShopLinks() {
+    const names = [...document.querySelectorAll('.peptide-name')];
+    names.forEach(el => {
+      if (!el.dataset.compoundName) el.dataset.compoundName = el.textContent.trim();
+      el.querySelectorAll('[data-stock-link]').forEach(link => link.remove());
+    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    let products;
+    try {
+      const response = await fetch('/api/products', {cache:'no-store', credentials:'omit', signal:controller.signal});
+      if (!response.ok) return;
+      const data = await response.json();
+      if (!Array.isArray(data.list)) return;
+      products = data.list;
+    } catch (error) { return; }
+    finally { clearTimeout(timeout); }
     document.querySelectorAll('.peptide-name').forEach(nameEl => {
-      const peptideName = nameEl.textContent.trim().toUpperCase();
-      const shopTerm = shopTerms[peptideName];
-      if (!shopTerm) return;
+      const product = findStockedGuideProduct(nameEl.dataset.compoundName, products);
+      if (!product) return;
       const link = document.createElement('a');
       link.className = 'peptide-shop-link';
-      link.href = `lion-forge-shop.html?search=${encodeURIComponent(shopTerm)}`;
+      link.dataset.stockLink = 'true';
+      link.href = `lion-forge-shop.html?search=${encodeURIComponent(product.name)}`;
       link.textContent = 'View in Shop';
       link.setAttribute('aria-label', `View ${nameEl.textContent.trim()} in the Shop`);
       nameEl.appendChild(link);
     });
+  }
+  document.addEventListener('DOMContentLoaded', refreshGuideShopLinks);
+  window.addEventListener('pageshow', event => {
+    if (event.persisted) void refreshGuideShopLinks();
   });
 </script>
 </body>
