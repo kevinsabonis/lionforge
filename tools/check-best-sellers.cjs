@@ -17,6 +17,15 @@ for (const [id, strengths] of [[1,['10MG','20MG']],[4,['10MG','20MG']],[10,['500
 assert.equal(context.featuredVialImage(1,'30MG'),null);
 // Reordering inventory must not put a 10mg image on the selected 20mg variant.
 const product = {id:1,name:'RETATRUTIDE',variants:[{label:'20MG',price:40,stock:0},{label:'10MG',price:30,stock:5}]};
+const available = context.renderCard(product,true);
+assert.match(available,/retatrutide-10mg-v1.webp/);
+assert.match(available,/\$30\.00/);
+assert.match(available,/20MG — Out of stock/);
+assert(!available.includes('class="add-btn" disabled'));
+assert.equal(context.selectedVariants[1],1,'cart uses the displayed in-stock variant');
+assert.equal(context.defaultVariantIndex({variants:[{stock:0},{stock:0}]}),0);
+assert.equal(context.defaultVariantIndex({variants:[{stock:2},{stock:5}]}),0);
+context.selectedVariants[1] = 0; // A customer can still inspect a sold-out size.
 const rendered = context.renderCard(product,true);
 assert.match(rendered,/retatrutide-20mg-v1.webp/);
 assert.match(rendered,/\$40\.00/);

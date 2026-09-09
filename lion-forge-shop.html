@@ -618,7 +618,7 @@ function loadLocalPreviewProducts() {
   catalogLoadState = 'ready';
   products.splice(0, products.length, ...LOCAL_PREVIEW_PRODUCTS);
   nextId = Math.max(...products.map(p => p.id)) + 1;
-  products.forEach(p => { selectedVariants[p.id] = 0; quantities[p.id] = 1; });
+  products.forEach(p => { selectedVariants[p.id] = defaultVariantIndex(p); quantities[p.id] = 1; });
   renderProducts();
 }
 
@@ -645,7 +645,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchInput = document.getElementById('search-input');
   if (requestedProduct && searchInput) searchInput.value = requestedProduct;
   // init selected variants
-  products.forEach(p => { selectedVariants[p.id] = 0; quantities[p.id] = 1; });
+  products.forEach(p => { selectedVariants[p.id] = defaultVariantIndex(p); quantities[p.id] = 1; });
   renderProducts();
   updateCartBadge();
   void loadShopProducts();
@@ -726,9 +726,15 @@ function renderProducts() {
   grid.innerHTML = html;
 }
 
+function defaultVariantIndex(p) {
+  const inStock = p.variants.findIndex(v => v.stock > 0);
+  return inStock === -1 ? 0 : inStock;
+}
+
 function renderCard(p, isFeatured) {
-  const selIdx = selectedVariants[p.id] ?? 0;
+  const selIdx = selectedVariants[p.id] ?? defaultVariantIndex(p);
   const validIdx = Math.min(selIdx, p.variants.length - 1);
+  selectedVariants[p.id] = validIdx;
   const v = p.variants[validIdx];
   const qty = quantities[p.id] ?? 1;
   const allOut = p.variants.every(vv => vv.stock === 0);
@@ -737,7 +743,7 @@ function renderCard(p, isFeatured) {
     const isActive = i === validIdx;
     const isUnavail = vv.stock === 0;
     return `<button type="button" class="pill ${isActive?'active':''} ${isUnavail?'unavailable':''}"
-      aria-pressed="${isActive}" onclick="selectVariant(${p.id},${i})">${vv.label}</button>`;
+      aria-pressed="${isActive}" onclick="selectVariant(${p.id},${i})">${vv.label}${isUnavail ? ' — Out of stock' : ''}</button>`;
   }).join('');
 
   let stockHtml = '';
