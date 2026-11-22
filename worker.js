@@ -423,6 +423,54 @@ function promoSavings(promo, lineItems) {
     .reduce((s, li) => s + Math.max(0, li.price - Number(promo.price)) * li.qty, 0));
 }
 
+// ── Inventory change log ───────────────────────────────────────────────────
+// Every change to the product list (admin saves and order stock deductions) is
+// diffed and written to the inventory_log table. Variants are matched by label.
+const normNum = x => (x === undefined || x === null || x === '') ? '' : String(Number(x));
+function describeVariant(v) { return `$${normNum(v.price)}, stock ${normNum(v.stock)}`; }
+function diffInventory(oldList, newList) {
+  const out = [];
+  const add = (p, variant, change, oldValue, newValue) => out.push({
+    productId: Number(p.id), productName: String(p.name || ''), variant: String(variant || ''),
+    change, oldValue: oldValue == null ? '' : String(oldValue), newValue: newValue == null ? '' : String(newValue),
+  });
+  const oldById = new Map((oldList || []).map(p => [Number(p.id), p]));
+  const newById = new Map((newList || []).map(p => [Number(p.id), p]));
+  for (const [id, np] of newById) {
+    const op = oldById.get(id);
+    if (!op) {
+      add(np, '', 'product_added', '', (np.variants || []).map(v => `${v.label} ${describeVariant(v)}`).join('; '));
+      continue;
+    }
+    if (String(op.name || '') !== String(np.name || '')) add(np, '', 'name', op.name, np.name);
+    if (!!op.hidden !== !!np.hidden) add(np, '', 'visibility', op.hidden ? 'hidden' : 'visible', np.hidden ? 'hidden' : 'visible');
+    const ov = new Map((op.variants || []).map(v => [String(v.label), v]));
+    const nv = new Map((np.variants || []).map(v => [String(v.label), v]));
+    for (const [label, v] of nv) {
+      const o = ov.get(label);
+      if (!o) { add(np, label, 'variant_added', '', describeVariant(v)); continue; }
+      if (normNum(o.price) !== normNum(v.price)) add(np, label, 'price', normNum(o.price), normNum(v.price));
+      if (normNum(o.stock) !== normNum(v.stock)) add(np, label, 'stock', normNum(o.stock), normNum(v.stock));
+    }
+    for (const [label, o] of ov) if (!nv.has(label)) add(np, label, 'variant_removed', describeVariant(o), '');
+  }
+  for (const [id, op] of oldById) {
+    if (!newById.has(id)) add(op, '', 'product_removed', (op.variants || []).map(v => `${v.label} ${describeVariant(v)}`).join('; '), '');
+  }
+  return out;
+}
+// Logging must never block a sale or an admin save, so failures are only reported.
+async function writeInventoryLog(env, source, actor, entries) {
+  if (!entries.length) return;
+  try {
+    await env.DB.batch(entries.map(e => env.DB.prepare(
+      'INSERT INTO inventory_log (id, source, actor, product_id, product_name, variant, change, old_value, new_value) VALUES (?,?,?,?,?,?,?,?,?)'
+    ).bind(crypto.randomUUID(), source, String(actor || ''), e.productId, e.productName, e.variant, e.change, e.oldValue, e.newValue)));
+  } catch (e) {
+    console.error('Inventory log write failed:', e.message);
+  }
+}
+
 async function handleCheckPromo(request, env, url) {
   const code = String(url.searchParams.get('code') || '').trim().toUpperCase();
   const promo = await getPromo(env, code);
@@ -533,6 +581,7 @@ async function handlePlaceOrder(request, env) {
         JSON.stringify(lineItems), subtotal, shipping, discount,
         appliedCode, total, orderDate),
   ]);
+  await writeInventoryLog(env, 'order', `Order #${orderNum}`, diffInventory(list, newList));
 
   const itemsHtml = lineItems.map(i =>
     `<tr><td style="padding:6px 0;color:#c8d4e8;">${i.name} (${i.variant}) x${i.qty}</td><td style="padding:6px 0;color:#ffd060;text-align:right;">$${i.lineTotal.toFixed(2)}</td></tr>`
@@ -662,8 +711,18 @@ async function handleAdmin(request, env, path, method) {
   }
   if (path === '/api/admin/products' && method === 'PUT') {
     const body = await request.json();
+    const prev = await env.DB.prepare('SELECT value FROM config WHERE key = ?').bind('products').first();
     await env.DB.prepare('UPDATE config SET value = ? WHERE key = ?').bind(JSON.stringify(body), 'products').run();
+    let oldList = [];
+    try { oldList = prev ? (JSON.parse(prev.value).list || []) : []; } catch {}
+    await writeInventoryLog(env, 'admin', user.email, diffInventory(oldList, body.list || []));
     return json({ ok: true });
+  }
+  if (path === '/api/admin/inventory-log' && method === 'GET') {
+    const { results } = await env.DB.prepare(
+      'SELECT * FROM inventory_log ORDER BY created_at DESC, rowid DESC LIMIT 500'
+    ).all();
+    return json(results);
   }
 
   if (path === '/api/admin/login-events' && method === 'GET') {

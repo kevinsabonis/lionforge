@@ -206,6 +206,7 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
   <div class="tab-bar">
     <button class="tab active" onclick="switchTab('orders',this)">&#128230; Orders</button>
     <button class="tab" onclick="switchTab('products',this)">&#128138; Products &amp; Inventory</button>
+    <button class="tab" onclick="switchTab('invlog',this)">&#128221; Inventory Log</button>
     <button class="tab" onclick="switchTab('announcements',this)">&#128203; Announcements</button>
     <button class="tab" onclick="switchTab('logins',this)">&#128272; Login Activity</button>
   </div>
@@ -252,6 +253,20 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
     </div>
     <div id="prod-form-container"></div>
     <div id="prod-list" class="prod-list"><div class="empty-state">Loading...</div></div>
+  </div>
+
+  <!-- INVENTORY LOG TAB -->
+  <div id="tab-invlog" class="tab-content">
+    <div class="prod-toolbar">
+      <h2>INVENTORY LOG</h2>
+    </div>
+    <div class="filter-row">
+      <input type="text" class="search-box" id="il-search" placeholder="Search product or who..." oninput="renderInventoryLog()">
+      <button class="filter-btn active" onclick="setInvLogFilter('all',this)">All</button>
+      <button class="filter-btn" onclick="setInvLogFilter('admin',this)">Admin edits</button>
+      <button class="filter-btn" onclick="setInvLogFilter('order',this)">Orders</button>
+    </div>
+    <div id="inventory-log-list"><div class="empty-state">Loading...</div></div>
   </div>
 
   <!-- ANNOUNCEMENTS TAB -->
@@ -311,6 +326,7 @@ window.switchTab = function(name, btn) {
   if (el) el.classList.add('active');
   if (name === 'announcements') loadAnnouncements();
   if (name === 'logins') loadLoginEvents();
+  if (name === 'invlog') loadInventoryLog();
 };
 
 // ══════════════════════════════════════════════════════════════════
@@ -927,6 +943,75 @@ async function loadLoginEvents() {
       + '</tbody></table>';
   } catch(e) { el.innerHTML = '<div class="empty-state">Error loading events.</div>'; }
 }
+
+// ══════════════════════════════════════════════════════════════════
+// INVENTORY LOG
+// ══════════════════════════════════════════════════════════════════
+let inventoryLog = [];
+let invLogFilter = 'all';
+const escHtml = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+async function loadInventoryLog() {
+  const el = document.getElementById('inventory-log-list');
+  el.innerHTML = '<div class="empty-state">Loading...</div>';
+  try {
+    const r = await fetch('/api/admin/inventory-log', { credentials: 'include' });
+    if (!r.ok) throw new Error('Load failed');
+    inventoryLog = await r.json();
+    renderInventoryLog();
+  } catch(e) { el.innerHTML = '<div class="empty-state">Error loading inventory log.</div>'; }
+}
+window.setInvLogFilter = function(f, btn) {
+  invLogFilter = f;
+  btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderInventoryLog();
+};
+function describeInvChange(e) {
+  const o = e.old_value, n = e.new_value;
+  switch (e.change) {
+    case 'stock': {
+      const d = Number(n) - Number(o);
+      const color = d > 0 ? 'var(--green)' : 'var(--red)';
+      return 'Stock ' + escHtml(o) + ' &rarr; <strong>' + escHtml(n) + '</strong> <span style="color:' + color + ';">(' + (d > 0 ? '+' : '') + d + ')</span>';
+    }
+    case 'price': return 'Price $' + escHtml(o) + ' &rarr; <strong>$' + escHtml(n) + '</strong>';
+    case 'visibility': return n === 'hidden' ? '<span style="color:var(--orange);">Hidden from shop</span>' : '<span style="color:var(--green);">Shown in shop</span>';
+    case 'name': return 'Renamed ' + escHtml(o) + ' &rarr; <strong>' + escHtml(n) + '</strong>';
+    case 'variant_added': return '<span style="color:var(--green);">Option added</span> &mdash; ' + escHtml(n);
+    case 'variant_removed': return '<span style="color:var(--red);">Option removed</span> &mdash; was ' + escHtml(o);
+    case 'product_added': return '<span style="color:var(--green);">Product added</span> &mdash; ' + escHtml(n);
+    case 'product_removed': return '<span style="color:var(--red);">Product removed</span> &mdash; was ' + escHtml(o);
+    case 'baseline': return 'Starting point &mdash; ' + escHtml(n);
+    default: return escHtml(e.change) + ': ' + escHtml(o) + ' &rarr; ' + escHtml(n);
+  }
+}
+window.renderInventoryLog = function() {
+  const el = document.getElementById('inventory-log-list');
+  const q = (document.getElementById('il-search')?.value || '').trim().toLowerCase();
+  const rows = inventoryLog.filter(e =>
+    (invLogFilter === 'all' || e.source === invLogFilter) &&
+    (!q || (e.product_name + ' ' + e.variant + ' ' + e.actor).toLowerCase().includes(q)));
+  if (!rows.length) { el.innerHTML = '<div class="empty-state">' + (inventoryLog.length ? 'No matching changes.' : 'No inventory changes recorded yet.') + '</div>'; return; }
+  const th = 'text-align:left;padding:8px;color:#6a7a9e;';
+  el.innerHTML = '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">'
+    + '<thead><tr style="border-bottom:1px solid rgba(255,255,255,0.08);">'
+    + '<th style="' + th + '">Time</th><th style="' + th + '">Product</th><th style="' + th + '">Change</th><th style="' + th + '">By</th>'
+    + '</tr></thead><tbody>'
+    + rows.map(function(e) {
+        const d = new Date(e.created_at.replace(' ', 'T') + 'Z').toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+        const who = e.source === 'order' ? '<span style="color:var(--gold);">' + escHtml(e.actor) + '</span>'
+          : e.source === 'baseline' ? '<span style="color:#6a7a9e;">Log started</span>'
+          : '<span style="color:#dde4f5;">' + escHtml(e.actor) + '</span>';
+        return '<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">'
+          + '<td style="padding:8px;color:#6a7a9e;white-space:nowrap;">' + d + '</td>'
+          + '<td style="padding:8px;color:#dde4f5;">' + escHtml(e.product_name) + (e.variant ? ' <span style="color:#6a7a9e;">' + escHtml(e.variant) + '</span>' : '') + '</td>'
+          + '<td style="padding:8px;color:#dde4f5;">' + describeInvChange(e) + '</td>'
+          + '<td style="padding:8px;">' + who + '</td>'
+          + '</tr>';
+      }).join('')
+    + '</tbody></table></div>';
+};
 
 function showToast(msg, type) {
   const t=document.getElementById('toast');

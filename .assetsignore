@@ -7,6 +7,7 @@ node_modules/
 wrangler.toml
 .assetsignore
 schema.sql
+migrations/
 worker.js
 admin-auth.js
 *.cjs
