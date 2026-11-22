@@ -11,5 +11,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: cloudflare/wrangler-action@v3
         with:
+          # Pin to the Wrangler used for verified deploys. The action's default
+          # (3.90) ignores [assets] run_worker_first, which bypasses the admin
+          # login gate on /lion-forge-admin.
+          wranglerVersion: "4.95.0"
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
