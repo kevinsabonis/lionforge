@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lion Forge — Admin</title>
+<meta name="robots" content="noindex,nofollow">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -27,19 +28,6 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
 .nav-link:hover{color:var(--gold);}
 .signout-btn{color:#3a4a6a;font-size:13px;background:none;border:none;cursor:pointer;transition:color .2s;}
 .signout-btn:hover{color:var(--red);}
-
-/* AUTH GATE */
-.auth-gate{position:relative;z-index:1;max-width:380px;margin:80px auto;padding:40px;
-  background:rgba(16,26,56,0.7);border:1px solid rgba(232,168,32,0.2);border-radius:16px;text-align:center;}
-.auth-gate h2{font-family:'Share Tech Mono',monospace;color:var(--gold);font-size:13px;letter-spacing:0.3em;margin-bottom:24px;}
-.auth-input{width:100%;padding:12px 14px;background:rgba(255,255,255,0.05);
-  border:1px solid rgba(232,168,32,0.2);border-radius:10px;color:#dde4f5;font-size:14px;
-  font-family:'Inter',sans-serif;outline:none;margin-bottom:12px;}
-.auth-input:focus{border-color:rgba(232,168,32,0.5);}
-.auth-btn{width:100%;padding:13px;background:var(--royal);border:1px solid rgba(232,168,32,0.35);
-  border-radius:10px;color:var(--gold-bright);font-family:'Share Tech Mono',monospace;font-size:12px;
-  letter-spacing:0.15em;cursor:pointer;transition:background .2s;}
-.auth-btn:hover{background:var(--blue);}
 
 /* TABS */
 .tab-bar{position:relative;z-index:1;display:flex;gap:4px;padding:20px 32px 0;border-bottom:1px solid rgba(232,168,32,0.1);}
@@ -202,34 +190,16 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
 <body>
 
 <nav>
-  <a href="lion-forge-shop.html" class="nav-logo">
+  <a href="/lion-forge-shop.html" class="nav-logo">
     <img src="/logo.webp" alt="Lion Forge Peptides Logo">
     <span>LION FORGE — ADMIN</span>
   </a>
   <div class="nav-right">
-    <a href="lion-forge-shop.html" class="nav-link">&#8592; Shop</a>
-    <a href="lion-forge-calculator.html" class="nav-link">Calculator</a>
+    <a href="/lion-forge-shop.html" class="nav-link">&#8592; Shop</a>
+    <a href="/lion-forge-calculator.html" class="nav-link">Calculator</a>
     <button class="signout-btn" onclick="doSignOut()">Sign out</button>
   </div>
 </nav>
-
-<!-- AUTH GATE -->
-<div id="auth-gate" style="display:none;">
-  <div class="auth-gate">
-    <h2>ADMIN LOGIN</h2>
-    <div id="a-step-email">
-      <input class="auth-input" type="email" id="a-email" placeholder="Admin email" onkeydown="if(event.key==='Enter')adminRequestCode()">
-      <button class="auth-btn" id="a-send-btn" onclick="adminRequestCode()">SEND CODE</button>
-      <div id="a-send-status" style="min-height:18px;margin-top:8px;text-align:center;font-size:13px;color:#ef4444;"></div>
-    </div>
-    <div id="a-step-code" style="display:none;">
-      <input class="auth-input" type="text" id="a-code" inputmode="numeric" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" onkeydown="if(event.key==='Enter')adminVerifyCode()">
-      <button class="auth-btn" id="a-verify-btn" onclick="adminVerifyCode()">SIGN IN</button>
-      <button class="auth-btn" style="background:none;border:none;" onclick="document.getElementById('a-step-code').style.display='none';document.getElementById('a-step-email').style.display='block';">&#8592; Use a different email</button>
-      <div id="a-verify-status" style="min-height:18px;margin-top:8px;text-align:center;font-size:13px;color:#ef4444;"></div>
-    </div>
-  </div>
-</div>
 
 <!-- MAIN -->
 <div id="main" style="display:none;">
@@ -314,71 +284,22 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
 let allOrders = [];
 let currentFilter = 'all';
 
-// ── AUTH ─────────────────────────────────────────────────────────
+// Admin sessions are independent of customer sign-in.
 (async function() {
   try {
-    const r = await fetch('/api/auth/me', { credentials: 'include' });
-    if (!r.ok) throw new Error();
-    const user = await r.json();
-    if (user.role !== 'admin') throw new Error();
-    window._lfCurrentUser = user;
-    document.getElementById('auth-gate').style.display = 'none';
-    document.getElementById('main').style.display = 'block';
-    loadOrders();
-    loadProducts();
-  } catch(e) {
-    document.getElementById('auth-gate').style.display = 'block';
-    document.getElementById('main').style.display = 'none';
-  }
-})();
-
-window.adminRequestCode = async function() {
-  const email = document.getElementById('a-email').value.trim();
-  const statusEl = document.getElementById('a-send-status');
-  statusEl.textContent = '';
-  if (!email || !email.includes('@')) { statusEl.textContent = 'Please enter a valid email address.'; return; }
-  const btn = document.getElementById('a-send-btn');
-  btn.disabled = true; btn.textContent = 'Sending...';
-  try {
-    const r = await fetch('/api/auth/request-code', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }) });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error || 'Failed to send code');
-    document.getElementById('a-step-email').style.display = 'none';
-    document.getElementById('a-step-code').style.display = 'block';
-    document.getElementById('a-code').value = '';
-    document.getElementById('a-code').focus();
-  } catch(err) {
-    statusEl.textContent = err.message || 'Something went wrong. Try again.';
-  } finally {
-    btn.disabled = false; btn.textContent = 'SEND CODE';
-  }
-};
-
-window.adminVerifyCode = async function() {
-  const email = document.getElementById('a-email').value.trim();
-  const code = document.getElementById('a-code').value.trim();
-  const statusEl = document.getElementById('a-verify-status');
-  statusEl.textContent = '';
-  if (code.length !== 6) { statusEl.textContent = 'Please enter the 6-digit code.'; return; }
-  const btn = document.getElementById('a-verify-btn');
-  btn.disabled = true; btn.textContent = 'Verifying...';
-  try {
-    const r = await fetch('/api/auth/verify-code', { method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, code }) });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error || 'Invalid code');
-    if (d.role !== 'admin') { await fetch('/api/auth/logout',{method:'POST',credentials:'include'}); throw new Error('Not an admin account'); }
-    window._lfCurrentUser = d;
-    document.getElementById('auth-gate').style.display = 'none';
+    const r = await fetch('/api/admin/auth/me', { credentials: 'include' });
+    if (!r.ok) throw new Error('Admin sign-in required');
+    window._lfCurrentUser = await r.json();
     document.getElementById('main').style.display = 'block';
     loadOrders(); loadProducts();
-  } catch(err) {
-    btn.disabled = false; btn.textContent = 'SIGN IN';
-    statusEl.textContent = err.message;
-  }
-};
-window.doSignOut = function() {
-  fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
-    .finally(() => { window.location.href = 'index.html'; });
+  } catch { window.location.replace('/admin/login'); }
+})();
+window.doSignOut = async function() {
+  try {
+    const r = await fetch('/api/admin/auth/logout', { method: 'POST', credentials: 'include' });
+    if (!r.ok) throw new Error('Sign out failed');
+    window.location.replace('/admin/login');
+  } catch { alert('Unable to sign out. Please try again.'); }
 };
 
 // ── TABS ─────────────────────────────────────────────────────────
@@ -985,8 +906,8 @@ async function loadLoginEvents() {
     const r = await fetch('/api/admin/login-events', { credentials: 'include' });
     const events = await r.json();
     if (!events.length) { el.innerHTML = '<div class="empty-state">No login events yet.</div>'; return; }
-    const eventColors = { login_success: '#22c55e', login_failed: '#ef4444', code_requested: '#e8a820' };
-    const eventLabels = { login_success: '✓ Signed In', login_failed: '✗ Failed Code', code_requested: '⟳ Code Sent' };
+    const eventColors = { admin_login_success: '#22c55e', admin_code_attempt: '#e8a820', admin_code_requested: '#e8a820', login_success: '#22c55e', login_failed: '#ef4444', code_requested: '#e8a820' };
+    const eventLabels = { admin_login_success: '✓ Admin Signed In', admin_code_attempt: 'Admin Code Attempt', admin_code_requested: 'Admin Code Requested', login_success: '✓ Signed In', login_failed: '✗ Failed Code', code_requested: '⟳ Code Sent' };
     el.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:13px;">'
       + '<thead><tr style="border-bottom:1px solid rgba(255,255,255,0.08);">'
       + '<th style="text-align:left;padding:8px;color:#6a7a9e;">Time</th>'
@@ -999,7 +920,7 @@ async function loadLoginEvents() {
           var label = eventLabels[e.event] || e.event;
           return '<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">'
             + '<td style="padding:8px;color:#6a7a9e;">' + d + '</td>'
-            + '<td style="padding:8px;color:#dde4f5;">' + e.email + '</td>'
+            + '<td style="padding:8px;color:#dde4f5;">' + String(e.email || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) + '</td>'
             + '<td style="padding:8px;"><span style="color:' + color + ';font-weight:600;">' + label + '</span></td>'
             + '</tr>';
         }).join('')

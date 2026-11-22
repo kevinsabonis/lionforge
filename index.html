@@ -366,6 +366,7 @@
       *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
     }
   </style>
+<script src="/session-navigation.js" defer></script>
 </head>
 <body>
   <main class="site-shell">
@@ -745,6 +746,7 @@
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Invalid code');
       window._lfCurrentUser = d;
+    window.dispatchEvent(new Event('lfp:session-changed'));
       try { sessionStorage.setItem('lfp_user', JSON.stringify(d)); if(d._token) sessionStorage.setItem('lfp_token', d._token); } catch(e) {}
       showStep('success');
       document.getElementById('success-sub').textContent = 'Welcome, ' + (d.displayName || email) + '! Redirecting...';

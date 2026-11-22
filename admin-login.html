@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Admin Sign In | Lion Forge</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at top,#19294c,#080e20 65%);color:#e5eaf5;font-family:Arial,sans-serif}main{width:100%;max-width:460px;background:#101a30;border:1px solid #35405a;border-radius:18px;padding:40px;box-shadow:0 24px 80px #0005}.brand{display:flex;align-items:center;gap:12px;font-size:13px;letter-spacing:2px;color:#e8a820}.brand img{width:48px;height:48px;object-fit:contain}h1{font-size:32px;margin:30px 0 12px}p{color:#a7b4cc;line-height:1.6}label{display:block;margin:24px 0 9px;font-size:14px}input,button{width:100%;min-height:48px;border-radius:8px;font:inherit}input{background:#080e20;color:#fff;border:1px solid #53617b;padding:12px}input:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid #ffd060;outline-offset:3px}button{margin-top:18px;border:0;background:#e8a820;color:#080e20;font-weight:bold;cursor:pointer}button:disabled{opacity:.55;cursor:wait}.secondary{background:transparent;color:#c3cde0;border:1px solid #53617b}#status{min-height:42px;color:#ffd060;font-size:14px;margin:18px 0 0}footer{border-top:1px solid #35405a;margin-top:18px;padding-top:22px;font-size:13px}a{color:#c3cde0}small{display:block;color:#a7b4cc;margin-top:12px;line-height:1.5}[hidden]{display:none!important}@media(max-width:480px){main{padding:26px}h1{font-size:28px}}
+</style>
+</head>
+<body>
+<main>
+  <div class="brand"><img src="/logo.webp" alt="">LION FORGE</div>
+  <h1>Admin sign in</h1>
+  <p>Manage your orders, inventory, and store updates.</p>
+  <form id="email-form">
+    <label for="email">Admin email</label>
+    <input id="email" name="email" type="email" autocomplete="username" maxlength="254" required>
+    <button id="send" type="submit">Send sign-in code</button>
+    <small>Use the email address connected to your admin account.</small>
+  </form>
+  <form id="code-form" hidden>
+    <p>If this email has admin access, a code has been sent to <strong id="email-display"></strong>.</p>
+    <label for="code">Six-digit code</label>
+    <input id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required>
+    <button id="verify" type="submit">Open admin dashboard</button>
+    <button class="secondary" id="back" type="button">Change email or request another code</button>
+    <small>Codes expire after 15 minutes.</small>
+  </form>
+  <p id="status" role="status" aria-live="polite"></p>
+  <footer><a href="/lion-forge-shop.html">Return to store</a></footer>
+</main>
+<script>
+const emailForm=document.getElementById('email-form'),codeForm=document.getElementById('code-form'),statusEl=document.getElementById('status');
+let adminEmail='';
+async function post(action,body){const r=await fetch('/api/admin/auth/'+action,{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const data=await r.json();if(!r.ok)throw new Error(data.error||'Unable to sign in. Please try again.');return data;}
+emailForm.addEventListener('submit',async event=>{event.preventDefault();const button=document.getElementById('send');button.disabled=true;statusEl.textContent='Sending your code…';try{adminEmail=document.getElementById('email').value.trim();await post('request-code',{email:adminEmail});document.getElementById('email-display').textContent=adminEmail;emailForm.hidden=true;codeForm.hidden=false;statusEl.textContent='Check your inbox for your admin sign-in code.';document.getElementById('code').focus();}catch(error){statusEl.textContent=error.message;}finally{button.disabled=false;}});
+codeForm.addEventListener('submit',async event=>{event.preventDefault();const button=document.getElementById('verify');button.disabled=true;document.getElementById('back').disabled=true;statusEl.textContent='Checking your code…';try{await post('verify-code',{email:adminEmail,code:document.getElementById('code').value.trim()});window.location.replace('/admin');}catch(error){statusEl.textContent=error.message;button.disabled=false;document.getElementById('back').disabled=false;}});
+document.getElementById('back').addEventListener('click',()=>{codeForm.hidden=true;emailForm.hidden=false;document.getElementById('code').value='';statusEl.textContent='';document.getElementById('email').focus();});
+</script>
+</body>
+</html>

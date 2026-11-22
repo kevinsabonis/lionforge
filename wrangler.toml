@@ -6,6 +6,7 @@ account_id = "1dff08df3a1fc3436bcb6f1439020d8b"
 [assets]
 directory = "."
 binding = "ASSETS"
+run_worker_first = true
 
 [[d1_databases]]
 binding = "DB"

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -91,8 +91,8 @@ nav{position:relative;z-index:100;display:grid;grid-template-columns:1fr auto 1f
 /* SHIPPING METHOD */
 .shipping-method-wrap{padding:0 22px 16px;}
 .shipping-method-label{font-size:12px;color:var(--muted);margin-bottom:10px;letter-spacing:0.06em;}
-.shipping-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.shipping-option{padding:12px 14px;border-radius:10px;cursor:pointer;
+.shipping-options{display:grid;grid-template-columns:1fr;gap:10px;}
+.shipping-option{padding:12px 14px;border-radius:10px;
   border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);transition:all .2s;}
 .shipping-option:hover{border-color:rgba(232,168,32,0.3);}
 .shipping-option.selected{border-color:var(--gold);background:rgba(232,168,32,0.07);}
@@ -226,6 +226,7 @@ window.navSignOut = function(){fetch('/api/auth/logout',{method:'POST',credentia
 <script>
 function apiFetch(url,opts){opts=opts||{};opts.credentials='include';try{var t=sessionStorage.getItem('lfp_token');if(t){opts.headers=opts.headers||{};opts.headers['Authorization']='Bearer '+t;}}catch(e){}return fetch(url,opts);}
 </script>
+<script src="/session-navigation.js" defer></script>
 </head>
 <body>
 
@@ -355,8 +356,8 @@ function toggleNavMenu(){
               </div>
               <div class="pay-method" id="pm-paypal" onclick="selectPayment('paypal')">
                 <div class="pay-method-name">PayPal (F&amp;F Only)</div>
-                <div class="pay-method-handle">@lionforgeLFG
-                  <button class="copy-btn" onclick="event.stopPropagation();copyText('@lionforgeLFG')" title="Copy">&#x2398;</button>
+                <div class="pay-method-handle">@lionforgepep
+                  <button class="copy-btn" onclick="event.stopPropagation();copyText('@lionforgepep')" title="Copy">&#x2398;</button>
                 </div>
               </div>
             </div>
@@ -434,19 +435,15 @@ function toggleNavMenu(){
 
         <div class="summary-line-row" style="padding-bottom:0;">
           <span class="summary-line-label">Shipping</span>
-          <span class="summary-line-val" id="summary-shipping">$10.00</span>
+          <span class="summary-line-val" id="summary-shipping">$15.00</span>
         </div>
 
         <div class="shipping-method-wrap" style="padding-top:12px;">
           <div class="shipping-method-label">Shipping Method</div>
           <div class="shipping-options">
-            <div class="shipping-option selected" id="ship-ground" onclick="selectShipping('ground',10)">
-              <div class="ship-name">Ground Shipping</div>
-              <div class="ship-desc">Standard delivery — $10.00</div>
-            </div>
-            <div class="shipping-option" id="ship-expedited" onclick="selectShipping('expedited',15)">
-              <div class="ship-name">Expedited Shipping</div>
-              <div class="ship-desc">2–4 days — $15.00</div>
+            <div class="shipping-option selected" id="ship-flat-rate">
+              <div class="ship-name">Flat Rate Shipping</div>
+              <div class="ship-desc">$15.00 per order</div>
             </div>
           </div>
         </div>
@@ -509,7 +506,7 @@ function loadCartData() {
 }
 
 let cart = [];
-let shippingCost = 10;
+const shippingCost = 15;
 let discount = 0;
 let selectedPayment = null;
 let fileAttached = false;
@@ -541,7 +538,7 @@ window.addEventListener('load', async function() {
   renderSummary();
   // Show estimated total in order number box
   var td = document.getElementById('order-total-display');
-  if(td){ var s=cart.reduce(function(a,i){return a+(i.price||0)*(i.qty||1);},0); td.textContent='Total to send: $'+(s+10).toFixed(2); }
+  if(td){ var s=cart.reduce(function(a,i){return a+(i.price||0)*(i.qty||1);},0); td.textContent='Total to send: $'+Math.max(0,s+shippingCost-discount).toFixed(2); }
 });
 
 function getSubtotal() {
@@ -563,37 +560,51 @@ function renderSummary() {
   document.getElementById('summary-total').textContent = '$' + Math.max(0, total).toFixed(2);
 }
 
-window.selectShipping = function(method, cost) {
-  shippingCost = cost;
-  document.getElementById('ship-ground').classList.toggle('selected', method === 'ground');
-  document.getElementById('ship-expedited').classList.toggle('selected', method === 'expedited');
-  renderSummary();
-  // Show estimated total in order number box
-  var td = document.getElementById('order-total-display');
-  if(td){ var s=cart.reduce(function(a,i){return a+(i.price||0)*(i.qty||1);},0); td.textContent='Total to send: $'+(s+10).toFixed(2); }
-};
 
-window.applyDiscount = function() {
+window.applyDiscount = async function() {
   const code = document.getElementById('discount-code').value.trim().toUpperCase();
   const msg  = document.getElementById('discount-msg');
   const codes = { 'LION10': 0.10, 'FORGE20': 0.20, 'RESEARCH15': 0.15 };
+  const fail = function(text) { discount = 0; msg.textContent = text; msg.style.color = 'var(--red)'; };
   if (codes[code]) {
     discount = getSubtotal() * codes[code];
     msg.textContent = '✓ Code applied — ' + (codes[code]*100) + '% off ($' + discount.toFixed(2) + ')';
     msg.style.color = 'var(--green)';
+  } else if (!code) {
+    fail('Invalid discount code');
   } else {
-    discount = 0;
-    msg.textContent = 'Invalid discount code';
-    msg.style.color = 'var(--red)';
+    // Personal codes (e.g. a fixed per-vial price) are checked by the server,
+    // which recalculates the discount again when the order is placed.
+    try {
+      const r = await apiFetch('/api/discount?code=' + encodeURIComponent(code));
+      const d = await r.json().catch(function(){ return {}; });
+      if (!r.ok) {
+        fail(d.error || 'Invalid discount code');
+      } else {
+        let units = 0, off = 0;
+        cart.forEach(function(c) {
+          if (Number(c.id) === d.productId && c.variant === d.variant) {
+            units += c.qty; off += Math.max(0, c.price - d.price) * c.qty;
+          }
+        });
+        if (off > 0) {
+          discount = off;
+          msg.textContent = '✓ Code applied — ' + d.label + ' at $' + d.price.toFixed(2) + ' each (−$' + off.toFixed(2) + ')';
+          msg.style.color = 'var(--green)';
+        } else {
+          fail('Code ' + code + ' applies to ' + d.label + ' — add it to your cart to use it.');
+        }
+      }
+    } catch(e) { fail('Could not check that code. Please try again.'); }
   }
   msg.style.display = 'block';
   renderSummary();
   // Show estimated total in order number box
   var td = document.getElementById('order-total-display');
-  if(td){ var s=cart.reduce(function(a,i){return a+(i.price||0)*(i.qty||1);},0); td.textContent='Total to send: $'+(s+10).toFixed(2); }
+  if(td){ var s=cart.reduce(function(a,i){return a+(i.price||0)*(i.qty||1);},0); td.textContent='Total to send: $'+Math.max(0,s+shippingCost-discount).toFixed(2); }
 };
 
-const paymentHandles = { venmo: '@lionforgeps on Venmo', cashapp: '$LionforgeLFG on Cash App', paypal: '@lionforgeLFG on PayPal (F&F)' };
+const paymentHandles = { venmo: '@lionforgeps on Venmo', cashapp: '$LionforgeLFG on Cash App', paypal: '@lionforgepep on PayPal (F&F)' };
 window.selectPayment = function(method) {
   selectedPayment = method;
   // Update dynamic payment guide
@@ -603,7 +614,7 @@ window.selectPayment = function(method) {
   document.getElementById('guide-line-1').textContent = 'Open ' + handle.split(' on ')[1] + ' and send to ' + handle.split(' on ')[0];
   document.getElementById('guide-line-2').textContent = 'In the notes/memo, type ONLY: ' + orderRef;
   document.getElementById('payment-guide').style.display = 'block';
-  ['venmo','cashapp'].forEach(m => {
+  ['venmo','cashapp','paypal'].forEach(m => {
     const el = document.getElementById('pm-' + m);
     if (el) el.classList.toggle('selected', m === method);
   });
@@ -666,7 +677,7 @@ window.placeOrder = async function() {
   const state   = document.getElementById('f-state').value.trim();
   const zip     = document.getElementById('f-zip').value.trim();
   const address = [street, city, state, zip].filter(Boolean).join(', ');
-  const shipMethodKey = document.getElementById('ship-expedited').classList.contains('selected') ? 'expedited' : 'ground';
+  const shipMethodKey = 'flat_rate';
   const discountCode = (document.getElementById('discount-code')?.value || '').trim().toUpperCase();
 
   // Every cart item must carry id + variantIndex so the server can look up
@@ -715,7 +726,7 @@ window.placeOrder = async function() {
   const serverSubtot = res.subtotal;
   const serverShip   = res.shipping;
   const serverTotal  = res.total;
-  const shipMethod   = shipMethodKey === 'expedited' ? 'Expedited' : 'Ground';
+  const shipMethod   = 'Flat Rate Shipping';
 
 
 
@@ -731,7 +742,7 @@ window.placeOrder = async function() {
   });
   document.getElementById('payment-ref-display').textContent = refLabel;
   // Payment handle per method
-  const handles = { venmo: '@lionforgeps on Venmo', cashapp: '$LionforgeLFG on Cash App', paypal: '@lionforgeLFG on PayPal' };
+  const handles = { venmo: '@lionforgeps on Venmo', cashapp: '$LionforgeLFG on Cash App', paypal: '@lionforgepep on PayPal' };
   const methodName = handles[selectedPayment] || (selectedPayment || 'your selected payment method');
   document.getElementById('payment-send-line').textContent = 'Send $' + serverTotal.toFixed(2) + ' to ' + methodName;
   document.getElementById('success-overlay').style.display = 'flex';

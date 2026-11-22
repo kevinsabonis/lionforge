@@ -6,6 +6,8 @@
 
 // ── JWT helpers ────────────────────────────────────────────────────────────
 
+import { getAdmin, handleAdminAuth, adminSessionCookie, clearAdminCookie, generateSignInCode } from './admin-auth.js';
+
 const enc = new TextEncoder();
 
 async function jwtSign(payload, secret) {
@@ -62,11 +64,14 @@ async function getUser(request, secret) {
   const cookieMatch = cookie.match(/(?:^|;\s*)session=([^;]+)/);
   if (cookieMatch) {
     const user = await jwtVerify(cookieMatch[1], secret);
-    if (user) return user;
+    if (user && user.aud !== 'admin') return user;
   }
   const auth = request.headers.get('Authorization') || '';
   const bearerMatch = auth.match(/^Bearer\s+(.+)$/i);
-  if (bearerMatch) return jwtVerify(bearerMatch[1], secret);
+  if (bearerMatch) {
+    const user = await jwtVerify(bearerMatch[1], secret);
+    return user?.aud === 'admin' ? null : user;
+  }
   return null;
 }
 
@@ -85,6 +90,23 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
     const method = request.method;
+
+    if (path === '/admin' || path === '/admin/' || path === '/admin/login' || path === '/admin/login/' || /^\/lion-forge-admin(?:\.html)?\/?$/.test(path)) {
+      try {
+        const user = await getAdmin(request, env);
+        const isLogin = path === '/admin/login';
+        const destination = user ? '/admin' : '/admin/login';
+        if ((user && path !== '/admin') || (!user && !isLogin)) {
+          return new Response(null, { status: 302, headers: { Location: destination, 'Cache-Control': 'no-store' } });
+        }
+        const asset = new URL(user ? '/lion-forge-admin' : '/admin-login', url);
+        const result = await env.ASSETS.fetch(new Request(asset, request));
+        const headers = new Headers(result.headers);
+        headers.set('Cache-Control', 'no-store');
+        headers.set('X-Robots-Tag', 'noindex, nofollow');
+        return new Response(result.body, { status: result.status, headers });
+      } catch { return err('Admin access is temporarily unavailable.', 503); }
+    }
 
     if (!path.startsWith('/api/')) {
       const response = await env.ASSETS.fetch(request);
@@ -106,11 +128,19 @@ export default {
     }
 
     try {
+      if (path.startsWith('/api/admin/auth/')) return await handleAdminAuth(request, env, path);
+      if (path.startsWith('/api/admin/') && !['GET', 'HEAD', 'OPTIONS'].includes(method) && request.headers.get('Origin') !== url.origin) return err('Invalid request origin', 403);
+      if (path.startsWith('/api/auth/') && method === 'POST' && request.headers.get('Origin') !== url.origin) return err('Invalid request origin', 403);
+      if (path === '/api/auth/navigation' && method === 'GET') {
+        const admin = await getAdmin(request, env);
+        const customer = await getUser(request, env.JWT_SECRET);
+        return json({ signedIn: Boolean(customer || admin), links: admin ? [{ href: '/admin', label: 'Admin dashboard' }] : [] });
+      }
       // ── Auth routes ──────────────────────────────────────────────────────
       if (path === '/api/auth/request-code' && method === 'POST')
-        return handleRequestCode(request, env);
+        return await handleRequestCode(request, env);
       if (path === '/api/auth/verify-code' && method === 'POST')
-        return handleVerifyCode(request, env);
+        return await handleVerifyCode(request, env);
       if (path === '/api/auth/logout' && method === 'POST')
         return handleLogout();
       if (path === '/api/auth/me' && method === 'GET')
@@ -132,6 +162,8 @@ export default {
 
       if (path === '/api/orders/next-num' && method === 'GET')
         return handleNextNum(env);
+      if (path === '/api/discount' && method === 'GET')
+        return await handleCheckPromo(request, env, url);
 
       // ── Shipping ─────────────────────────────────────────────────────────────
       const labelMatch = path.match(/^\/api\/admin\/orders\/([^/]+)\/create-label$/);
@@ -194,11 +226,23 @@ async function sendShippingNotification(env, order) {
 
 // ── Auth handlers ──────────────────────────────────────────────────────────
 
-async function handleRequestCode(request, env) {
-  const { email } = await request.json();
-  if (!email || !email.includes('@')) return err('Valid email required');
+function normalizeSignInEmail(value) {
+  const email = typeof value === 'string' ? value.trim().toLowerCase() : '';
+  return email.length <= 254 && /^[^\s@:]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null;
+}
 
-  const code = String(Math.floor(100000 + Math.random() * 900000));
+async function loginRateLimited(env, email, event, maximum) {
+  const row = await env.DB.prepare("SELECT COUNT(*) AS count FROM login_events WHERE email = ? AND event = ? AND created_at > datetime('now', '-15 minutes')").bind(email, event).first();
+  return row.count >= maximum;
+}
+
+async function handleRequestCode(request, env) {
+  let input;
+  try { input = await request.json(); } catch { return err('Invalid request'); }
+  const email = normalizeSignInEmail(input?.email);
+  if (!email) return err('Valid email required');
+  if (await loginRateLimited(env, email, 'code_requested', 3)) return err('Too many requests. Try again in 15 minutes.', 429);
+  const code = generateSignInCode();
   const expires = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
   // Replace any existing unused codes for this email
@@ -232,32 +276,32 @@ async function handleRequestCode(request, env) {
         </div>`
       })
     });
-    if (!resendResp.ok) {
-      const body = await resendResp.text();
-      console.error('Resend OTP send failed:', resendResp.status, body);
-    }
-  } catch(e) {
-    console.error('Resend OTP error:', e.message);
+    if (!resendResp.ok) throw new Error('Email delivery failed');
+  } catch {
+    await env.DB.prepare('DELETE FROM otp_codes WHERE email = ? AND code = ?').bind(email, code).run();
+    return err('Unable to send a code right now. Please try again later.', 502);
   }
 
   return json({ ok: true });
 }
 
 async function handleVerifyCode(request, env) {
-  const { email, code } = await request.json();
-  if (!email || !code) return err('Email and code required');
-
+  let input;
+  try { input = await request.json(); } catch { return err('Invalid request'); }
+  const email = normalizeSignInEmail(input?.email);
+  const code = String(input?.code || '');
+  if (!email || !/^\d{6}$/.test(code)) return err('Email and a six-digit code required');
+  if (await loginRateLimited(env, email, 'code_attempt', 5)) return err('Too many attempts. Try again in 15 minutes.', 429);
+  await env.DB.prepare('INSERT INTO login_events (id, email, event) VALUES (?, ?, ?)')
+    .bind(crypto.randomUUID(), email, 'code_attempt').run();
   const row = await env.DB.prepare(
-    "SELECT * FROM otp_codes WHERE email = ? AND code = ? AND used = 0 AND expires_at > datetime('now')"
-  ).bind(email.toLowerCase(), String(code)).first();
-
+    "UPDATE otp_codes SET used = 1 WHERE email = ? AND code = ? AND used = 0 AND datetime(expires_at) > datetime('now') RETURNING id"
+  ).bind(email, code).first();
   if (!row) {
     await env.DB.prepare('INSERT INTO login_events (id, email, event) VALUES (?, ?, ?)')
-      .bind(crypto.randomUUID(), email.toLowerCase(), 'login_failed').run();
+      .bind(crypto.randomUUID(), email, 'login_failed').run();
     return err('Invalid or expired code. Request a new one.', 401);
   }
-
-  await env.DB.prepare('UPDATE otp_codes SET used = 1 WHERE id = ?').bind(row.id).run();
 
   // Find or auto-create user
   let user = await env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(email.toLowerCase()).first();
@@ -278,14 +322,23 @@ async function handleVerifyCode(request, env) {
   await env.DB.prepare('INSERT INTO login_events (id, email, event) VALUES (?, ?, ?)')
     .bind(crypto.randomUUID(), user.email, 'login_success').run();
 
-  // Return token in body so mobile clients can use Bearer auth as cookie fallback
-  return json({ uid: user.id, email: user.email, displayName: user.display_name, role: user.role, _token: token }, 200, {
+  // Only the database role can grant an admin session. Switching to a customer
+  // account clears any admin session already present in this browser.
+  const result = json({ uid: user.id, email: user.email, displayName: user.display_name, role: user.role, _token: token }, 200, {
     'Set-Cookie': sessionCookie(token),
   });
+  result.headers.append('Set-Cookie', await adminSessionCookie(user, env.JWT_SECRET));
+  if (user.role === 'admin') {
+    await env.DB.prepare('INSERT INTO login_events (id, email, event) VALUES (?, ?, ?)')
+      .bind(crypto.randomUUID(), user.email, 'admin_login_success').run();
+  }
+  return result;
 }
 
 function handleLogout() {
-  return json({ ok: true }, 200, { 'Set-Cookie': clearCookie() });
+  const result = json({ ok: true }, 200, { 'Set-Cookie': clearCookie() });
+  result.headers.append('Set-Cookie', clearAdminCookie());
+  return result;
 }
 
 async function handleMe(request, env) {
@@ -323,7 +376,9 @@ async function handleUpdateProfile(request, env) {
 async function handleGetProducts(env) {
   const row = await env.DB.prepare('SELECT value FROM config WHERE key = ?').bind('products').first();
   const data = row ? JSON.parse(row.value) : { list: [] };
-  return json(data);
+  // The storefront only needs published products. The admin endpoint retains
+  // the complete catalog, including hidden inventory.
+  return json({ ...data, list: data.list.filter(product => product.hidden !== true) });
 }
 
 // ── Announcement handlers ──────────────────────────────────────────────────
@@ -337,10 +392,46 @@ async function handleGetAnnouncements(env) {
 
 // ── Order handlers ─────────────────────────────────────────────────────────
 
-const SHIPPING_RATES = { ground: 10, expedited: 15 };
+const FLAT_RATE_SHIPPING = 15;
 const DISCOUNTS = { LION10: 0.10, FORGE20: 0.20, RESEARCH15: 0.15 };
 const UNLIMITED_THRESHOLD = 100;
 const round2 = n => Math.round(n * 100) / 100;
+
+// ── Personal promo codes ───────────────────────────────────────────────────
+// Stored in config key 'promoCodes' so they can be added or switched off with a
+// database update (no deploy). Shape:
+//   { "RETA50": { "active": true, "email": "customer@example.com",
+//                 "productId": 1, "variant": "60MG", "price": 50,
+//                 "label": "Retatrutide 60MG" } }
+// A code sets a fixed per-unit price for one product variant and only works for
+// the signed-in account whose email matches.
+async function getPromo(env, code) {
+  if (!code) return null;
+  const row = await env.DB.prepare('SELECT value FROM config WHERE key = ?').bind('promoCodes').first();
+  if (!row) return null;
+  let all;
+  try { all = JSON.parse(row.value); } catch { return null; }
+  const promo = all && all[code];
+  return promo && promo.active === true ? promo : null;
+}
+function promoAllowedFor(promo, email) {
+  return !!email && String(promo.email || '').toLowerCase() === String(email).toLowerCase();
+}
+function promoSavings(promo, lineItems) {
+  return round2(lineItems
+    .filter(li => li.id === Number(promo.productId) && li.variant === promo.variant)
+    .reduce((s, li) => s + Math.max(0, li.price - Number(promo.price)) * li.qty, 0));
+}
+
+async function handleCheckPromo(request, env, url) {
+  const code = String(url.searchParams.get('code') || '').trim().toUpperCase();
+  const promo = await getPromo(env, code);
+  if (!promo) return err('Invalid discount code', 404);
+  const user = await getUser(request, env.JWT_SECRET);
+  if (!user) return err('Please sign in to use this code.', 401);
+  if (!promoAllowedFor(promo, user.email)) return err('This code is not valid for your account.', 403);
+  return json({ code, productId: Number(promo.productId), variant: promo.variant, price: Number(promo.price), label: promo.label || promo.variant });
+}
 
 async function handlePlaceOrder(request, env) {
   const user = await getUser(request, env.JWT_SECRET);
@@ -368,7 +459,6 @@ async function handlePlaceOrder(request, env) {
   const address = String(customer.address || '').trim().slice(0, 1000);
   if (!displayName || !address) return err('A name and shipping address are required.');
 
-  const shippingMethod = String(data.shippingMethod || 'ground').toLowerCase() === 'expedited' ? 'expedited' : 'ground';
   const discountCode = String(data.discountCode || '').trim().toUpperCase();
   const paymentMethod = String(data.paymentMethod || '').slice(0, 40);
 
@@ -401,9 +491,17 @@ async function handlePlaceOrder(request, env) {
   }
   subtotal = round2(subtotal);
 
-  const shipping = SHIPPING_RATES[shippingMethod];
+  const shipping = FLAT_RATE_SHIPPING;
   const discountRate = DISCOUNTS[discountCode] || 0;
-  const discount = round2(subtotal * discountRate);
+  let discount = round2(subtotal * discountRate);
+  let appliedCode = discountRate ? discountCode : '';
+  if (!discountRate && discountCode) {
+    const promo = await getPromo(env, discountCode);
+    if (promo && promoAllowedFor(promo, authEmail)) {
+      const off = promoSavings(promo, lineItems);
+      if (off > 0) { discount = off; appliedCode = discountCode; }
+    }
+  }
   const total = Math.max(0, round2(subtotal + shipping - discount));
 
   const newList = list.map(p => {
@@ -431,15 +529,15 @@ async function handlePlaceOrder(request, env) {
     env.DB.prepare('UPDATE config SET value = ? WHERE key = ?').bind(JSON.stringify({ list: newList }), 'products'),
     env.DB.prepare(`INSERT INTO orders (id, order_num, status, uid, display_name, email, address, payment_method, shipping_method, items, subtotal, shipping, discount, discount_code, total, date) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
       .bind(orderId, orderNum, 'pending', uid, displayName, email, address, paymentMethod,
-        shippingMethod === 'expedited' ? 'Expedited' : 'Ground',
+        'Flat Rate Shipping',
         JSON.stringify(lineItems), subtotal, shipping, discount,
-        discountRate ? discountCode : '', total, orderDate),
+        appliedCode, total, orderDate),
   ]);
 
   const itemsHtml = lineItems.map(i =>
     `<tr><td style="padding:6px 0;color:#c8d4e8;">${i.name} (${i.variant}) x${i.qty}</td><td style="padding:6px 0;color:#ffd060;text-align:right;">$${i.lineTotal.toFixed(2)}</td></tr>`
   ).join('');
-  const shipLabel = shippingMethod === 'expedited' ? 'Expedited' : 'Ground';
+  const shipLabel = 'Flat Rate Shipping';
 
   // Customer confirmation
   await sendResendEmail(env.RESEND_API_KEY, {
@@ -501,7 +599,7 @@ async function handleGetOrders(request, env) {
 // ── Admin handlers ─────────────────────────────────────────────────────────
 
 async function handleAdmin(request, env, path, method) {
-  const user = await getUser(request, env.JWT_SECRET);
+  const user = await getAdmin(request, env);
   if (!user || user.role !== 'admin') return err('Forbidden', 403);
 
   if (path === '/api/admin/orders' && method === 'GET') {
@@ -708,7 +806,7 @@ async function buyAndRecordLabel(env, order, weightOz) {
 // ── Create label handler ───────────────────────────────────────────────────
 
 async function handleCreateLabel(request, env, orderId) {
-  const user = await getUser(request, env.JWT_SECRET);
+  const user = await getAdmin(request, env);
   if (!user || user.role !== 'admin') return err('Forbidden', 403);
 
   const { weightOz } = await request.json();
